@@ -1,0 +1,222 @@
+.group-call-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-out;
+  color: white;
+}
+
+.group-call-overlay.fullscreen {
+  background: black;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gco-header {
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), transparent);
+}
+
+.gco-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.gco-status {
+  font-size: 0.9rem;
+  color: #2ecc71;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-call-grid {
+  flex: 1;
+  display: grid;
+  gap: 15px;
+  padding: 20px 30px;
+  align-content: center;
+  justify-content: center;
+}
+
+/* Dynamic Grid Layouts */
+.grid-1 { grid-template-columns: 1fr; max-width: 800px; margin: auto; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.grid-3 .participant-tile:first-child { grid-column: span 2; }
+.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.active-call-grid:not(.grid-1):not(.grid-2):not(.grid-3):not(.grid-4) {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.participant-tile {
+  background: #1e293b;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16/9;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  border: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.participant-tile.speaking {
+  border-color: #2ecc71;
+  transform: scale(1.02);
+}
+
+.tile-content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+video.mirror {
+  transform: scaleX(-1);
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #334155;
+  color: #94a3b8;
+  position: relative;
+}
+
+.avatar-pulse {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 2px solid rgba(46, 204, 113, 0.3);
+  border-radius: 50%;
+  animation: pulseAvatar 2s infinite;
+}
+
+@keyframes pulseAvatar {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.speaking-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 4px solid #2ecc71;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.speaking-ring.active {
+  opacity: 1;
+  animation: pulseSpeaking 1.5s infinite;
+}
+
+@keyframes pulseSpeaking {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(46, 204, 113, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+.tile-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.p-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gco-controls {
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.8), transparent);
+}
+
+.controls-group {
+  display: flex;
+  gap: 15px;
+}
+
+.ctrl-btn-round {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ctrl-btn-round:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+
+.ctrl-btn-round.active {
+  background: #ef4444;
+}
+
+.ctrl-btn-end {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ctrl-btn-end:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.gco-btn-mini {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}

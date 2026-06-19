@@ -1,0 +1,64 @@
+.logs-page {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.logs-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 40px;
+}
+
+.logs-page .modern-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.logs-page .modern-table th {
+  background: var(--bg-body);
+  padding: 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border);
+}
+
+.logs-page .modern-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.logs-page .modern-table tr:hover {
+  background: rgba(67, 97, 238, 0.02);
+}
+
+.logs-page .modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.status-active { color: var(--success); }
+.status-inactive { color: var(--danger); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .logs-page .modern-table th:nth-child(4),
+  .logs-page .modern-table td:nth-child(4) {
+    display: none;
+  }
+}

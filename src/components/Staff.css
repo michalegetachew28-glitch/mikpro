@@ -1,0 +1,151 @@
+.staff-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.staff-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: var(--transition);
+  position: relative;
+}
+
+.staff-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.staff-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.staff-info h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.staff-phone {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.role-mechanic {
+  background: rgba(67, 97, 238, 0.1);
+  color: var(--primary);
+}
+
+.role-admin {
+  background: rgba(247, 37, 133, 0.1);
+  color: var(--accent);
+}
+
+.role-receptionist {
+  background: rgba(76, 201, 240, 0.1);
+  color: var(--success);
+}
+
+.role-manager {
+  background: rgba(255, 165, 0, 0.12);
+  color: #e06c00;
+}
+
+.role-inventoryManager {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.role-cashier {
+  background: rgba(139, 92, 246, 0.12);
+  color: #7c3aed;
+}
+
+.role-storekeeper {
+  background: rgba(234, 179, 8, 0.12);
+  color: #ca8a04;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 110px;
+  right: 50%;
+  transform: translateX(35px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+}
+
+.status-active { background: var(--success); }
+.status-inactive { background: var(--danger); }
+
+.staff-card.inactive {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+
+.permissions-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.perm-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  background: var(--bg-body);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.staff-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.staff-card:hover .staff-actions {
+  opacity: 1;
+}
