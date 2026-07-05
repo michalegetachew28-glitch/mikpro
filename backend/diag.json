@@ -1,0 +1,680 @@
+{
+  "garages": [
+    {
+      "id": "cmqqrq4ur00006s835l87hfzm",
+      "ownerId": "demoadmin@garage.com",
+      "displayId": null,
+      "name": "Demo Garage",
+      "address": "",
+      "phone": "251912345678",
+      "email": "demoadmin@garage.com",
+      "ownerName": "Demo Admin",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-23T14:57:20.403Z",
+      "users": [
+        {
+          "id": "cmqqrq53700026s83uend1l6q",
+          "ownerId": "demoadmin@garage.com",
+          "name": "Demo Admin",
+          "email": "demoadmin@garage.com",
+          "phone": "251912345678",
+          "password": "$2b$10$zFCfOxzmsJXQrrwv7vKTmOe/KLsGv.OVxef62G.PY.C1pFg0diQ5G",
+          "role": "admin",
+          "garageName": "Demo Garage",
+          "address": "",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-23T14:57:20.705Z",
+          "updatedAt": "2026-06-23T14:57:20.705Z",
+          "expiryDate": "2026-07-07T14:57:20.401Z",
+          "garageId": "cmqqrq4ur00006s835l87hfzm"
+        }
+      ]
+    },
+    {
+      "id": "cmqqtivik0000lhle257cyibc",
+      "ownerId": "getachewmichale46@gmail.com",
+      "displayId": null,
+      "name": "33333",
+      "address": "diredawa",
+      "phone": "251911223333",
+      "email": "getachewmichale46@gmail.com",
+      "ownerName": "Mich",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-23T15:47:40.940Z",
+      "users": [
+        {
+          "id": "cmqqtivrb0002lhleuk3er3ju",
+          "ownerId": "getachewmichale46@gmail.com",
+          "name": "Mich",
+          "email": "getachewmichale46@gmail.com",
+          "phone": "251911223333",
+          "password": "$2b$10$5XY77yRF660krBF8whKL7u4Z/UQAJW5Bdvp63J4AMWzPeFWWzObKu",
+          "role": "admin",
+          "garageName": "33333",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-23T15:47:41.254Z",
+          "updatedAt": "2026-06-23T15:47:41.254Z",
+          "expiryDate": "2026-07-07T15:47:40.939Z",
+          "garageId": "cmqqtivik0000lhle257cyibc"
+        }
+      ]
+    },
+    {
+      "id": "cmqtxsewo0000u2a4bqfmdeo3",
+      "ownerId": "yechale1216@gmail.com",
+      "displayId": null,
+      "name": "oooo",
+      "address": "diredawa",
+      "phone": "251987360877",
+      "email": "yechale1216@gmail.com",
+      "ownerName": "Michale Getachew",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-25T20:10:22.968Z",
+      "users": [
+        {
+          "id": "cmqtxsfet0002u2a4ohv30ito",
+          "ownerId": "yechale1216@gmail.com",
+          "name": "Michale Getachew",
+          "email": "yechale1216@gmail.com",
+          "phone": "251987360877",
+          "password": "$2b$10$3l5Wfutylt5nDoN6b9tmEuleOlDYP5Dv7f2u/1./Ma8Lr0USlVKLq",
+          "role": "admin",
+          "garageName": "oooo",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-25T20:10:23.620Z",
+          "updatedAt": "2026-06-25T20:10:23.620Z",
+          "expiryDate": "2026-07-09T20:10:22.967Z",
+          "garageId": "cmqtxsewo0000u2a4bqfmdeo3"
+        }
+      ]
+    },
+    {
+      "id": "cmqu9lvb50000rhpdrhcea12p",
+      "ownerId": "yechale126@gmail.com",
+      "displayId": null,
+      "name": "oooo",
+      "address": "diredawa",
+      "phone": "251987368877",
+      "email": "yechale126@gmail.com",
+      "ownerName": "Michale Getachew",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-26T01:41:13.023Z",
+      "users": [
+        {
+          "id": "cmqu9lwda0002rhpdp2g7vtvp",
+          "ownerId": "yechale126@gmail.com",
+          "name": "Michale Getachew",
+          "email": "yechale126@gmail.com",
+          "phone": "251987368877",
+          "password": "$2b$10$dOTXiD0JSf4kJpQTnFJte.EpT01MPmIEQKJm5RbxrfSJtKxj3Ycom",
+          "role": "admin",
+          "garageName": "oooo",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-26T01:41:14.398Z",
+          "updatedAt": "2026-06-26T01:41:14.398Z",
+          "expiryDate": "2026-07-10T01:41:13.019Z",
+          "garageId": "cmqu9lvb50000rhpdrhcea12p"
+        }
+      ]
+    },
+    {
+      "id": "cmquxzhrb0000aj21j9rgt2w8",
+      "ownerId": "yechale1217@gmail.com",
+      "displayId": null,
+      "name": "BHHHH",
+      "address": "diredawa",
+      "phone": "251987360870",
+      "email": "yechale1217@gmail.com",
+      "ownerName": "Michale Getachew",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-26T13:03:39.432Z",
+      "users": [
+        {
+          "id": "cmquxzi2m0002aj21096pefk5",
+          "ownerId": "yechale1217@gmail.com",
+          "name": "Michale Getachew",
+          "email": "yechale1217@gmail.com",
+          "phone": "251987360870",
+          "password": "$2b$10$lvtLlufVLhTDA5rQNK/jZOCea2DPpnbQReXI/2QJPub5J99lkhTvG",
+          "role": "admin",
+          "garageName": "BHHHH",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-26T13:03:39.838Z",
+          "updatedAt": "2026-06-26T13:03:39.838Z",
+          "expiryDate": "2026-07-10T13:03:39.429Z",
+          "garageId": "cmquxzhrb0000aj21j9rgt2w8"
+        }
+      ]
+    },
+    {
+      "id": "cmquyix9e0000ahg1l3ai44ue",
+      "ownerId": "yechale1210@gmail.com",
+      "displayId": null,
+      "name": "addis",
+      "address": "diredawa",
+      "phone": "251987360879",
+      "email": "yechale1210@gmail.com",
+      "ownerName": "cdnvfmgb ,",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-26T13:18:45.986Z",
+      "users": [
+        {
+          "id": "cmquyixgx0002ahg1gwzm6chi",
+          "ownerId": "yechale1210@gmail.com",
+          "name": "cdnvfmgb ,",
+          "email": "yechale1210@gmail.com",
+          "phone": "251987360879",
+          "password": "$2b$10$CP9FadfJ27RAs8kvr5ZrA.2p7zYiy1AG5tIiT7iZH7kAkCrwjAESW",
+          "role": "admin",
+          "garageName": "addis",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-26T13:18:46.257Z",
+          "updatedAt": "2026-06-26T13:18:46.257Z",
+          "expiryDate": "2026-07-10T13:18:45.983Z",
+          "garageId": "cmquyix9e0000ahg1l3ai44ue"
+        },
+        {
+          "id": "cmr0no0vu0002h0tf3nradnpp",
+          "ownerId": "yechale1210@gmail.com",
+          "name": "miko",
+          "email": "251987888888@mechpro.staff",
+          "phone": "251987888888",
+          "password": "$2b$10$p.BKERlrP191F.j6CpKQ9.u7h9nC8HXIOl9H5SZMGmjp5eAA.5d8K",
+          "role": "cashier",
+          "garageName": "addis",
+          "address": null,
+          "status": "active",
+          "permissions": [
+            "repairs_view",
+            "billing_manage",
+            "customers_manage",
+            "appointments_manage"
+          ],
+          "createdAt": "2026-06-30T13:01:25.242Z",
+          "updatedAt": "2026-06-30T13:01:25.242Z",
+          "expiryDate": null,
+          "garageId": "cmquyix9e0000ahg1l3ai44ue"
+        },
+        {
+          "id": "cmr0noo430007h0tffc5f6c2x",
+          "ownerId": "yechale1210@gmail.com",
+          "name": "yedg",
+          "email": "251984444444@mechpro.staff",
+          "phone": "251984444444",
+          "password": "$2b$10$FiiYA9CtwCofcmpj2Waa4OmqkbVYR8CE8u33v4g9znILsnA2uLnb6",
+          "role": "mechanic",
+          "garageName": "addis",
+          "address": null,
+          "status": "active",
+          "permissions": [
+            "repairs_view"
+          ],
+          "createdAt": "2026-06-30T13:01:55.348Z",
+          "updatedAt": "2026-06-30T13:01:55.348Z",
+          "expiryDate": null,
+          "garageId": "cmquyix9e0000ahg1l3ai44ue"
+        },
+        {
+          "id": "cmr0npf8g000ch0tfgk04it1t",
+          "ownerId": "yechale1210@gmail.com",
+          "name": "nn",
+          "email": "251986666666@mechpro.staff",
+          "phone": "251986666666",
+          "password": "$2b$10$0WMN4uIbdJyAAAi7RM1aHe7FsiHVKpUXWqJpuuQjIZlfSht5.F7Dq",
+          "role": "manager",
+          "garageName": "addis",
+          "address": null,
+          "status": "active",
+          "permissions": [
+            "repairs_view",
+            "repairs_manage",
+            "customers_manage",
+            "vehicles_manage",
+            "appointments_manage",
+            "billing_manage",
+            "inventory_manage",
+            "staff_manage",
+            "activity_view"
+          ],
+          "createdAt": "2026-06-30T13:02:30.496Z",
+          "updatedAt": "2026-06-30T13:02:30.496Z",
+          "expiryDate": null,
+          "garageId": "cmquyix9e0000ahg1l3ai44ue"
+        },
+        {
+          "id": "cmr0nw0ps000kh0tf6hmn6jv0",
+          "ownerId": "yechale1210@gmail.com",
+          "name": "miko",
+          "email": "251985555555@mechpro.staff",
+          "phone": "251985555555",
+          "password": "$2b$10$.QaTl8zjCdg8B3jM0Lj6j.9.y.iAxm5Y5E8NmYeqQk0Vg6dMn45ku",
+          "role": "inventoryManager",
+          "garageName": "addis",
+          "address": null,
+          "status": "active",
+          "permissions": [
+            "repairs_view"
+          ],
+          "createdAt": "2026-06-30T13:07:38.272Z",
+          "updatedAt": "2026-06-30T13:07:49.479Z",
+          "expiryDate": null,
+          "garageId": "cmquyix9e0000ahg1l3ai44ue"
+        }
+      ]
+    },
+    {
+      "id": "cmr0peaor0000fy4794xfzg5v",
+      "ownerId": "test_concurrent_1_1782827390618@test.com",
+      "displayId": "12-0000-001",
+      "name": "Concurrent Garage 1",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "ownerName": null,
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T13:49:50.619Z",
+      "users": []
+    },
+    {
+      "id": "cmr0pebic0001fy47jj6lbnmb",
+      "ownerId": "test_concurrent_2_1782827391682@test.com",
+      "displayId": "12-0000-002",
+      "name": "Concurrent Garage 2",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "ownerName": null,
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T13:49:51.684Z",
+      "users": []
+    },
+    {
+      "id": "cmr0pebjn0003fy47ucexg0oc",
+      "ownerId": "test_concurrent_0_1782827391730@test.com",
+      "displayId": "12-0000-004",
+      "name": "Concurrent Garage 0",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "ownerName": null,
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T13:49:51.731Z",
+      "users": []
+    },
+    {
+      "id": "cmr0pebjm0002fy47lm0c1trj",
+      "ownerId": "test_concurrent_4_1782827391729@test.com",
+      "displayId": "12-0000-003",
+      "name": "Concurrent Garage 4",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "ownerName": null,
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T13:49:51.731Z",
+      "users": []
+    },
+    {
+      "id": "cmr0peblf0004fy475b5q6222",
+      "ownerId": "test_concurrent_3_1782827391794@test.com",
+      "displayId": "12-0000-005",
+      "name": "Concurrent Garage 3",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "ownerName": null,
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T13:49:51.796Z",
+      "users": []
+    },
+    {
+      "id": "cmr0ym2ni0000sp6bcy2sot0l",
+      "ownerId": "cc@gmail.com",
+      "displayId": "12-0000-006",
+      "name": "arrr",
+      "address": "",
+      "phone": "251987365252",
+      "email": "cc@gmail.com",
+      "ownerName": "ccc",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T18:07:49.999Z",
+      "users": [
+        {
+          "id": "cmr0ym3hd0003sp6bv1jmiq6c",
+          "ownerId": "cc@gmail.com",
+          "name": "ccc",
+          "email": "cc@gmail.com",
+          "phone": "251987365252",
+          "password": "$2b$10$VD.Pnh5heRycISDQmut6zuRuETXdinywQG0lOGchCiN0JBl4Z1aoa",
+          "role": "admin",
+          "garageName": "arrr",
+          "address": "",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-30T18:07:51.071Z",
+          "updatedAt": "2026-06-30T18:07:51.071Z",
+          "expiryDate": "2026-07-20T18:07:49.407Z",
+          "garageId": "cmr0ym2ni0000sp6bcy2sot0l"
+        }
+      ]
+    },
+    {
+      "id": "cmr0zuv2f0000ovbfh5gesnci",
+      "ownerId": "yechale99@gmail.com",
+      "displayId": "12-0000-007",
+      "name": "mooo",
+      "address": "diredawa",
+      "phone": "251987360811",
+      "email": "yechale99@gmail.com",
+      "ownerName": "Makbel Solomon",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T18:42:39.688Z",
+      "users": [
+        {
+          "id": "cmr0zuvfu0003ovbf2l2l1s17",
+          "ownerId": "yechale99@gmail.com",
+          "name": "Makbel Solomon",
+          "email": "yechale99@gmail.com",
+          "phone": "251987360811",
+          "password": "$2b$10$5TLHlRqCyzxjDWF1BKYsvOXlr7MWh4NsaOYnF2rlAXtbuPhKdHYBC",
+          "role": "admin",
+          "garageName": "mooo",
+          "address": "diredawa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-30T18:42:40.170Z",
+          "updatedAt": "2026-06-30T18:42:40.170Z",
+          "expiryDate": "2026-07-20T18:42:39.387Z",
+          "garageId": "cmr0zuv2f0000ovbfh5gesnci"
+        }
+      ]
+    },
+    {
+      "id": "cmr0zvccs0004ovbf73wzkq93",
+      "ownerId": "testowner_1782844981233@test.com",
+      "displayId": "12-0000-008",
+      "name": "Automated Test Garage 1782844981233",
+      "address": "Bole Road, Addis Ababa",
+      "phone": "251979391147",
+      "email": "testowner_1782844981233@test.com",
+      "ownerName": "Test Garage Owner",
+      "logoUrl": null,
+      "description": null,
+      "services": null,
+      "status": "active",
+      "createdAt": "2026-06-30T18:43:02.092Z",
+      "users": [
+        {
+          "id": "cmr0zvckf0007ovbfs764pibd",
+          "ownerId": "testowner_1782844981233@test.com",
+          "name": "Test Garage Owner",
+          "email": "testowner_1782844981233@test.com",
+          "phone": "251979391147",
+          "password": "$2b$10$b8d4eCzPHTPLiptejw3ED.MUwNqpIxC3/LMUxUtN.AGl7wC1FB8cG",
+          "role": "admin",
+          "garageName": "Automated Test Garage 1782844981233",
+          "address": "Bole Road, Addis Ababa",
+          "status": "active",
+          "permissions": [
+            "all"
+          ],
+          "createdAt": "2026-06-30T18:43:02.367Z",
+          "updatedAt": "2026-06-30T18:43:02.367Z",
+          "expiryDate": "2026-07-20T18:43:01.954Z",
+          "garageId": "cmr0zvccs0004ovbf73wzkq93"
+        }
+      ]
+    }
+  ],
+  "admins": [
+    {
+      "id": "cmqqrq53700026s83uend1l6q",
+      "ownerId": "demoadmin@garage.com",
+      "name": "Demo Admin",
+      "email": "demoadmin@garage.com",
+      "phone": "251912345678",
+      "password": "$2b$10$zFCfOxzmsJXQrrwv7vKTmOe/KLsGv.OVxef62G.PY.C1pFg0diQ5G",
+      "role": "admin",
+      "garageName": "Demo Garage",
+      "address": "",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-23T14:57:20.705Z",
+      "updatedAt": "2026-06-23T14:57:20.705Z",
+      "expiryDate": "2026-07-07T14:57:20.401Z",
+      "garageId": "cmqqrq4ur00006s835l87hfzm"
+    },
+    {
+      "id": "cmqqtivrb0002lhleuk3er3ju",
+      "ownerId": "getachewmichale46@gmail.com",
+      "name": "Mich",
+      "email": "getachewmichale46@gmail.com",
+      "phone": "251911223333",
+      "password": "$2b$10$5XY77yRF660krBF8whKL7u4Z/UQAJW5Bdvp63J4AMWzPeFWWzObKu",
+      "role": "admin",
+      "garageName": "33333",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-23T15:47:41.254Z",
+      "updatedAt": "2026-06-23T15:47:41.254Z",
+      "expiryDate": "2026-07-07T15:47:40.939Z",
+      "garageId": "cmqqtivik0000lhle257cyibc"
+    },
+    {
+      "id": "cmqtxsfet0002u2a4ohv30ito",
+      "ownerId": "yechale1216@gmail.com",
+      "name": "Michale Getachew",
+      "email": "yechale1216@gmail.com",
+      "phone": "251987360877",
+      "password": "$2b$10$3l5Wfutylt5nDoN6b9tmEuleOlDYP5Dv7f2u/1./Ma8Lr0USlVKLq",
+      "role": "admin",
+      "garageName": "oooo",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-25T20:10:23.620Z",
+      "updatedAt": "2026-06-25T20:10:23.620Z",
+      "expiryDate": "2026-07-09T20:10:22.967Z",
+      "garageId": "cmqtxsewo0000u2a4bqfmdeo3"
+    },
+    {
+      "id": "cmqu9lwda0002rhpdp2g7vtvp",
+      "ownerId": "yechale126@gmail.com",
+      "name": "Michale Getachew",
+      "email": "yechale126@gmail.com",
+      "phone": "251987368877",
+      "password": "$2b$10$dOTXiD0JSf4kJpQTnFJte.EpT01MPmIEQKJm5RbxrfSJtKxj3Ycom",
+      "role": "admin",
+      "garageName": "oooo",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-26T01:41:14.398Z",
+      "updatedAt": "2026-06-26T01:41:14.398Z",
+      "expiryDate": "2026-07-10T01:41:13.019Z",
+      "garageId": "cmqu9lvb50000rhpdrhcea12p"
+    },
+    {
+      "id": "cmquxzi2m0002aj21096pefk5",
+      "ownerId": "yechale1217@gmail.com",
+      "name": "Michale Getachew",
+      "email": "yechale1217@gmail.com",
+      "phone": "251987360870",
+      "password": "$2b$10$lvtLlufVLhTDA5rQNK/jZOCea2DPpnbQReXI/2QJPub5J99lkhTvG",
+      "role": "admin",
+      "garageName": "BHHHH",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-26T13:03:39.838Z",
+      "updatedAt": "2026-06-26T13:03:39.838Z",
+      "expiryDate": "2026-07-10T13:03:39.429Z",
+      "garageId": "cmquxzhrb0000aj21j9rgt2w8"
+    },
+    {
+      "id": "cmquyixgx0002ahg1gwzm6chi",
+      "ownerId": "yechale1210@gmail.com",
+      "name": "cdnvfmgb ,",
+      "email": "yechale1210@gmail.com",
+      "phone": "251987360879",
+      "password": "$2b$10$CP9FadfJ27RAs8kvr5ZrA.2p7zYiy1AG5tIiT7iZH7kAkCrwjAESW",
+      "role": "admin",
+      "garageName": "addis",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-26T13:18:46.257Z",
+      "updatedAt": "2026-06-26T13:18:46.257Z",
+      "expiryDate": "2026-07-10T13:18:45.983Z",
+      "garageId": "cmquyix9e0000ahg1l3ai44ue"
+    },
+    {
+      "id": "cmr0ym3hd0003sp6bv1jmiq6c",
+      "ownerId": "cc@gmail.com",
+      "name": "ccc",
+      "email": "cc@gmail.com",
+      "phone": "251987365252",
+      "password": "$2b$10$VD.Pnh5heRycISDQmut6zuRuETXdinywQG0lOGchCiN0JBl4Z1aoa",
+      "role": "admin",
+      "garageName": "arrr",
+      "address": "",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-30T18:07:51.071Z",
+      "updatedAt": "2026-06-30T18:07:51.071Z",
+      "expiryDate": "2026-07-20T18:07:49.407Z",
+      "garageId": "cmr0ym2ni0000sp6bcy2sot0l"
+    },
+    {
+      "id": "cmr0zuvfu0003ovbf2l2l1s17",
+      "ownerId": "yechale99@gmail.com",
+      "name": "Makbel Solomon",
+      "email": "yechale99@gmail.com",
+      "phone": "251987360811",
+      "password": "$2b$10$5TLHlRqCyzxjDWF1BKYsvOXlr7MWh4NsaOYnF2rlAXtbuPhKdHYBC",
+      "role": "admin",
+      "garageName": "mooo",
+      "address": "diredawa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-30T18:42:40.170Z",
+      "updatedAt": "2026-06-30T18:42:40.170Z",
+      "expiryDate": "2026-07-20T18:42:39.387Z",
+      "garageId": "cmr0zuv2f0000ovbfh5gesnci"
+    },
+    {
+      "id": "cmr0zvckf0007ovbfs764pibd",
+      "ownerId": "testowner_1782844981233@test.com",
+      "name": "Test Garage Owner",
+      "email": "testowner_1782844981233@test.com",
+      "phone": "251979391147",
+      "password": "$2b$10$b8d4eCzPHTPLiptejw3ED.MUwNqpIxC3/LMUxUtN.AGl7wC1FB8cG",
+      "role": "admin",
+      "garageName": "Automated Test Garage 1782844981233",
+      "address": "Bole Road, Addis Ababa",
+      "status": "active",
+      "permissions": [
+        "all"
+      ],
+      "createdAt": "2026-06-30T18:43:02.367Z",
+      "updatedAt": "2026-06-30T18:43:02.367Z",
+      "expiryDate": "2026-07-20T18:43:01.954Z",
+      "garageId": "cmr0zvccs0004ovbf73wzkq93"
+    }
+  ],
+  "paymentRequests": [],
+  "stats": {
+    "garageCount": 14,
+    "userCount": 15,
+    "repairCount": 0,
+    "customerCount": 0,
+    "paymentSum": {
+      "_sum": {
+        "amount": null
+      }
+    }
+  }
+}

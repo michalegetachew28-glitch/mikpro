@@ -1,0 +1,22 @@
+=== Testing role logins ===
+
+[Admin] Status: 200
+✅ Login SUCCESS - role: admin, garage: Demo Garage
+
+[Manager (phone)] Status: 200
+✅ Login SUCCESS - role: manager, garage: addis
+
+[Cashier (phone)] Status: 200
+✅ Login SUCCESS - role: cashier, garage: addis
+
+[Mechanic (phone)] Status: 200
+✅ Login SUCCESS - role: mechanic, garage: addis
+
+[InventoryMgr (phone)] Status: 200
+✅ Login SUCCESS - role: inventoryManager, garage: addis
+
+[Customer (email)] Status: 200
+✅ Login SUCCESS - role: customer, garage: 
+
+=== Testing customer creation ===
+Couldn't get admin token for customer test: { error: 'Invalid credentials' }

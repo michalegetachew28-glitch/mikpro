@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { BriefcaseBusiness, Plus, Edit2, Trash2, MessageSquare, Navigation, Shield, UserX, UserCheck, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PhoneInput from './PhoneInput';
+import { api } from '../services/api';
 import './Staff.css';
 
 const ALL_PERMISSIONS = [
@@ -18,12 +19,10 @@ const STAFF_SYNC_ROLES = ['admin', 'mechanic', 'receptionist', 'cashier', 'store
 
 const Staff = () => {
   const { 
-    deleteItem, addItem, updateItem, openChatWith, t, language, logActivity, requestConfirmation, customers,
-    salaries, salaryPayments, attendance, repairs, appointments, notifications, messages,
-    setSalaries, setSalaryPayments, setAttendance, setRepairs, setAppointments, setNotifications, setMessages
+    openChatWith, t, language, logActivity, requestConfirmation, customers
   } = useAppContext();
   const navigate = useNavigate();
-  const { register, currentUser, getAccounts, updateOtherAccount, deleteAccount } = useAuth();
+  const { currentUser } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [showPermModal, setShowPermModal] = useState(false);
@@ -31,26 +30,39 @@ const Staff = () => {
   const [targetAccount, setTargetAccount] = useState(null);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('staff'); // staff, customers
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [staffList, setStaffList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '', role: 'mechanic', phone: '', address: '', password: '', confirmPassword: ''
   });
   const [isPhoneValid, setIsPhoneValid] = useState(true);
 
-  // Fetch all accounts from AuthContext and filter by ownerId
-  const allAccounts = useMemo(() => {
-    const accs = getAccounts() || [];
-    return accs.filter(a => a && a.ownerId === currentUser?.ownerId && a.id !== currentUser?.id && a.status !== 'deleted');
-  }, [getAccounts, currentUser?.ownerId, currentUser?.id, refreshTrigger]);
+  // Load staff from backend
+  const loadStaff = useCallback(async () => {
+    if (!currentUser?.garageId) return;
+    setIsLoading(true);
+    try {
+      const data = await api.getStaff();
+      setStaffList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('[Staff] Failed to load staff', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUser?.garageId]);
+
+  useEffect(() => {
+    loadStaff();
+  }, [loadStaff]);
 
   const filteredUsers = useMemo(() => {
-    const list = allAccounts || [];
     if (activeTab === 'staff') {
-      return list.filter(a => a && ['admin', 'mechanic', 'receptionist', 'cashier', 'storekeeper', 'manager', 'inventoryManager'].includes(a.role));
+      return staffList.filter(Boolean);
     }
-    return list.filter(a => a && a.role === 'customer');
-  }, [allAccounts, activeTab]);
+    // Customers tab - use customers from AppContext
+    return (customers || []).filter(Boolean);
+  }, [staffList, customers, activeTab]);
 
   const handleOpenModal = (person = null) => {
     setError('');
@@ -83,24 +95,20 @@ const Staff = () => {
     setTargetAccount(null);
   };
 
-  const handleToggleStatus = (person) => {
+  const handleToggleStatus = async (person) => {
     if (!person?.id) return;
     try {
       const newStatus = person.status === 'inactive' ? 'active' : 'inactive';
-      updateOtherAccount(person.id, { status: newStatus });
+      await api.updateStaffStatus(person.id, newStatus);
       logActivity(`Status Change`, `User: ${person.name || person.id} is now ${newStatus}`);
-      // AppContext `staff` mirrors employees only — never write customers into that array
-      if (person.role && STAFF_SYNC_ROLES.includes(person.role)) {
-        updateItem('staff', person.id, { status: newStatus });
-      }
-      setRefreshTrigger(prev => prev + 1);
+      setStaffList(prev => prev.map(s => s.id === person.id ? { ...s, status: newStatus } : s));
     } catch (err) {
       console.error('[Staff] handleToggleStatus failed', err);
-      setError('Could not update status. Check the browser console for details.');
+      setError('Could not update status: ' + (err.message || 'Check the console.'));
     }
   };
 
-  const handleTogglePermission = (perm) => {
+  const handleTogglePermission = async (perm) => {
     if (!targetAccount) return;
     const hasPerm = targetAccount.permissions?.includes(perm);
     let newPerms;
@@ -110,73 +118,28 @@ const Staff = () => {
       newPerms = [...(targetAccount.permissions || []), perm];
     }
 
-    updateOtherAccount(targetAccount.id, { permissions: newPerms });
-    setTargetAccount(prev => ({ ...prev, permissions: newPerms }));
-  };
-  // Cascade delete: remove employee and all related data across the app
-  const handleDeletePerson = (person) => {
-    const id = person.id;
-    const isCustomer = person.role === 'customer';
-
-    if (isCustomer) {
-      deleteItem('customers', id);
-      logActivity('Deleted Customer', `${person.name} removed.`);
-    } else {
-      // 1. Permanently block login in AuthContext
-      deleteAccount(id);
-
-      // 2. Remove from operational staff list
-      deleteItem('staff', id);
-
-      // 3. Purge financial records (Salaries & Payments)
-      if (Array.isArray(salaries)) {
-        salaries.filter(s => String(s.employeeId) === String(id))
-          .forEach(s => deleteItem('salaries', s.id));
-      }
-      if (Array.isArray(salaryPayments)) {
-        salaryPayments.filter(p => String(p.employeeId) === String(id))
-          .forEach(p => deleteItem('salaryPayments', p.id));
-      }
-
-      // 4. Purge attendance logs
-      if (Array.isArray(attendance)) {
-        setAttendance(prev => prev.filter(a => String(a.staffId) !== String(id)));
-      }
-
-      // 5. Safe unassign from repair orders
-      if (Array.isArray(repairs)) {
-        repairs.forEach(r => {
-          if (String(r.mechanicId) === String(id)) {
-            updateItem('repairs', r.id, { mechanicId: null, mechanicName: '' });
-          }
-        });
-      }
-
-      // 6. Safe unassign from appointments
-      if (Array.isArray(appointments)) {
-        appointments.forEach(a => {
-          if (String(a.staffId) === String(id) || String(a.mechanicId) === String(id)) {
-            updateItem('appointments', a.id, { staffId: null, mechanicId: null, mechanicName: '' });
-          }
-        });
-      }
-
-      // 7. Cleanup communications
-      if (Array.isArray(messages)) {
-        setMessages(prev => prev.filter(m => String(m.senderId) !== String(id) && String(m.recipientId) !== String(id)));
-      }
-      if (Array.isArray(notifications)) {
-        setNotifications(prev => prev.filter(n => String(n.userId) !== String(id) || String(n.senderId) === String(id)));
-      }
-
-      logActivity('Full Cascade Delete', `Employee ${person.name} and all associated records removed.`);
+    try {
+      await api.updateStaffPermissions(targetAccount.id, newPerms);
+      setTargetAccount(prev => ({ ...prev, permissions: newPerms }));
+      setStaffList(prev => prev.map(s => s.id === targetAccount.id ? { ...s, permissions: newPerms } : s));
+    } catch (err) {
+      setError('Could not update permissions: ' + (err.message || ''));
     }
-
-    setRefreshTrigger(prev => prev + 1);
+  };
+  // Delete: backend handles cascade (bonus, materialRequest, repairs unassign, staff record)
+  const handleDeletePerson = async (person) => {
+    const id = person.id;
+    try {
+      await api.deleteStaff(id);
+      logActivity('Deleted Staff', `${person.name} removed.`);
+      setStaffList(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      setError('Could not delete: ' + (err.message || ''));
+    }
   };
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -192,67 +155,44 @@ const Staff = () => {
       }
 
       const updates = {
-        name: formData.name, role: formData.role, phone: formData.phone, address: formData.address
+        name: formData.name,
+        role: formData.role,
+        phone: formData.phone,
+        address: formData.address
       };
-      if (formData.password) {
-        updates.password = formData.password;
-      }
+      if (formData.password) updates.password = formData.password;
 
-      updateOtherAccount(editingId, updates);
-      if (formData.role === 'customer') {
-        const inCustomers = Array.isArray(customers) && customers.some(c => c && String(c.id) === String(editingId));
-        if (inCustomers) {
-          updateItem('customers', editingId, {
-            name: formData.name, phone: formData.phone, address: formData.address
-          });
-        }
-      } else if (STAFF_SYNC_ROLES.includes(formData.role)) {
-        updateItem('staff', editingId, {
-          name: formData.name, role: formData.role, phone: formData.phone, address: formData.address
-        });
+      try {
+        const updated = await api.updateStaff(editingId, updates);
+        setStaffList(prev => prev.map(s => s.id === editingId ? { ...s, ...updated } : s));
+        logActivity(`Updated Staff`, `Name: ${formData.name}, Role: ${formData.role}`);
+        handleCloseModal();
+      } catch (err) {
+        setError(err.message || 'Update failed');
       }
-      logActivity(`Updated User`, `Name: ${formData.name}, Role: ${formData.role}`);
-      setRefreshTrigger(prev => prev + 1);
-      handleCloseModal();
     } else {
       if (!formData.phone || !formData.password) {
         setError(t("Phone and password are required for new accounts."));
         return;
       }
-
       if (formData.password !== formData.confirmPassword) {
         setError(t('passwordsDoNotMatch'));
         return;
       }
 
-      const result = register(
-        formData.name,
-        null,
-        formData.phone,
-        formData.password,
-        formData.role,
-        currentUser?.garageName,
-        currentUser?.ownerId,
-        false
-      );
-
-      if (result?.success && result.user?.id) {
-        if (formData.role !== 'customer' && STAFF_SYNC_ROLES.includes(formData.role)) {
-          const newStaff = {
-            id: result.user.id,
-            name: formData.name || result.user.name || 'Staff',
-            role: formData.role,
-            phone: formData.phone || result.user.phone || '',
-            address: formData.address || '',
-            status: 'active'
-          };
-          addItem('staff', newStaff);
-        }
-        logActivity(`Added User`, `Name: ${formData.name}, Role: ${formData.role}`);
-        setRefreshTrigger(prev => prev + 1);
+      try {
+        const newMember = await api.createStaff({
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          password: formData.password,
+          role: formData.role
+        });
+        setStaffList(prev => [...prev, { ...newMember, password: undefined }]);
+        logActivity(`Added Staff`, `Name: ${formData.name}, Role: ${formData.role}`);
         handleCloseModal();
-      } else {
-        setError(result?.message || 'Registration failed. Check the console for details.');
+      } catch (err) {
+        setError(err.message || 'Registration failed');
       }
     }
   };
@@ -261,16 +201,18 @@ const Staff = () => {
     <div className="page-content staff-page">
       <div className="page-header">
         <div className="header-title">
-          <div className="icon-wrapper"><BriefcaseBusiness size={28} /></div>
+          {activeTab === 'staff' && <div className="icon-wrapper"><BriefcaseBusiness size={28} /></div>}
           <div>
-            <h1>{t('staff')}</h1>
+            <h1>{activeTab === 'staff' ? t('staff') : t('customers')}</h1>
             <p className="subtitle">
-              {t("Manage mechanics, admins, and permissions securely.")}
+              {activeTab === 'staff' 
+                ? t("Manage mechanics, admins, and permissions securely.") 
+                : t("Manage client details and contact information.")}
             </p>
           </div>
         </div>
         <button className="btn-primary" onClick={() => handleOpenModal()}>
-          <Plus size={18} /> {t("Add Employee")}
+          <Plus size={18} /> {activeTab === 'staff' ? t("Add Employee") : t("Add New Customer")}
         </button>
       </div>
 
@@ -296,12 +238,12 @@ const Staff = () => {
               <button
                 className="icon-btn-small"
                 onClick={() => handleToggleStatus(person)}
-                title={person.status === 'inactive' ? 'Activate' : 'Deactivate'}
+                title={person.status === 'inactive' ? t('active') : t('inactive')}
                 style={{ color: person.status === 'inactive' ? 'var(--success)' : 'var(--danger)' }}
               >
                 {person.status === 'inactive' ? <UserCheck size={16} /> : <UserX size={16} />}
               </button>
-              <button className="icon-btn-small" onClick={() => handleOpenPermModal(person)} title="Manage Permissions">
+              <button className="icon-btn-small" onClick={() => handleOpenPermModal(person)} title={t("Manage Permissions")}>
                 <Shield size={16} />
               </button>
               <button className="icon-btn-small" onClick={() => handleOpenModal(person)} title={t('edit')}>
@@ -340,10 +282,10 @@ const Staff = () => {
 
             <div className="staff-footer" style={{ marginTop: '20px', display: 'flex', gap: '8px', width: '100%', justifyContent: 'center' }}>
               <button className="btn-outline-small" onClick={() => navigate('/tracker')} style={{ flex: 1 }}>
-                <Navigation size={14} /> Track
+                <Navigation size={14} /> {t('track')}
               </button>
               <button className="btn-primary-small" onClick={() => openChatWith(person)} style={{ flex: 1 }}>
-                <MessageSquare size={14} /> Chat
+                <MessageSquare size={14} /> {t('chat')}
               </button>
             </div>
           </div>
@@ -438,13 +380,13 @@ const Staff = () => {
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Shield size={20} color="var(--primary)" />
-                <h2>Manage Permissions</h2>
+                <h2>{t("Manage Permissions")}</h2>
               </div>
               <button className="close-btn" onClick={handleCloseModal}>&times;</button>
             </div>
             <div className="modal-body" style={{ padding: '20px 0' }}>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                Assigning permissions to <strong>{targetAccount.name}</strong>
+                {t("Assigning permissions to")} <strong>{targetAccount.name}</strong>
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -506,13 +448,13 @@ const Staff = () => {
                     background: targetAccount.permissions?.includes('all') ? 'rgba(247, 37, 133, 0.05)' : 'transparent'
                   }}
                 >
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)' }}>SUPER ADMIN (ALL)</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)' }}>{t("SUPER ADMIN (ALL)")}</span>
                   <Settings2 size={18} color="var(--accent)" />
                 </div>
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn-primary" onClick={handleCloseModal} style={{ width: '100%' }}>Done</button>
+              <button className="btn-primary" onClick={handleCloseModal} style={{ width: '100%' }}>{t('done')}</button>
             </div>
           </div>
         </div>

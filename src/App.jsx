@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import OfflineBanner from './components/OfflineBanner';
+import NetworkStatusBar from './components/NetworkStatusBar';
 
 // Core components - No lazy loading for these to ensure immediate availability
 import Login from './components/Login';
@@ -20,7 +20,7 @@ import Appointments from './components/Appointments';
 import Settings from './components/Settings';
 import MapTracker from './components/MapTracker';
 import Backup from './components/Backup';
-import CoderPanel from './components/CoderPanel';
+import SuperAdminPortal from './components/SuperAdminPortal';
 import ActivityLogs from './components/ActivityLogs';
 import MaterialRequests from './components/MaterialRequests';
 import Bonus from './components/Bonus';
@@ -33,12 +33,21 @@ import Salary from './components/Salary';
 import Messaging from './components/Messaging';
 import Profile from './components/Profile';
 import ErrorBoundary from './components/ErrorBoundary';
+import SubscriptionRequired from './components/SubscriptionRequired';
+import SubscriptionPage from './components/SubscriptionPage';
+import InternalMessaging from './components/InternalMessaging';
+import LoadingOverlay from './components/LoadingOverlay';
 
 // Role-based guard
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser } = useAuth();
   if (!currentUser) return <Navigate to="/login" replace />;
   const role = currentUser?.role?.toLowerCase() || '';
+
+  // Coder (platform owner) lives exclusively in their portal — no app Layout
+  if (!allowedRoles && role === 'coder') {
+    return <Navigate to="/coder-portal" replace />;
+  }
   if (allowedRoles && !allowedRoles.some(r => r.toLowerCase() === role)) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -46,7 +55,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
-  const { currentUser } = useAuth();
+  const { currentUser, globalLoading } = useAuth();
   
   return (
     <Suspense fallback={
@@ -54,12 +63,15 @@ function App() {
         <div className="loader-spinner"></div>
       </div>
     }>
-      <OfflineBanner />
+      <NetworkStatusBar />
+      <LoadingOverlay visible={globalLoading} message="Please wait" />
       <Routes>
         {/* Auth route */}
         <Route
           path="/login"
-          element={currentUser ? <Navigate to="/dashboard" replace /> : <Login />}
+          element={currentUser
+            ? <Navigate to={currentUser.role === 'coder' ? '/coder-portal' : '/dashboard'} replace />
+            : <Login />}
         />
 
         {/* Public Landing Page */}
@@ -75,12 +87,14 @@ function App() {
         >
           {/* Shared by All Roles */}
           <Route path="dashboard"    element={<Dashboard />} />
+          <Route path="subscription" element={<SubscriptionPage />} />
           <Route path="messages"     element={<Messaging />} />
           <Route path="messaging"    element={<Messaging />} />
           <Route path="profile"      element={<Profile />} />
           <Route path="profile/:userId" element={<Profile />} />
           <Route path="tracker"      element={<MapTracker />} />
           <Route path="settings"     element={<Settings />} />
+          <Route path="support"      element={<ProtectedRoute allowedRoles={['admin']}><InternalMessaging /></ProtectedRoute>} />
           <Route path="bonus"        element={<ProtectedRoute allowedRoles={['mechanic', 'coder']}><Bonus /></ProtectedRoute>} />
 
           {/* Role-Specific Areas */}
@@ -101,12 +115,18 @@ function App() {
 
           {/* Admin/Owner Only */}
           <Route path="staff"        element={<ProtectedRoute allowedRoles={['admin', 'coder']}><ErrorBoundary><Staff /></ErrorBoundary></ProtectedRoute>} />
-          <Route path="activity"     element={<ProtectedRoute allowedRoles={['admin', 'coder']}><ActivityLogs /></ProtectedRoute>} />
+          <Route path="activity"     element={<ProtectedRoute allowedRoles={['coder']}><ActivityLogs /></ProtectedRoute>} />
           <Route path="backup"       element={<ProtectedRoute allowedRoles={['admin', 'coder']}><Backup /></ProtectedRoute>} />
-
-          {/* Coder Only */}
-          <Route path="coder-portal" element={<ProtectedRoute allowedRoles={['coder']}><CoderPanel /></ProtectedRoute>} />
         </Route>
+
+        {/* Subscription Gate — standalone, no app Layout/Sidebar */}
+        <Route path="/subscription-required" element={<SubscriptionRequired />} />
+
+        {/* Platform Owner Portal — standalone, no app Layout/Sidebar */}
+        <Route
+          path="/coder-portal"
+          element={<ProtectedRoute allowedRoles={['coder']}><SuperAdminPortal /></ProtectedRoute>}
+        />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to={currentUser ? "/dashboard" : "/"} replace />} />

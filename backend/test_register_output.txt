@@ -1,0 +1,25 @@
+Status: 201
+Response: {
+  "user": {
+    "id": "cmr7cwrme000gvnbodw45drcf",
+    "ownerId": "testowner_1783229671789@test.com",
+    "name": "Test Garage Owner",
+    "email": "testowner_1783229671789@test.com",
+    "phone": "251916847369",
+    "role": "admin",
+    "garageName": "Automated Test Garage 1783229671789",
+    "address": "Bole Road, Addis Ababa",
+    "status": "active",
+    "permissions": [
+      "all"
+    ],
+    "createdAt": "2026-07-05T05:34:40.598Z",
+    "updatedAt": "2026-07-05T05:34:40.598Z",
+    "expiryDate": "2026-07-25T05:34:39.614Z",
+    "garageId": "cmr7cwr3l000dvnbom2dcqavw",
+    "garage": {
+      "displayId": "12-0000-015"
+    }
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtcjdjd3JtZTAwMGd2bmJvZHc0NWRyY2YiLCJyb2xlIjoiYWRtaW4iLCJnYXJhZ2VJZCI6ImNtcjdjd3IzbDAwMGR2bmJvbTJkY3FhdnciLCJpYXQiOjE3ODMyMjk2ODIsImV4cCI6MTc4MzgzNDQ4Mn0.12BA6ZZq6gmfw3RIgP2EfzL9Oz34fMjyFv7Osa-KJ7w"
+}

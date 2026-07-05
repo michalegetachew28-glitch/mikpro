@@ -1,0 +1,5 @@
+◇ injected env (6) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+DATABASE_URL: SET ✓
+❌ Connection failed: Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:5432`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:5432`.

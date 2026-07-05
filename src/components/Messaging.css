@@ -3851,6 +3851,17 @@
     bottom: 0;
     z-index: 200;
   }
+
+  .header-actions {
+    flex-direction: row !important;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .header-actions .icon-btn {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* ── Media Messaging Enhancements ────────────────────────── */

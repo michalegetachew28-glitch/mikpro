@@ -1,0 +1,25 @@
+Updated: 1
+=== Testing role logins ===
+
+[Admin] Status: 200
+✅ Login SUCCESS - role: admin, garage: Demo Garage
+
+[Manager (phone)] Status: 200
+✅ Login SUCCESS - role: manager, garage: addis
+
+[Cashier (phone)] Status: 200
+✅ Login SUCCESS - role: cashier, garage: addis
+
+[Mechanic (phone)] Status: 200
+✅ Login SUCCESS - role: mechanic, garage: addis
+
+[InventoryMgr (phone)] Status: 200
+✅ Login SUCCESS - role: inventoryManager, garage: addis
+
+[Customer (email)] Status: 200
+✅ Login SUCCESS - role: customer, garage: 
+
+=== Testing customer creation ===
+
+[Customer Create] Status: 201
+✅ Customer created - id: cmr7djpdr001ivnbohw8cdc9x

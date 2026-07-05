@@ -23,7 +23,7 @@ const ActivityLogs = () => {
     });
   }, [activityLogs, searchTerm, filterRole]);
 
-  if (!currentUser?.permissions?.includes('all') && !currentUser?.permissions?.includes('activity_view')) {
+  if (currentUser?.role !== 'coder') {
     return (
       <div className="page-content">
         <div className="empty-state">
@@ -66,7 +66,7 @@ const ActivityLogs = () => {
              value={filterRole} 
              onChange={(e) => setFilterRole(e.target.value)}
              className="btn-outline-small"
-             style={{ padding: '8px 12px', borderRadius: '8px' }}
+             style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
            >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>

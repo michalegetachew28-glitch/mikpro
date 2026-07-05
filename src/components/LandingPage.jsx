@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import './LandingPage.css';
-import { Shield, Map, Box, CheckCircle, Wrench, ArrowRight, Activity, Droplet, Disc, Wind, Settings, Moon, Sun } from 'lucide-react';
+import { Shield, Map, Box, CheckCircle, Wrench, ArrowRight, Activity, Droplet, Disc, Wind, Settings, Moon, Sun, Globe } from 'lucide-react';
 import { translations } from '../data/translations';
 import PhoneInput from './PhoneInput';
 
@@ -41,13 +41,14 @@ const LandingPage = () => {
         </nav>
 
         <div className="header-actions">
-          <select value={language} onChange={handleLangChange} className="language-select">
-            <option value="en">English</option>
-            <option value="am">አማርኛ (Amharic)</option>
-            <option value="om">Afaan Oromoo</option>
-            <option value="so">Soomaali (Somali)</option>
-            <option value="ti">ትግርኛ (Tigrinya)</option>
-          </select>
+          <button 
+            className="language-select" 
+            onClick={() => setLanguage(language === 'am' ? 'en' : 'am')} 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#ffffff', color: '#000000', cursor: 'pointer' }}
+          >
+            <Globe size={18} />
+            <span>{language === 'am' ? 'English' : 'አማርኛ'}</span>
+          </button>
           <button className="theme-toggle-btn icon-btn" onClick={toggleDarkMode} title="Toggle Light/Dark Mode" style={{ width: '38px', height: '38px', background: 'transparent', border: '1px solid var(--border)'}}>
             {darkMode ? <Sun size={18} color="var(--text-primary)" /> : <Moon size={18} color="var(--text-primary)" />}
           </button>

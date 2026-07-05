@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { Users, Search, Plus, Edit2, Trash2, Phone, Mail, MapPin, Car, X, Navigation, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PhoneInput from './PhoneInput';
 import './Customers.css';
 
@@ -10,6 +10,7 @@ const Customers = () => {
   const { customers, vehicles, deleteItem, addItem, updateItem, openChatWith, t, language, requestConfirmation } = useAppContext();
   const { register, currentUser, updateOtherAccount } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showVehiclesModal, setShowVehiclesModal] = useState(false);
@@ -20,6 +21,22 @@ const Customers = () => {
   const [formData, setFormData] = useState({ 
     name: '', phone: '', email: '', address: '', password: '', confirmPassword: '' 
   });
+
+  React.useEffect(() => {
+    if (location.state?.showAddModal) {
+      handleOpenModal();
+      // Clear state
+      window.history.replaceState({}, document.title);
+    }
+
+    const handleSidebarAction = (e) => {
+      if (e.detail?.type === 'add-customer') {
+        handleOpenModal();
+      }
+    };
+    window.addEventListener('sidebar-action', handleSidebarAction);
+    return () => window.removeEventListener('sidebar-action', handleSidebarAction);
+  }, [location.state]);
 
   // ── Vehicle Registration State ──
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
@@ -65,7 +82,7 @@ const Customers = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -91,14 +108,12 @@ const Customers = () => {
         updates.password = formData.password;
       }
 
-      updateOtherAccount(editingId, updates);
-      updateItem('customers', editingId, {
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address
-      });
-      handleCloseModal();
+      try {
+        await updateItem('customers', editingId, updates);
+        handleCloseModal();
+      } catch (err) {
+        setError(err.message || t("failedToSyncDatabase"));
+      }
     } else {
       // Create auth account for the customer
       if (!formData.password) {
@@ -110,32 +125,17 @@ const Customers = () => {
         return;
       }
 
-      const result = register(
-        formData.name,
-        formData.email,
-        formData.phone,
-        formData.password,
-        'customer',
-        currentUser.garageName,
-        currentUser.id, // Current admin is the owner
-        false, // Don't auto-login as the customer
-        formData.address
-      );
-
-      if (result.success) {
-        // Manually update AppContext state so the new customer appears immediately
-        const newCustomerRecord = {
-          id: result.user.id,
+      try {
+        await addItem('customers', {
           name: formData.name,
-          phone: formData.phone,
           email: formData.email || '',
-          address: formData.address || '',
-          joinedAt: new Date().toISOString()
-        };
-        addItem('customers', newCustomerRecord);
+          phone: formData.phone,
+          password: formData.password,
+          address: formData.address || ''
+        });
         handleCloseModal();
-      } else {
-        setError(result.message);
+      } catch (err) {
+        setError(err.message || t("failedToSyncDatabase"));
       }
     }
   };
@@ -143,6 +143,11 @@ const Customers = () => {
   const customerVehicles = selectedCustomer
     ? vehicles.filter(v => v.customerId === selectedCustomer.id)
     : [];
+
+  const handleViewVehicles = (customer) => {
+    setSelectedCustomer(customer);
+    setShowVehiclesModal(true);
+  };
 
   const handleOpenAddVehicle = (customer) => {
     setSelectedCustomer(customer);
@@ -153,21 +158,24 @@ const Customers = () => {
     setShowAddVehicleModal(true);
   };
 
-  const handleAddVehicleSubmit = (e) => {
+  const handleAddVehicleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCustomer) return;
     
     const newVehicle = {
-      id: `v${Date.now()}`,
       customerId: selectedCustomer.id,
       ...vehicleFormData,
       year: parseInt(vehicleFormData.year),
       mileage: parseInt(vehicleFormData.mileage) || 0
     };
     
-    addItem('vehicles', newVehicle);
-    setShowAddVehicleModal(false);
-    addNotification(t("Vehicle registered successfully!"), 'success');
+    try {
+      await addItem('vehicles', newVehicle);
+      setShowAddVehicleModal(false);
+      addNotification(t("Vehicle registered successfully!"), 'success');
+    } catch (err) {
+      setVError(err.message || t("failedToSyncDatabase"));
+    }
   };
 
   const initiateRepairOrder = (customer) => {
@@ -185,7 +193,7 @@ const Customers = () => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          {(permissions.includes('all') || permissions.includes('repairs_view')) && (
+          {(permissions.includes('all') || permissions.includes('repairs_view') || currentUser?.role === 'cashier') && (
             <button className="btn-outline" onClick={() => navigate('/tracker')}>
               <Navigation size={18} /> {t("Live Map Tracking")}
             </button>
@@ -229,14 +237,16 @@ const Customers = () => {
                     <button className="icon-btn-small chat-btn" style={{ color: 'white', background: 'var(--primary)' }} title={t('chat')} onClick={() => openChatWith(customer)}>
                       <MessageSquare size={16} />
                     </button>
-                    <button 
-                      className="icon-btn-small finish-btn" 
-                      style={{ background: 'var(--success)', color: 'white', borderColor: 'var(--success)' }}
-                      title={t('Create Repair Order')} 
-                      onClick={() => initiateRepairOrder(customer)}
-                    >
-                      <Plus size={16} />
-                    </button>
+                    {(permissions.includes('all') || permissions.includes('repairs_manage')) && currentUser?.role !== 'mechanic' && currentUser?.role !== 'cashier' && (
+                      <button 
+                        className="icon-btn-small finish-btn" 
+                        style={{ background: 'var(--success)', color: 'white', borderColor: 'var(--success)' }}
+                        title={t('Create Repair Order')} 
+                        onClick={() => initiateRepairOrder(customer)}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    )}
                     {canManage && (
                       <button className="icon-btn-small edit-btn" onClick={() => handleOpenModal(customer)}>
                         <Edit2 size={16} />
@@ -261,8 +271,7 @@ const Customers = () => {
                     <span>{customer.phone}</span>
                   </div>
                   <div className="detail-item">
-                    <Mail size={14} className="detail-icon" />
-                    <span>{customer.email || 'N/A'}</span>
+                    <span>{customer.email || t('notAvailable')}</span>
                   </div>
                   <div className="detail-item">
                     <div className="detail-row"><MapPin size={16} /> 
@@ -278,9 +287,7 @@ const Customers = () => {
                 <div className="card-actions">
                   <button className="btn-outline mt-16" onClick={() => handleViewVehicles(customer)}>
                     <Car size={14} style={{ marginRight: 6 }} />
-                    {language === 'en'
-                      ? `Vehicles (${vehicleCount})`
-                      : `ተሽከርካሪዎችን ተመልከት (${vehicleCount})`}
+                    {t('viewVehiclesCount', { count: vehicleCount })}
                   </button>
                   <button className="btn-primary mt-16" style={{ background: 'var(--accent)' }} onClick={() => handleOpenAddVehicle(customer)}>
                     <Plus size={14} style={{ marginRight: 6 }} />
@@ -331,7 +338,7 @@ const Customers = () => {
                     <label>{t('email')}</label>
                     <div className="input-wrap">
                       <Mail size={18} className="input-icon" />
-                      <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="e.g. info@example.com" />
+                      <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder={t("e.g. info@example.com")} />
                     </div>
                   </div>
                   <div className="form-group has-icon">
@@ -412,7 +419,7 @@ const Customers = () => {
                   value={vehicleFormData.make} 
                   onChange={e => setVehicleFormData({...vehicleFormData, make: e.target.value})} 
                   required 
-                  placeholder="e.g. Toyota" 
+                  placeholder={t("e.g. Toyota")} 
                 />
               </div>
               <div className="form-group">
@@ -422,7 +429,7 @@ const Customers = () => {
                   value={vehicleFormData.model} 
                   onChange={e => setVehicleFormData({...vehicleFormData, model: e.target.value})} 
                   required 
-                  placeholder="e.g. Corolla" 
+                  placeholder={t("e.g. Corolla")} 
                 />
               </div>
               <div className="form-grid grid-2-col">
@@ -472,9 +479,7 @@ const Customers = () => {
             <div className="modal-header">
               <h2>
                 <Car size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
-                {language === 'en'
-                  ? `Vehicles — ${selectedCustomer.name}`
-                  : `ተሽከርካሪዎች — ${selectedCustomer.name}`}
+                {t('vehiclesUser', { name: selectedCustomer.name })}
               </h2>
               <button className="close-btn" onClick={() => setShowVehiclesModal(false)}>&times;</button>
             </div>
@@ -515,8 +520,8 @@ const Customers = () => {
                         {v.year} {v.make} {v.model}
                       </div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                        {t("Plate:")} <strong>{v.plate}</strong>
-                        {v.mileage ? ` · ${Number(v.mileage).toLocaleString()} mi` : ''}
+                        {t("Plate")}: <strong>{v.plate}</strong>
+                        {v.mileage ? ` · ${Number(v.mileage).toLocaleString()} ${t('kilometersShort')}` : ''}
                       </div>
                     </div>
                   </div>

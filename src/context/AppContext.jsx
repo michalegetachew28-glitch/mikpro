@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { api } from '../services/api';
+import { db, rtdb } from '../services/firebase';
+import { 
+  collection, query, where, onSnapshot, addDoc, 
+  serverTimestamp, orderBy, updateDoc, doc 
+} from 'firebase/firestore';
+import { ref, set, onValue, onDisconnect } from 'firebase/database';
 import { translations } from '../data/translations';
 import { formatEthiopianDate } from '../utils/ethiopianDate';
 
@@ -102,8 +109,10 @@ export const AppProvider = ({ children }) => {
   const [language, setLanguage] = useState('en');
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [salaryPayments, setSalaryPayments] = useState([]);
   const [salaries, setSalaries] = useState([]);
+  const [internalMessages, setInternalMessages] = useState([]);
   const [activeChatContact, setActiveChatContact] = useState(null);
   const [callState, setCallState] = useState('idle'); // idle, calling, incoming, connected
   const [activeCall, setActiveCall] = useState(null); // { contact, startTime, isOutgoing, id, type }
@@ -367,6 +376,14 @@ export const AppProvider = ({ children }) => {
     setSalaries(ensureEntityArray(loadedSalaries, 'salaries'));
     setSalaryPayments(ensureEntityArray(loadedSalaryPayments, 'salaryPayments'));
 
+    // Load internal messages from a global key (not prefixed by garage ownerId)
+    try {
+      const globalInternal = JSON.parse(localStorage.getItem('garage_internal_comms') || '[]');
+      setInternalMessages(ensureEntityArray(globalInternal, 'internalMessages'));
+    } catch (err) {
+      console.warn(`${DIAG} Failed to load internal messages`, err);
+    }
+
     setLanguage(localStorage.getItem('garage_language') || 'en');
 
     // Recovery Logic: Ensure the Garage Name is preserved from metadata if missing in currentUser
@@ -394,7 +411,77 @@ export const AppProvider = ({ children }) => {
     setIsInitialLoadComplete(true);
     logDataOp('INIT_LOAD_COMPLETE', 'all', `Session ready for ${userPrefix}`);
 
-    // Proactive Data Recovery: Removed at user request to avoid confusion for new admins
+    // --- Firebase Real-time Messaging ---
+    let unsubscribeMessages = null;
+    if (currentUser) {
+      console.log(`${DIAG} Initializing Firestore listeners...`);
+      const q = query(
+        collection(db, "internalMessages"),
+        where("participants", "array-contains", currentUser.id),
+        orderBy("time", "asc")
+      );
+
+      unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setInternalMessages(msgs);
+        console.log(`${DIAG} Firestore: Received ${msgs.length} messages`);
+      });
+
+      // Presence Logic (RTDB)
+      const presenceRef = ref(rtdb, `presence/${currentUser.id}`);
+      set(presenceRef, { online: true, lastSeen: serverTimestamp(), name: currentUser.name });
+      onDisconnect(presenceRef).set({ online: false, lastSeen: serverTimestamp(), name: currentUser.name });
+
+      // Listen for other users' presence
+      const allPresenceRef = ref(rtdb, 'presence');
+      onValue(allPresenceRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        setUserPresence(data);
+      });
+    }
+
+    const fetchAllData = async () => {
+      if (!currentUser) return;
+      setIsSyncing(true);
+      try {
+        console.log(`${DIAG} Syncing core data with backend...`);
+        const [v, c, r, i, s, a, st] = await Promise.all([
+          api.getVehicles().catch(() => []),
+          api.getCustomers().catch(() => []),
+          api.getRepairs().catch(() => []),
+          api.getInventory().catch(() => []),
+          api.getStaff().catch(() => []),
+          api.getAppointments().catch(() => []),
+          api.getSettings().catch(() => null)
+        ]);
+
+        setVehicles(v || []);
+        setCustomers(c || []);
+        setRepairs(r || []);
+        setInventory(i || []);
+        setStaff(s || []);
+        setAppointments(a || []);
+        if (st) {
+          setBillingSettings(prev => ({
+            ...prev,
+            plans: st.plans || prev.plans,
+            paymentMethods: st.paymentMethods || prev.paymentMethods,
+            taxRate: st.taxRate !== undefined ? st.taxRate : prev.taxRate,
+            platformFees: st.platformFees !== undefined ? st.platformFees : prev.platformFees,
+          }));
+        }
+        console.log(`${DIAG} Core data sync complete.`);
+      } catch (err) {
+        console.error(`${DIAG} Core data sync failed`, err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    fetchAllData();
+    return () => {
+      if (unsubscribeMessages) unsubscribeMessages();
+    };
   }, [currentUser?.id, userPrefix]);
 
   // Unified persistence effect - prevents fragmented saves and race conditions
@@ -423,13 +510,19 @@ export const AppProvider = ({ children }) => {
       safeSave('attendance', attendance);
       safeSave('salaries', salaries);
       safeSave('salaryPayments', salaryPayments);
+
+      // Save internal messages to global key
+      localStorage.setItem('garage_internal_comms', JSON.stringify(internalMessages));
     }
   }, [
     customers, vehicles, repairs, inventory, staff,
     appointments, notifications, messages, groups, activeTrackers,
     invoices, adminPaymentDetails, mechanicPaymentDetails, bonuses, billingSettings, activityLogs, materialRequests, attendance, salaries, salaryPayments,
+    internalMessages,
     isInitialLoadComplete, currentUser
   ]);
+
+
 
   const t = useCallback((key) => {
     const langDict = translations[language] || translations['en'];
@@ -524,6 +617,13 @@ export const AppProvider = ({ children }) => {
 
       if (e.key === 'garage_language') {
         setLanguage(e.newValue || 'en');
+      }
+
+      if (e.key === 'garage_internal_comms') {
+        try {
+          const parsed = JSON.parse(e.newValue || '[]');
+          setInternalMessages(ensureEntityArray(parsed, 'internalMessages'));
+        } catch (err) {}
       }
 
       // Real-time Chat Signals (Typing, Seen, Presence)
@@ -1011,7 +1111,7 @@ export const AppProvider = ({ children }) => {
     }
   }, [vehicles, staff, currentUser?.ownerId, t, addNotification]);
 
-  const updateItem = useCallback((collectionName, id, newData) => {
+  const updateItem = useCallback(async (collectionName, id, newData) => {
     const setterMap = getSetterMap();
     if (!setterMap[collectionName]) {
       console.error(`${DIAG} updateItem: unknown collection "${collectionName}"`);
@@ -1026,32 +1126,89 @@ export const AppProvider = ({ children }) => {
       return;
     }
 
+
+    // Security Check: Role-Based Access Control
+    const permissions = currentUser?.permissions || [];
+    const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
+    
+    // Allow mechanics to update status even without repairs_manage if they have repairs_view
+    const isMechanicWithView = currentUser?.role === 'mechanic' && permissions.includes('repairs_view');
+    
+    if (collectionName === 'repairs' && !isManagerOrAdmin && !isMechanicWithView) {
+      console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot update repairs.`);
+      showToast(t("securityDeniedRepairUpdate"), 'danger');
+      return;
+    }
+
     try {
+      let finalUpdates = { ...newData };
+
+      // API synchronization for backend
+      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+        setIsSyncing(true);
+        try {
+          let response;
+          if (collectionName === 'customers') {
+            response = await api.updateCustomer(id, {
+              name: newData.name,
+              phone: newData.phone,
+              email: newData.email,
+              address: newData.address,
+              password: newData.password
+            });
+          } else if (collectionName === 'vehicles') {
+            response = await api.updateVehicle(id, {
+              customerId: newData.customerId,
+              plateNumber: newData.plate,
+              make: newData.make,
+              model: newData.model,
+              year: newData.year,
+              vin: newData.vin,
+              color: newData.color,
+              type: newData.type
+            });
+          }
+
+          if (response) {
+            finalUpdates = { ...finalUpdates, ...response };
+            if (response.plateNumber && !response.plate) {
+              finalUpdates.plate = response.plateNumber;
+            }
+          }
+        } catch (apiErr) {
+          console.error(`[API Update Error] Failed to update ${collectionName}`, apiErr);
+          showToast(t("failedToSyncDatabase") + ": " + apiErr.message, 'danger');
+          return;
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+
       // Intercept assignment or status changes for notifications
       if (collectionName === 'repairs') {
         const oldRepair = repairs.find(r => r && String(r.id) === String(id));
         if (oldRepair) {
-          const isStatusChange = newData.status && newData.status !== oldRepair.status;
-          const isMechanicAssignment = newData.mechanicId && newData.mechanicId !== oldRepair.mechanicId;
+          const isStatusChange = finalUpdates.status && finalUpdates.status !== oldRepair.status;
+          const isMechanicAssignment = finalUpdates.mechanicId && finalUpdates.mechanicId !== oldRepair.mechanicId;
 
           if (isStatusChange || isMechanicAssignment) {
             handleRepairStatusChange(
-              { ...oldRepair, ...newData },
-              newData.status || oldRepair.status,
-              newData.mechanicId || oldRepair.mechanicId
+              { ...oldRepair, ...finalUpdates },
+              finalUpdates.status || oldRepair.status,
+              finalUpdates.mechanicId || oldRepair.mechanicId
             );
           }
 
           // Sync with Live Tracker if it's a roadside job
-          if (oldRepair.isRoadside || newData.isRoadside) {
+          if (oldRepair.isRoadside || finalUpdates.isRoadside) {
             setActiveTrackers(prev => {
               const list = ensureEntityArray(prev, 'trackers');
               return list.map(t => {
                 if (t && String(t.repairId) === String(id)) {
                   return {
                     ...t,
-                    mechanicId: newData.mechanicId !== undefined ? newData.mechanicId : t.mechanicId,
-                    status: (isMechanicAssignment && newData.mechanicId) ? 'assigned' : t.status
+                    mechanicId: finalUpdates.mechanicId !== undefined ? finalUpdates.mechanicId : t.mechanicId,
+                    status: (isMechanicAssignment && finalUpdates.mechanicId) ? 'assigned' : t.status
                   };
                 }
                 return t;
@@ -1061,6 +1218,11 @@ export const AppProvider = ({ children }) => {
         }
       }
 
+      // Map plateNumber to plate for frontend consistency
+      if (collectionName === 'vehicles' && finalUpdates.plateNumber && !finalUpdates.plate) {
+        finalUpdates.plate = finalUpdates.plateNumber;
+      }
+
       setterMap[collectionName](prev => {
         const list = ensureEntityArray(prev, collectionName);
         const idx = list.findIndex(item => item && String(item.id) === String(id));
@@ -1068,25 +1230,25 @@ export const AppProvider = ({ children }) => {
           console.warn(`${DIAG} updateItem: no row with id "${id}" in ${collectionName}; state unchanged.`);
           return list;
         }
-        return list.map(item => (item && String(item.id) === String(id) ? { ...item, ...newData } : item));
+        return list.map(item => (item && String(item.id) === String(id) ? { ...item, ...finalUpdates } : item));
       });
 
       broadcastData({
         type: 'UPDATE',
         collection: collectionName,
         id: id,
-        updates: newData,
+        updates: finalUpdates,
         ownerId: currentUser?.ownerId
       });
 
       // Log activity for significant updates
-      if (['staff', 'repairs', 'inventory', 'billing'].includes(collectionName)) {
+      if (['staff', 'repairs', 'inventory', 'billing', 'customers', 'vehicles'].includes(collectionName)) {
         logActivity(`Updated ${collectionName}`, `ID: ${id}`);
       }
     } catch (err) {
       console.error(`${DIAG} updateItem fatal error (${collectionName}, ${id})`, err);
     }
-  }, [getSetterMap, repairs, handleRepairStatusChange, logActivity, syncChannel, currentUser?.ownerId]);
+  }, [getSetterMap, repairs, handleRepairStatusChange, logActivity, syncChannel, currentUser, showToast, t]);
 
   const generateSequentialId = (collection) => {
     const list = ensureEntityArray(collection, 'idGeneration');
@@ -1098,7 +1260,7 @@ export const AppProvider = ({ children }) => {
     return String(maxId + 1).padStart(5, '0');
   };
 
-  const addItem = useCallback((collectionName, item) => {
+  const addItem = useCallback(async (collectionName, item) => {
     const setterMap = getSetterMap();
     if (!setterMap[collectionName]) {
       console.error(`${DIAG} addItem: unknown collection "${collectionName}"`);
@@ -1109,50 +1271,107 @@ export const AppProvider = ({ children }) => {
       return;
     }
 
+
+    // Security Check: Role-Based Access Control
+    const permissions = currentUser?.permissions || [];
+    const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
+    
+    if (collectionName === 'repairs' && !isManagerOrAdmin) {
+      console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot create repairs.`);
+      showToast(t("securityDeniedRepairCreate"), 'danger');
+      return;
+    }
+
     try {
-      const itemWithId = { ...item };
+      let finalItem = { ...item };
 
-      // Auto-generate sequential ID if not present
-      if (!itemWithId.id) {
-        // Map collection names to their state variables
-        const collectionMap = {
-          customers, vehicles, repairs, inventory, staff, appointments,
-          notifications, messages, groups, trackers: activeTrackers, invoices,
-          adminPaymentDetails, mechanicPaymentDetails, bonuses,
-          billingSettings: [billingSettings], activityLogs, materialRequests, attendance
-        };
+      // API synchronization for backend
+      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+        setIsSyncing(true);
+        try {
+          let response;
+          if (collectionName === 'customers') {
+            response = await api.createCustomer({
+              name: item.name,
+              phone: item.phone,
+              email: item.email || '',
+              address: item.address || '',
+              password: item.password || 'cust123'
+            });
+          } else if (collectionName === 'vehicles') {
+            response = await api.createVehicle({
+              customerId: item.customerId,
+              plateNumber: item.plate,
+              make: item.make || '',
+              model: item.model,
+              year: String(item.year),
+              vin: item.vin || '',
+              color: item.color || '',
+              type: item.type || 'car'
+            });
+          }
 
-        const currentCollection = collectionMap[collectionName] || [];
-        if (['attendance', 'activityLogs', 'messages', 'notifications'].includes(collectionName)) {
-          itemWithId.id = `${collectionName.slice(0, 3)}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        } else {
-          itemWithId.id = generateSequentialId(ensureEntityArray(currentCollection, collectionName));
+          if (response) {
+            finalItem = { ...finalItem, ...response };
+            if (response.plateNumber && !response.plate) {
+              finalItem.plate = response.plateNumber;
+            }
+          }
+        } catch (apiErr) {
+          console.error(`[API Save Error] Failed to create ${collectionName}`, apiErr);
+          showToast(t("failedToSyncDatabase") + ": " + apiErr.message, 'danger');
+          return;
+        } finally {
+          setIsSyncing(false);
+        }
+      } else {
+        // Auto-generate sequential ID if not present
+        if (!finalItem.id) {
+          // Map collection names to their state variables
+          const collectionMap = {
+            customers, vehicles, repairs, inventory, staff, appointments,
+            notifications, messages, groups, trackers: activeTrackers, invoices,
+            adminPaymentDetails, mechanicPaymentDetails, bonuses,
+            billingSettings: [billingSettings], activityLogs, materialRequests, attendance
+          };
+
+          const currentCollection = collectionMap[collectionName] || [];
+          if (['attendance', 'activityLogs', 'messages', 'notifications'].includes(collectionName)) {
+            finalItem.id = `${collectionName.slice(0, 3)}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+          } else {
+            finalItem.id = generateSequentialId(ensureEntityArray(currentCollection, collectionName));
+          }
         }
       }
 
+      // Map plateNumber to plate for frontend consistency
+      if (collectionName === 'vehicles' && finalItem.plateNumber && !finalItem.plate) {
+        finalItem.plate = finalItem.plateNumber;
+      }
+
       // Intercept initial repair assignment
-      if (collectionName === 'repairs' && itemWithId.mechanicId && itemWithId.status === 'pending') {
-        handleRepairStatusChange(itemWithId, 'pending', itemWithId.mechanicId);
+      if (collectionName === 'repairs' && finalItem.mechanicId && finalItem.status === 'pending') {
+        handleRepairStatusChange(finalItem, 'pending', finalItem.mechanicId);
       }
 
       setterMap[collectionName](prev => {
         const list = ensureEntityArray(prev, collectionName);
-        if (list.some(row => row && String(row.id) === String(itemWithId.id))) {
-          console.warn(`${DIAG} addItem: duplicate id "${itemWithId.id}" in ${collectionName}; merge-update instead.`);
-          return list.map(row => (row && String(row.id) === String(itemWithId.id) ? { ...row, ...itemWithId } : row));
+        if (list.some(row => row && String(row.id) === String(finalItem.id))) {
+          console.warn(`${DIAG} addItem: duplicate id "${finalItem.id}" in ${collectionName}; merge-update instead.`);
+          return list.map(row => (row && String(row.id) === String(finalItem.id) ? { ...row, ...finalItem } : row));
         }
-        return [...list, itemWithId];
+        return [...list, finalItem];
       });
 
       broadcastData({
         type: 'ADD',
         collection: collectionName,
-        data: itemWithId,
+        data: finalItem,
         ownerId: currentUser?.ownerId
       });
 
       // URGENT: Roadside Assistance Signal for real-time dashboard notification
-      if (collectionName === 'trackers' && itemWithId.status === 'pending') {
+      if (collectionName === 'trackers' && finalItem.status === 'pending') {
         localStorage.setItem('garage_realtime_signal', JSON.stringify({
           type: 'NOTIFICATION',
           to: 'ALL',
@@ -1163,8 +1382,8 @@ export const AppProvider = ({ children }) => {
       }
 
       // Log activity
-      if (['staff', 'repairs', 'inventory', 'customers'].includes(collectionName)) {
-        logActivity(`Added ${collectionName}`, `ID: ${itemWithId.id}, Name: ${item.name || item.plate || ''}`);
+      if (['staff', 'repairs', 'inventory', 'customers', 'vehicles'].includes(collectionName)) {
+        logActivity(`Added ${collectionName}`, `ID: ${finalItem.id}, Name: ${finalItem.name || finalItem.plate || ''}`);
       }
     } catch (err) {
       console.error(`${DIAG} addItem fatal error (${collectionName})`, err);
@@ -1173,10 +1392,10 @@ export const AppProvider = ({ children }) => {
     getSetterMap, repairs, customers, staff, inventory, vehicles, appointments,
     notifications, messages, groups, activeTrackers, invoices, adminPaymentDetails,
     mechanicPaymentDetails, bonuses, billingSettings, activityLogs, materialRequests,
-    handleRepairStatusChange, logActivity, syncChannel, currentUser?.ownerId
+    handleRepairStatusChange, logActivity, syncChannel, currentUser, showToast, t
   ]);
 
-  const deleteItem = useCallback((collectionName, id) => {
+  const deleteItem = useCallback(async (collectionName, id) => {
     const setterMap = getSetterMap();
     if (!setterMap[collectionName]) {
       console.error(`${DIAG} deleteItem: unknown collection "${collectionName}"`);
@@ -1186,13 +1405,41 @@ export const AppProvider = ({ children }) => {
       console.error(`${DIAG} deleteItem: invalid id`);
       return;
     }
+
+    // Security Check: Role-Based Access Control
+    const permissions = currentUser?.permissions || [];
+    const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
+    
+    if (collectionName === 'repairs' && !isManagerOrAdmin) {
+      console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot delete repairs.`);
+      showToast(t("securityDeniedRepairDelete"), 'danger');
+      return;
+    }
+
     try {
+      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+        setIsSyncing(true);
+        try {
+          if (collectionName === 'customers') {
+            await api.deleteCustomer(id);
+          } else if (collectionName === 'vehicles') {
+            await api.deleteVehicle(id);
+          }
+        } catch (apiErr) {
+          console.error(`[API Delete Error] Failed to delete ${collectionName}`, apiErr);
+          showToast(t("failedToSyncDatabase") + ": " + apiErr.message, 'danger');
+          return;
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+
       setterMap[collectionName](prev => ensureEntityArray(prev, collectionName).filter(item => item && String(item.id) !== String(id)));
       logActivity(`Deleted from ${collectionName}`, `ID: ${id}`);
     } catch (err) {
       console.error(`${DIAG} deleteItem failed`, err);
     }
-  }, [getSetterMap, logActivity]);
+  }, [getSetterMap, logActivity, currentUser, showToast, t]);
 
   const clearAllData = useCallback(() => {
     logDataOp('CLEAR_ALL_DATA', 'all', 'User requested data clear');
@@ -1394,6 +1641,92 @@ export const AppProvider = ({ children }) => {
       return false;
     }
   }, [currentUser, addNotification, setMessages, blockedUsers, broadcastData]);
+
+  const sendInternalMessage = useCallback(async (recipientId, text, type = 'text', fileName = null, garageId = null) => {
+    if (!currentUser || !recipientId) return false;
+    try {
+      const fileData = (type !== 'text' && typeof text === 'string' && (text.startsWith('data:') || text.startsWith('blob:'))) ? text : null;
+      const msgText = fileData ? (fileName || type) : text;
+      const newMessage = {
+        senderId: String(currentUser.id),
+        senderName: currentUser.name,
+        recipientId: String(recipientId),
+        participants: [String(currentUser.id), String(recipientId)],
+        text: msgText,
+        type,
+        fileName: fileName || null,
+        fileData: fileData || null,
+        garageId: garageId || currentUser.garageId || currentUser.ownerId || null,
+        time: new Date().toISOString(),
+        read: false,
+        status: 'sent'
+      };
+
+      // Save file media to Firestore (base64 inline for now; Supabase upgrade when key is available)
+      await addDoc(collection(db, 'internalMessages'), newMessage);
+      return true;
+    } catch (err) {
+      console.error('Error in sendInternalMessage (Firebase):', err);
+      return false;
+    }
+  }, [currentUser]);
+
+  const markInternalMessagesRead = useCallback(async (otherUserId) => {
+    if (!currentUser) return;
+    const unreadMsgs = internalMessages.filter(m =>
+      m.recipientId === currentUser.id && m.senderId === otherUserId && !m.read
+    );
+    if (unreadMsgs.length === 0) return;
+    try {
+      await Promise.all(
+        unreadMsgs.map(m =>
+          updateDoc(doc(db, 'internalMessages', m.id), {
+            read: true,
+            status: 'seen',
+            seen_at: new Date().toISOString()
+          })
+        )
+      );
+    } catch (err) {
+      console.error('markInternalMessagesRead (Firebase) error:', err);
+    }
+  }, [currentUser, internalMessages]);
+
+  // Automated System Messages Triggers
+  useEffect(() => {
+    if (!currentUser || !isInitialLoadComplete || currentUser.role !== 'admin') return;
+
+    const checkSystemTriggers = async () => {
+      const gId = currentUser.ownerId;
+      const sentTriggers = JSON.parse(localStorage.getItem(`garage_sent_system_msgs_${gId}`) || '{}');
+
+      // 1. Welcome / Trial Start Message
+      if (!sentTriggers.welcome && currentUser.subscription?.type === 'trial') {
+        const welcomeText = `Welcome to MechPro! Your 14-day trial has started. You can use all premium features until ${formatDate(currentUser.subscription.expiryDate)}. Let us know if you need help!`;
+        const success = await sendInternalMessage(currentUser.id, welcomeText, 'text', null, 'system');
+        if (success) {
+          sentTriggers.welcome = true;
+          localStorage.setItem(`garage_sent_system_msgs_${gId}`, JSON.stringify(sentTriggers));
+        }
+      }
+
+      // 2. Expiry Reminder (2 days before)
+      if (!sentTriggers.expiryWarning && currentUser.subscription?.expiryDate) {
+        const expiry = new Date(currentUser.subscription.expiryDate);
+        const diffDays = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 2 && diffDays > 0) {
+          const warningText = `Heads up! Your MechPro subscription/trial expires in ${diffDays} days. Please renew to avoid service interruption.`;
+          const success = await sendInternalMessage(currentUser.id, warningText, 'text', null, 'system');
+          if (success) {
+            sentTriggers.expiryWarning = true;
+            localStorage.setItem(`garage_sent_system_msgs_${gId}`, JSON.stringify(sentTriggers));
+          }
+        }
+      }
+    };
+
+    checkSystemTriggers();
+  }, [currentUser, isInitialLoadComplete, sendInternalMessage, formatDate]);
 
   const createGroup = useCallback((name, memberIds, image = null, description = '') => {
     if (!currentUser) return;
@@ -2213,6 +2546,7 @@ export const AppProvider = ({ children }) => {
     attendance, setAttendance,
     salaries, setSalaries,
     salaryPayments, setSalaryPayments,
+    internalMessages, setInternalMessages, sendInternalMessage, markInternalMessagesRead,
     darkMode, toggleDarkMode,
     isSidebarOpen, setIsSidebarOpen,
     showNotifs, setShowNotifs,
@@ -2244,7 +2578,7 @@ export const AppProvider = ({ children }) => {
     blockedUsers, blockUser, unblockUser, privacySettings,
     toasts, showToast,
     salaries, salaryPayments, isInitialLoadComplete,
-    attendance
+    attendance, internalMessages, sendInternalMessage, markInternalMessagesRead
   ]);
 
   return (

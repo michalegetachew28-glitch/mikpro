@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { api } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -92,10 +93,117 @@ const seedAccounts = () => {
   return accounts;
 };
 
+// INITIALIZE PLATFORM SETTINGS
+const seedPlatformSettings = () => {
+  const settings = safeStorageRead('garage_platform_settings', null);
+  if (!settings) {
+    const defaultSettings = {
+      plans: [
+        { id: 'monthly', name: 'Monthly', price: 1500, duration: 30 },
+        { id: '3month', name: '3 Months', price: 4000, duration: 90 },
+        { id: '6month', name: '6 Months', price: 7500, duration: 180 },
+        { id: 'yearly', name: 'Yearly', price: 14000, duration: 365 }
+      ],
+      trialDays: 14,
+      paymentMethods: [
+        { id: 'p1', type: 'bank', provider: 'Commercial Bank of Ethiopia', accountName: 'MECHPRO TECHNOLOGY', accountNumber: '1000123456789', status: 'active' }
+      ]
+    };
+    localStorage.setItem('garage_platform_settings', JSON.stringify(defaultSettings));
+    return defaultSettings;
+  }
+  return settings;
+};
+
 export const AuthProvider = ({ children }) => {
+  const enrichUser = useCallback((user) => {
+    if (!user || user.role !== 'admin') return user;
+    
+    const now = new Date();
+    const expiryDate = user.expiryDate ? new Date(user.expiryDate) : null;
+    
+    // Determine subscription type
+    let type = 'monthly'; // default to monthly for now if not trial
+    if (expiryDate && expiryDate.getFullYear() > 2090) {
+      type = 'unlimited';
+    } else if (expiryDate && user.createdAt) {
+       const diff = (expiryDate - new Date(user.createdAt)) / (1000 * 60 * 60 * 24);
+       if (diff <= 15) type = 'trial';
+    }
+
+    const isExpired = expiryDate && expiryDate < now;
+    const status = (user.status === 'suspended' || isExpired) ? 'suspended' : 'active';
+    
+    return {
+      ...user,
+      subscription: {
+        type,
+        status,
+        startDate: user.createdAt,
+        expiryDate: user.expiryDate
+      }
+    };
+  }, []);
+
   const [currentUser, setCurrentUser] = useState(() => {
-    return safeStorageRead('garage_current_user', null);
+    const user = safeStorageRead('garage_current_user', null);
+    // Note: can't easily enrich here since enrichUser is inside the component
+    return user;
   });
+  const [isApiMode] = useState(true); // Toggle to false to use localStorage only
+  const [authLoading, setAuthLoading] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
+  const globalLoading = authLoading || apiLoading;
+
+  useEffect(() => {
+    api.registerLoadingHandlers(
+      (count) => {
+        if (count > 0) setApiLoading(true);
+      },
+      (count) => {
+        if (count === 0) setApiLoading(false);
+      }
+    );
+    return () => {
+      api.registerLoadingHandlers(null, null);
+    };
+  }, []);
+
+  // Re-enrich current user on load or when currentUser changes
+  useEffect(() => {
+    if (currentUser && !currentUser.subscription && currentUser.role === 'admin') {
+      const enriched = enrichUser(currentUser);
+      setCurrentUser(enriched);
+      localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+    }
+  }, [currentUser, enrichUser]);
+
+  // LIVE STATUS SYNCHRONIZATION
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Monitor changes to both accounts and current user
+      if (e.key === 'garage_accounts' && currentUser) {
+        try {
+          const accounts = JSON.parse(e.newValue);
+          const updatedSelf = accounts.find(u => u.id === currentUser.id);
+          if (updatedSelf) {
+            const { password: _, ...safeUser } = updatedSelf;
+            // Only update if something actually changed to avoid infinite loops/re-renders
+            if (JSON.stringify(safeUser) !== JSON.stringify(currentUser)) {
+              console.log('[AuthContext] Live status sync: Updating session data.');
+              setCurrentUser(safeUser);
+              localStorage.setItem('garage_current_user', JSON.stringify(safeUser));
+            }
+          }
+        } catch (err) {
+          console.error('[AuthContext] Storage sync error:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [currentUser]);
 
   // Data Migration: Standardize phone and add missing fields
   useEffect(() => {
@@ -131,12 +239,12 @@ export const AuthProvider = ({ children }) => {
         changed = true;
         const rolePermissions = {
           admin: ['all'],
-          mechanic: ['repairs_view', 'repairs_manage', 'inventory_view', 'vehicles_view'],
+          mechanic: ['repairs_view', 'inventory_view', 'vehicles_view'],
           receptionist: ['customers_manage', 'vehicles_manage', 'appointments_manage', 'repairs_view'],
-          cashier: ['billing_manage', 'customers_view'],
+          cashier: ['customers_manage', 'vehicles_manage'],
           storekeeper: ['inventory_view', 'inventory_manage'],
           inventoryManager: ['inventory_manage', 'inventory_view', 'billing_manage'],
-          manager: ['repairs_manage', 'appointments_manage', 'customers_manage', 'vehicles_manage', 'material_requests_manage', 'tracker_view', 'attendance_manage'],
+          manager: ['repairs_manage', 'repairs_view', 'appointments_manage', 'customers_manage', 'vehicles_manage', 'material_requests_manage', 'tracker_view', 'attendance_manage', 'billing_manage'],
           customer: ['my_data_view'],
           coder: ['all']
         };
@@ -175,10 +283,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+
   const getAccounts = useCallback(() => {
     return seedAccounts();
   }, []);
 
+  // ── Legacy localStorage login (kept for offline/staff users) ──────────────
   const login = useCallback((identifier, password, selectedOwnerId, selectedRole) => {
     const accounts = getAccounts();
     const normalizedId = normalizePhone(identifier);
@@ -194,7 +304,6 @@ export const AuthProvider = ({ children }) => {
       }
     }
     
-    // 1. Find the user FIRST
     const user = accounts.find(
       a => (
         (a.email && a.email.toLowerCase() === identifier.toLowerCase()) || 
@@ -202,81 +311,280 @@ export const AuthProvider = ({ children }) => {
       )
     );
 
-    if (!user) {
-      return { success: false, message: 'Account not found. Please check your email/phone.' };
-    }
+    if (!user) return { success: false, message: 'Account not found. Please check your email/phone.' };
 
-    // Role check (if selectedRole is provided from login page)
     if (selectedRole && user.role !== 'coder') {
-      // Handle legacy manager mapping
       const isManagerMatch = selectedRole === 'manager' && ['manager', 'inventoryManager', 'storekeeper'].includes(user.role);
       if (user.role !== selectedRole && !isManagerMatch) {
          return { success: false, message: 'Please select the correct role.' };
       }
     }
 
-    // Garage ID check
-    if (user.role !== 'coder') {
-      if (!selectedOwnerId) {
-        return { success: false, message: 'Please select or enter a valid Garage ID.' };
-      }
-      if (user.ownerId !== selectedOwnerId) {
-        return { success: false, message: 'Invalid Garage ID for this account.' };
-      }
+    if (user.role !== 'coder' && selectedOwnerId) {
+      if (user.ownerId !== selectedOwnerId) return { success: false, message: 'Invalid Garage ID for this account.' };
     }
 
-    // Check account status
-    if (user.status === 'inactive') {
-      return { success: false, message: 'Your account has been deactivated. Please contact the owner.' };
-    }
-    if (user.status === 'deleted') {
-      return { success: false, message: 'This account no longer exists.' };
-    }
-
-    // 2. Check password
-    if (user.password !== password) {
-      return { success: false, message: 'Invalid password. Please try again.' };
-    }
-
-    // 3. Check Garage ID
-    if (selectedOwnerId && user.ownerId !== selectedOwnerId && user.role !== 'coder') {
-      return { 
-        success: false, 
-        message: `This account belongs to Garage ID: ${user.ownerId}. Please select the correct garage.` 
-      };
-    }
+    if (user.status === 'deleted') return { success: false, message: 'This account no longer exists.' };
+    if (user.password !== password) return { success: false, message: 'Invalid password. Please try again.' };
     
     const { password: _, ...safeUser } = user;
+    if (safeUser.role === 'coder' && selectedOwnerId) safeUser.ownerId = selectedOwnerId;
     
-    // Allow coder to act as any garage they select
-    if (safeUser.role === 'coder' && selectedOwnerId) {
-      safeUser.ownerId = selectedOwnerId;
-    }
+    const enriched = enrichUser(safeUser);
     
-    setCurrentUser(safeUser);
-    localStorage.setItem('garage_current_user', JSON.stringify(safeUser));
-    return { success: true, user: safeUser };
+    setCurrentUser(enriched);
+    localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+    return { success: true, user: enriched };
   }, [getAccounts]);
 
+  // ── API-backed login (async, returns Promise) ─────────────────────────────
+  const loginAsync = useCallback(async (identifier, password) => {
+    setAuthLoading(true);
+    try {
+      // 1. Try API if configured and available
+      if (isApiMode) {
+        try {
+          const data = await api.login({ emailOrPhone: identifier, password });
+          const enriched = enrichUser(data.user);
+          localStorage.setItem('garage_token', data.token);
+          localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+          setCurrentUser(enriched);
+          return { success: true, user: enriched };
+        } catch (err) {
+          // Handle "Failed to fetch" (server down or network issue) by falling back to local seed data
+          if (err.message === 'Failed to fetch') {
+            console.warn('[Auth/Async] Backend unreachable. Falling back to local accounts.');
+            return login(identifier, password);
+          }
+          return { success: false, message: err.message };
+        }
+      }
+      // 2. Fallback to localStorage only if API mode is explicitly disabled
+      return login(identifier, password);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [isApiMode, login]);
+
   const logout = useCallback(() => {
+    setAuthLoading(true);
     setCurrentUser(null);
     localStorage.removeItem('garage_current_user');
+    localStorage.removeItem('garage_token');
+    // Brief delay so overlay shows during navigation
+    setTimeout(() => setAuthLoading(false), 600);
   }, []);
+
+  const getPlatformSettings = useCallback(() => {
+    return seedPlatformSettings();
+  }, []);
+
+  // Async version that fetches from the API
+  const getPlatformSettingsAsync = useCallback(async () => {
+    try {
+      const s = await api.getSettings();
+      // Cache in localStorage as fallback
+      localStorage.setItem('garage_platform_settings', JSON.stringify({
+        plans: s.plans,
+        paymentMethods: s.paymentMethods,
+        taxRate: s.taxRate,
+        platformFees: s.platformFees,
+        trialDays: s.trialDays
+      }));
+      return s;
+    } catch {
+      return seedPlatformSettings();
+    }
+  }, []);
+
+  const updatePlatformSettings = useCallback((newSettings) => {
+    localStorage.setItem('garage_platform_settings', JSON.stringify(newSettings));
+    return { success: true };
+  }, []);
+
+  const updatePlatformSettingsAsync = useCallback(async (newSettings) => {
+    try {
+      await api.updateSettings(newSettings);
+      localStorage.setItem('garage_platform_settings', JSON.stringify(newSettings));
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const getPaymentRequests = useCallback(() => {
+    return safeStorageRead('garage_payment_requests', []);
+  }, []);
+
+  // Async API-backed payment requests
+  const getPaymentRequestsAsync = useCallback(async () => {
+    try {
+      const data = await api.getMySubscription();
+      return data.requests || [];
+    } catch {
+      return safeStorageRead('garage_payment_requests', []);
+    }
+  }, []);
+
+  const submitPaymentRequest = useCallback((req) => {
+    const list = getPaymentRequests();
+    const newReq = { ...req, id: `pay_${Date.now()}`, status: 'pending', createdAt: new Date().toISOString() };
+    localStorage.setItem('garage_payment_requests', JSON.stringify([...list, newReq]));
+    return { success: true };
+  }, [getPaymentRequests]);
+
+  // Async API-backed payment submission
+  const submitPaymentRequestAsync = useCallback(async (req) => {
+    try {
+      const result = await api.submitPayment(req);
+      return { success: true, data: result };
+    } catch (err) {
+      // Fallback to localStorage if API fails
+      const list = getPaymentRequests();
+      const newReq = { ...req, id: `pay_${Date.now()}`, status: 'pending', createdAt: new Date().toISOString() };
+      localStorage.setItem('garage_payment_requests', JSON.stringify([...list, newReq]));
+      return { success: true, fallback: true };
+    }
+  }, [getPaymentRequests]);
 
   const generateNextGarageId = useCallback(() => {
     const accounts = getAccounts();
     let maxSeq = 0;
     accounts.forEach(acc => {
-      if (acc.ownerId && acc.ownerId.match(/^\d{2}-\d{4}-\d{2}$/)) {
-        const parts = acc.ownerId.split('-');
-        const seq = parseInt(parts[1], 10);
+      if (acc.ownerId && acc.ownerId.match(/^MP\d+$/)) {
+        const seq = parseInt(acc.ownerId.replace('MP', ''), 10);
         if (seq > maxSeq) maxSeq = seq;
       }
     });
     const nextSeq = maxSeq === 0 ? 1 : maxSeq + 1;
-    const year = new Date().getFullYear().toString().slice(-2);
-    return `${year}-${String(nextSeq).padStart(4, '0')}-01`;
+    return `MP${String(nextSeq).padStart(4, '0')}`;
   }, [getAccounts]);
+
+  // ── API-backed register (async) ──────────────────────────────────────────
+  const registerAsync = useCallback(async (name, email, phone, password, role, garageName, address = null, garageId = null) => {
+    setAuthLoading(true);
+    try {
+      const data = await api.register({ name, email, phone, password, role, garageName, address, garageId });
+      const enriched = enrichUser(data.user);
+      localStorage.setItem('garage_token', data.token);
+      localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+      setCurrentUser(enriched);
+      return { success: true, user: enriched };
+    } catch (err) {
+      return { success: false, message: err.message };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // ── Super Admin async methods ──────────────────────────────────────────
+  const getAllUsersAsync = useCallback(async () => {
+    try {
+      return await api.getAllUsers();
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }, []);
+
+  const approvePaymentRequestAsync = useCallback(async (id) => {
+    try {
+      await api.approvePayment(id);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const rejectPaymentRequestAsync = useCallback(async (id, reason) => {
+    try {
+      await api.rejectPayment(id, reason);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const suspendUserAsync = useCallback(async (id) => {
+    try {
+      await api.suspendUser(id);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const reinstateUserAsync = useCallback(async (id) => {
+    try {
+      await api.reinstateUser(id);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const grantUnlimitedAsync = useCallback(async (userId) => {
+    try {
+      await api.grantUnlimited(userId);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const revokeUnlimitedAsync = useCallback(async (userId) => {
+    try {
+      await api.revokeUnlimited(userId);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const deleteClientAsync = useCallback(async (garageId) => {
+    try {
+      await api.deleteClient(garageId);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const platformPurgeAsync = useCallback(async () => {
+    try {
+      await api.platformPurge();
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  }, []);
+
+  const getAllPaymentRequestsAsync = useCallback(async () => {
+    try {
+      return await api.getAllPaymentRequests();
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }, []);
+
+  const getClientsAsync = useCallback(async () => {
+    try {
+      return await api.getClients();
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }, []);
+
+  const getPlatformStatsAsync = useCallback(async () => {
+    try {
+      return await api.getPlatformStats();
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }, []);
 
   const register = useCallback((name, email, phone, password, role, garageName, ownerId, autoLogin = true, address = null, profilePic = null, bio = '', username = null) => {
     const accounts = getAccounts();
@@ -301,30 +609,28 @@ export const AuthProvider = ({ children }) => {
     // Default permissions based on role
     const rolePermissions = {
       admin: ['all'],
-      mechanic: ['repairs_view', 'repairs_manage', 'inventory_view', 'vehicles_view'],
+      mechanic: ['repairs_view', 'inventory_view', 'vehicles_view'],
       receptionist: ['customers_manage', 'vehicles_manage', 'appointments_manage', 'repairs_view'],
-      cashier: ['billing_manage', 'customers_view'],
+      cashier: ['customers_manage', 'vehicles_manage'],
       storekeeper: ['inventory_view', 'inventory_manage'],
       inventoryManager: ['inventory_manage', 'inventory_view', 'billing_manage'],
-      manager: ['repairs_manage', 'appointments_manage', 'customers_manage', 'vehicles_manage', 'material_requests_manage', 'tracker_view', 'attendance_manage'],
+      manager: ['repairs_manage', 'repairs_view', 'appointments_manage', 'customers_manage', 'vehicles_manage', 'material_requests_manage', 'tracker_view', 'attendance_manage', 'billing_manage'],
       customer: ['my_data_view'],
       coder: ['all']
     };
 
     let finalOwnerId = ownerId;
     if (role === 'admin' && !finalOwnerId) {
-      // Auto-generate Garage ID using sequence
+      // Auto-generate Garage ID in MPXXXX format
       let maxSeq = 0;
       accounts.forEach(acc => {
-        if (acc.ownerId && acc.ownerId.match(/^\d{2}-\d{4}-\d{2}$/)) {
-          const parts = acc.ownerId.split('-');
-          const seq = parseInt(parts[1], 10);
+        if (acc.ownerId && acc.ownerId.match(/^MP\d+$/)) {
+          const seq = parseInt(acc.ownerId.replace('MP', ''), 10);
           if (seq > maxSeq) maxSeq = seq;
         }
       });
       const nextSeq = maxSeq === 0 ? 1 : maxSeq + 1;
-      const year = new Date().getFullYear().toString().slice(-2);
-      finalOwnerId = `${year}-${String(nextSeq).padStart(4, '0')}-01`;
+      finalOwnerId = `MP${String(nextSeq).padStart(4, '0')}`;
     }
 
     const newUser = {
@@ -344,6 +650,22 @@ export const AuthProvider = ({ children }) => {
       permissions: rolePermissions[role] || [],
       createdAt: new Date().toISOString()
     };
+
+    // SUBSCRIPTION INJECTION FOR ADMINS
+    if (role === 'admin') {
+      const settings = seedPlatformSettings();
+      const trialDays = settings.trialDays || 14;
+      const start = new Date();
+      const expiry = new Date();
+      expiry.setDate(start.getDate() + trialDays);
+      
+      newUser.subscription = {
+        type: 'trial',
+        startDate: start.toISOString(),
+        expiryDate: expiry.toISOString(),
+        status: 'active'
+      };
+    }
 
     const updatedAccounts = [...accounts, newUser];
     localStorage.setItem('garage_accounts', JSON.stringify(updatedAccounts));
@@ -505,16 +827,60 @@ export const AuthProvider = ({ children }) => {
     return { success: true, message: 'Password reset successfully.' };
   }, [getAccounts]);
 
+  // BACKGROUND SUBSCRIPTION ENFORCER
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.subscription?.type === 'unlimited') return;
+
+    const checkExpiry = () => {
+      const expiry = new Date(currentUser.subscription?.expiryDate);
+      if (!expiry || isNaN(expiry.getTime())) return;
+
+      const now = new Date();
+      if (now > expiry && currentUser.subscription.status !== 'suspended') {
+        console.log('[Subscription] Expiry detected. Suspending account access.');
+        const updates = { 
+          subscription: { ...currentUser.subscription, status: 'suspended' } 
+        };
+        
+        // Update both current session and the global accounts list
+        updateAccountInfo(updates);
+      }
+    };
+
+    // Check on mount and then every 5 minutes
+    checkExpiry();
+    const interval = setInterval(checkExpiry, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [currentUser, updateAccountInfo]);
+
   const value = useMemo(() => ({
-    currentUser, login, logout, register, getAccounts, 
+    currentUser, authLoading, globalLoading, login, loginAsync, logout, register, registerAsync, getAccounts,
     updateAccountInfo, updateOtherAccount, deleteAccount, updateGarageInfo, verifyPassword,
     requestPasswordReset, verifyResetOtp, resetPassword, generateNextGarageId,
-    addProfilePhoto, removeProfilePhoto, reorderProfilePhotos
+    addProfilePhoto, removeProfilePhoto, reorderProfilePhotos,
+    getPlatformSettings, getPlatformSettingsAsync,
+    updatePlatformSettings, updatePlatformSettingsAsync,
+    getPaymentRequests, getPaymentRequestsAsync, getAllPaymentRequestsAsync,
+    submitPaymentRequest, submitPaymentRequestAsync,
+    approvePaymentRequestAsync, rejectPaymentRequestAsync,
+    getAllUsersAsync, suspendUserAsync, reinstateUserAsync,
+    grantUnlimitedAsync, revokeUnlimitedAsync,
+    deleteClientAsync, platformPurgeAsync,
+    getClientsAsync, getPlatformStatsAsync
   }), [
-    currentUser, login, logout, register, getAccounts, 
+    currentUser, authLoading, apiLoading, login, loginAsync, logout, register, getAccounts,
     updateAccountInfo, updateOtherAccount, deleteAccount, updateGarageInfo, verifyPassword,
     requestPasswordReset, verifyResetOtp, resetPassword, generateNextGarageId,
-    addProfilePhoto, removeProfilePhoto, reorderProfilePhotos
+    addProfilePhoto, removeProfilePhoto, reorderProfilePhotos,
+    getPlatformSettings, getPlatformSettingsAsync,
+    updatePlatformSettings, updatePlatformSettingsAsync,
+    getPaymentRequests, getPaymentRequestsAsync, getAllPaymentRequestsAsync,
+    submitPaymentRequest, submitPaymentRequestAsync,
+    approvePaymentRequestAsync, rejectPaymentRequestAsync,
+    getAllUsersAsync, suspendUserAsync, reinstateUserAsync,
+    grantUnlimitedAsync, revokeUnlimitedAsync,
+    deleteClientAsync, platformPurgeAsync,
+    getClientsAsync, getPlatformStatsAsync, registerAsync
   ]);
 
   return (

@@ -262,6 +262,15 @@ const Profile = () => {
                     </div>
                   </div>
                 )}
+                {targetUser.type !== 'group' && (targetUser.garage?.displayId || (isOwnProfile && currentUser.garage?.displayId)) && (
+                  <div className="info-card-premium">
+                    <div className="info-card-icon"><Shield size={20} /></div>
+                    <div className="info-card-text">
+                      <label>{t('Garage ID')}</label>
+                      <p style={{ userSelect: 'all', cursor: 'text' }}>{targetUser.garage?.displayId || currentUser.garage?.displayId}</p>
+                    </div>
+                  </div>
+                )}
                 {targetUser.type === 'group' && (
                   <div className="info-card-premium">
                     <div className="info-card-icon"><User size={20} /></div>

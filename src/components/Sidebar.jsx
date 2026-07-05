@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Car, Wrench, Package, CreditCard, CalendarClock, BriefcaseBusiness, LogOut, Settings as SettingsIcon, Navigation, Briefcase, Download, History, ClipboardList, Moon, Sun, Globe, Landmark, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, Car, Wrench, Package, CreditCard, CalendarClock, BriefcaseBusiness, LogOut, Settings as SettingsIcon, Navigation, Briefcase, Download, History, ClipboardList, Moon, Sun, Globe, Landmark, MessageSquare, LayoutGrid, Zap, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import InstallPWA from './InstallPWA';
+import './InstallPWA.css';
 
 const Sidebar = () => {
   const { 
     t, language, setLanguage, isSidebarOpen, setIsSidebarOpen, 
-    darkMode, toggleDarkMode, requestConfirmation, messages
+    darkMode, toggleDarkMode, requestConfirmation, messages, internalMessages
   } = useAppContext();
   const { currentUser, logout } = useAuth();
   const location = useLocation();
@@ -35,14 +37,38 @@ const Sidebar = () => {
   const unreadMessagesCount = (messages || []).filter(m => 
     m.recipientId === currentUser?.id && !m.read
   ).length;
+  
+  const unreadInternalCount = (internalMessages || []).filter(m => 
+    m.recipientId === currentUser?.id && !m.read
+  ).length;
+
+  const getSubBadge = () => {
+    if (!currentUser || currentUser.role !== 'admin') return null;
+    const sub = currentUser.subscription;
+    if (!sub) return { text: 'Free', color: '#64748b' };
+    if (sub.type === 'unlimited') return { text: 'Unlimited', color: '#8b5cf6' };
+    if (sub.status === 'suspended') return { text: 'Expired', color: '#ef4444' };
+    
+    // Check if there's a pending request
+    const pendingReq = JSON.parse(localStorage.getItem('garage_payment_requests') || '[]')
+      .find(r => r.adminId === currentUser.id && r.status === 'pending');
+    if (pendingReq) return { text: 'Pending', color: '#f59e0b' };
+
+    if (sub.type === 'trial') return { text: 'Trial', color: '#3b82f6' };
+    return { text: 'Active', color: '#10b981' };
+  };
+
+  const subBadge = getSubBadge();
 
   const sections = [
     {
       title: t("GENERAL"),
       items: [
         { path: '/dashboard', label: t('dashboard'), icon: <LayoutDashboard size={20} />, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder', 'receptionist', 'cashier', 'storekeeper', 'inventoryManager'] },
-        { path: '/messages', label: t('Messages'), icon: <MessageSquare size={20} />, badge: unreadMessagesCount, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder', 'receptionist', 'cashier', 'storekeeper', 'inventoryManager'] },
-        { path: '/tracker', label: t('Live Tracking'), icon: <Navigation size={20} />, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder'] },
+        { path: '/subscription', label: t('Subscription'), icon: <Zap size={20} />, badge: subBadge?.text, badgeColor: subBadge?.color, roles: ['admin', 'coder'] },
+        { path: '/messages', label: t('Messages'), icon: <MessageSquare size={20} />, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder', 'receptionist', 'cashier', 'storekeeper', 'inventoryManager'] },
+        { path: '/support', label: t('Support'), icon: <Briefcase size={20} />, badge: unreadInternalCount > 0 ? unreadInternalCount : null, roles: ['admin'] },
+        { path: '/tracker', label: t('Live Tracking'), icon: <Navigation size={20} />, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder', 'cashier'] },
         { path: '/', label: t('homeLanding'), icon: <Navigation size={20} rotate={180} />, roles: ['admin', 'mechanic', 'customer', 'manager', 'coder', 'receptionist', 'cashier', 'storekeeper', 'inventoryManager'] },
       ]
     },
@@ -50,8 +76,8 @@ const Sidebar = () => {
       title: t("OPERATIONS"),
       items: [
         { path: '/appointments', label: t('appointments'), icon: <CalendarClock size={20} />, roles: ['admin', 'receptionist', 'customer', 'manager', 'coder'] },
-        { path: '/customers', label: t('customers'), icon: <Users size={20} />, roles: ['admin', 'receptionist', 'manager', 'coder'] },
-        { path: '/vehicles', label: t('vehicles'), icon: <Car size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder'] },
+        { path: '/customers', label: t('customers'), icon: <Users size={20} />, roles: ['admin', 'receptionist', 'manager', 'coder', 'cashier'] },
+        { path: '/vehicles', label: t('vehicles'), icon: <Car size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder', 'cashier'] },
         { path: '/repairs', label: t('repairs'), icon: <Wrench size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder'] },
         { path: '/attendance', label: t('Attendance'), icon: <ClipboardList size={20} />, roles: ['admin', 'manager', 'coder'] },
         { path: '/bonus', label: t("Bonus"), icon: <Landmark size={20} />, roles: ['mechanic', 'coder'] },
@@ -82,7 +108,7 @@ const Sidebar = () => {
       title: t("SYSTEM"),
       items: [
         { path: '/staff', label: t('staff'), icon: <BriefcaseBusiness size={20} />, roles: ['admin', 'coder'] },
-        { path: '/activity', label: t('activityLogs'), icon: <History size={20} />, roles: ['admin', 'coder'] },
+        { path: '/activity', label: t('activityLogs'), icon: <History size={20} />, roles: ['coder'] },
         { path: '/backup', label: t("Backup Data"), icon: <Download size={20} />, roles: ['admin', 'coder'] },
       ]
     },
@@ -90,7 +116,7 @@ const Sidebar = () => {
       title: t("SETTINGS"),
       items: [
         { path: '/settings', label: t('settings'), icon: <SettingsIcon size={20} />, roles: ['admin', 'mechanic', 'customer', 'manager', 'inventoryManager', 'coder', 'receptionist', 'cashier', 'storekeeper'] },
-        { path: '/coder-portal', label: 'Coder Portal', icon: <Briefcase size={20} />, roles: ['coder'] },
+        { path: '/coder-portal', label: t('platform'), icon: <LayoutGrid size={20} />, roles: ['coder'] },
       ]
     }
   ];
@@ -125,15 +151,17 @@ const Sidebar = () => {
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
-            {item.badge > 0 && (
+            {item.badge && (
               <span className="nav-badge" style={{
-                background: 'var(--primary)',
+                background: item.badgeColor || 'var(--primary)',
                 color: 'white',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                padding: '2px 6px',
-                borderRadius: '10px',
-                marginLeft: 'auto'
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '8px',
+                marginLeft: 'auto',
+                boxShadow: item.badgeColor ? `0 4px 10px ${item.badgeColor}44` : 'none',
+                textTransform: 'uppercase'
               }}>{item.badge}</span>
             )}
           </Link>
@@ -157,6 +185,49 @@ const Sidebar = () => {
             </div>
           </div>
         </div>
+        
+        {/* Contextual Quick Actions (Mobile/Sidebar focus) */}
+        {(location.pathname === '/repairs' || location.pathname === '/customers' || location.pathname === '/vehicles') && (
+          <div className="sidebar-context-actions" style={{ padding: '0 16px', marginBottom: 16 }}>
+            {location.pathname === '/repairs' && (role === 'manager' || role === 'coder') && (
+              <button 
+                className="btn-primary" 
+                style={{ width: '100%', fontSize: '0.85rem', padding: '10px' }}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('sidebar-action', { detail: { type: 'new-repair' } }));
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <Plus size={16} /> {t('newRepairOrder')}
+              </button>
+            )}
+            {location.pathname === '/customers' && (role === 'manager' || role === 'cashier' || role === 'coder') && (
+              <button 
+                className="btn-primary" 
+                style={{ width: '100%', fontSize: '0.85rem', padding: '10px' }}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('sidebar-action', { detail: { type: 'add-customer' } }));
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <Plus size={16} /> {t('Add New Customer')}
+              </button>
+            )}
+            {location.pathname === '/vehicles' && (role === 'manager' || role === 'cashier' || role === 'coder') && (
+              <button 
+                className="btn-primary" 
+                style={{ width: '100%', fontSize: '0.85rem', padding: '10px' }}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('sidebar-action', { detail: { type: 'add-vehicle' } }));
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <Plus size={16} /> {t("Add Vehicle")}
+              </button>
+            )}
+          </div>
+        )}
+
         <nav className="sidebar-nav">
           {sections.map(renderNavSection)}
         </nav>
@@ -199,6 +270,10 @@ const Sidebar = () => {
                 <span style={{ fontSize: '0.8rem' }}>{language === 'am' ? 'English' : 'አማርኛ'}</span>
               </button>
             </div>
+          </div>
+          
+          <div className="sidebar-install-container" style={{ marginTop: 15 }}>
+            <InstallPWA className="sidebar-install-btn" />
           </div>
 
           <button

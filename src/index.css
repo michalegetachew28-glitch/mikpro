@@ -171,6 +171,14 @@ html {
   overflow: hidden;
 }
 
+/* Global Suspension Operations Block */
+.app-suspended-mode button:not(.allow-suspended, .sidebar *, .bottom-nav *, .sub-page-root *, .internal-msg-root *), 
+.app-suspended-mode input[type="submit"] {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  filter: grayscale(100%);
+}
+
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -461,6 +469,16 @@ html {
   z-index: 90;
   padding-top: var(--safe-top);
   height: calc(var(--header-height) + var(--safe-top));
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Auto-hide header when any modal / form overlay is open */
+body:has(.modal-overlay) .top-header,
+body:has(.sap-modal-overlay) .top-header,
+body:has(.drawer-overlay) .top-header {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
 }
 
 .header-left {
@@ -734,6 +752,36 @@ html {
   color: #000000 !important;
 }
 
+/* ====================================================
+   GLOBAL LIGHT MODE DROPDOWN FIX — All <select> elements
+   ==================================================== */
+:not(.dark-theme) select,
+:not(.dark-theme) select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+:not(.dark-theme) select {
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* Dark mode overrides — keep dark dropdowns dark */
+.dark-theme select,
+.dark-theme select option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.dark-theme select {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Keep file/image input controls unaffected */
+.dark-theme input[type="file"],
+:not(.dark-theme) input[type="file"] {
+  background: transparent;
+}
+
 /* Dark Mode Overrides */
 .dark-theme .ethiopian-datepicker label {
   color: #ffffff !important;
@@ -797,21 +845,29 @@ html {
 }
 
 @media (max-width: 768px) {
+  /* Overlay: scrollable container aligned to top so user can scroll down */
   .modal-overlay {
-    padding-bottom: 80px; /* Clear BottomNav */
-    align-items: flex-end; /* Push to bottom for easier thumb reach */
+    align-items: flex-start;
+    padding: 12px 8px;
+    padding-top: calc(8px + var(--safe-top, 0px));
+    padding-bottom: calc(80px + var(--safe-bottom, 0px)); /* above BottomNav */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  
+
+  /* Card: full width, full natural height — scrolls inside the overlay */
   .modal-content {
-    max-height: calc(100vh - 120px);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: none;           /* remove height cap — let it be as tall as needed */
+    height: auto;
+    border-radius: var(--radius-lg);
     width: 100%;
     max-width: 100%;
-    margin-bottom: 0;
+    margin: 0 auto;
+    overflow-y: visible;        /* scroll is on the overlay, not the card */
   }
 
   .modal-footer, .modal-actions {
-    padding-bottom: 24px; /* Internal breathing room */
+    padding-bottom: 32px;
   }
 }
 
@@ -1067,10 +1123,10 @@ table {
 }
 
 .offline-banner--success {
-  background: linear-gradient(135deg, #065f46, #059669);
+  background: #374151;
   color: #fff;
-  border-top: 2px solid #10b981;
-  box-shadow: 0 -4px 20px rgba(6, 95, 70, 0.3);
+  border-top: 2px solid #4b5563;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
 }
 
 /* Body row */
@@ -1145,8 +1201,119 @@ table {
   animation: spin 1.2s linear infinite;
 }
 
-/* Dark-theme tints (already has colour, just darken overlay slightly) */
+/* Green dot pulse for back-online banner */
+@keyframes onlinePulse {
+  0%   { box-shadow: 0 0 0 0   rgba(16,185,129,0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0);   }
+  100% { box-shadow: 0 0 0 0   rgba(16,185,129,0);   }
+}
+
+/* Dark-theme tints */
 .dark-theme .offline-banner--offline  { box-shadow: 0 -4px 30px rgba(180, 83, 9, 0.5); }
 .dark-theme .offline-banner--syncing  { box-shadow: 0 -4px 30px rgba(30, 64, 175, 0.5); }
-.dark-theme .offline-banner--success  { box-shadow: 0 -4px 30px rgba(6, 95, 70, 0.5); }
+.dark-theme .offline-banner--success  { box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4); }
 
+/* Global Select Styling */
+select, .sap-form-input, .sap-select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+select option, .sap-form-input option, .sap-select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+
+.sub-header-alert {
+  background: rgba(245, 158, 11, 0.95);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+.sub-header-alert.expired {
+  background: rgba(239, 68, 68, 0.95);
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alert-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alert-btn-main {
+  background: white;
+  color: #f59e0b;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.sub-header-alert.expired .alert-btn-main {
+  color: #ef4444;
+}
+
+.alert-btn-main:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.alert-close {
+  background: transparent;
+  border: none;
+  color: white;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .sub-header-alert {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .alert-content {
+    flex-direction: column;
+    gap: 6px;
+  }
+}

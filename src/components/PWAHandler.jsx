@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Download, RefreshCw, X } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const PWAHandler = () => {
+  const { t } = useAppContext();
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -54,11 +56,11 @@ const PWAHandler = () => {
           <div className="pwa-banner-content">
             <RefreshCw className="pwa-icon spin" size={20} />
             <div>
-              <p className="pwa-title">New Update Available</p>
-              <p className="pwa-desc">Reload to get the latest features and fixes.</p>
+              <p className="pwa-title">{t("New Update Available")}</p>
+              <p className="pwa-desc">{t("Reload to get the latest features and fixes.")}</p>
             </div>
           </div>
-          <button className="pwa-btn primary" onClick={handleUpdate}>Update Now</button>
+          <button className="pwa-btn primary" onClick={handleUpdate}>{t("Update Now")}</button>
         </div>
       )}
 
@@ -67,15 +69,15 @@ const PWAHandler = () => {
           <div className="pwa-banner-content">
             <Download className="pwa-icon" size={20} />
             <div>
-              <p className="pwa-title">Install GarageSys</p>
-              <p className="pwa-desc">Install for a faster, app-like experience.</p>
+              <p className="pwa-title">{t("Install GarageSys")}</p>
+              <p className="pwa-desc">{t("Install for a faster, app-like experience.")}</p>
             </div>
           </div>
           <div className="pwa-actions">
             <button className="pwa-btn text" onClick={() => setShowInstallBanner(false)}>
               <X size={18} />
             </button>
-            <button className="pwa-btn primary" onClick={handleInstall}>Install</button>
+            <button className="pwa-btn primary" onClick={handleInstall}>{t("Install")}</button>
           </div>
         </div>
       )}

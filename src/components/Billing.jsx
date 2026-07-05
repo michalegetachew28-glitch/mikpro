@@ -139,8 +139,7 @@ const Billing = () => {
   };
 
   const formatCurrency = (amount) => {
-    const converted = convertAmount(amount, currency);
-    return `${getCurrencySymbol(currency)} ${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('ETB')}`;
   };
 
   const handleSaveInvoice = (newInvoice) => {
@@ -395,7 +394,7 @@ const Billing = () => {
             ) : (
               <>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                  FILTER BY SPECIFIC DAY
+                  {t('FILTER BY SPECIFIC DAY')}
                 </label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
@@ -448,7 +447,7 @@ const Billing = () => {
             ) : (
               <>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>FROM</label>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>{t('From').toUpperCase()}</label>
                   <input
                     type="date"
                     className="auth-input"
@@ -458,7 +457,7 @@ const Billing = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>TO</label>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>{t('To').toUpperCase()}</label>
                   <input
                     type="date"
                     className="auth-input"
@@ -515,7 +514,7 @@ const Billing = () => {
                 <p className="date-text">{formatDate(inv.date)}</p>
               </div>
               <div className="invoice-card-footer">
-                <span className="invoice-total-small">{getCurrencySymbol('ETB')} {inv.total?.toLocaleString()}</span>
+                <span className="invoice-total-small">{inv.total?.toLocaleString()} {t('ETB')}</span>
                 {inv.hasProof && <div className="proof-indicator" title="Payment proof uploaded"><Smartphone size={14} /></div>}
               </div>
             </div>
@@ -538,18 +537,18 @@ const Billing = () => {
         <div className="viewer-header">
           <div className="mobile-only-back" style={{ display: 'none' }}>
             <button className="btn-text" onClick={() => setShowMobileDetail(false)}>
-              <ArrowLeft size={16} /> Back to List
+              <ArrowLeft size={16} /> {t('back')}
             </button>
           </div>
           <div className="currency-selector" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t('currency')}:</span>
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="btn-outline-small">
-              <option value="ETB">ETB (Birr)</option>
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="AED">AED (د.إ)</option>
-              <option value="SAR">SAR (ر.ስ)</option>
+            <select 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value)} 
+              className="btn-outline-small"
+              style={{ backgroundColor: '#ffffff', color: '#000000', border: '1px solid var(--border)' }}
+            >
+              <option value="ETB">{t('etb')}</option>
             </select>
           </div>
           <div className="viewer-actions">
@@ -820,7 +819,7 @@ const Billing = () => {
                             fontSize: '0.9rem'
                           }}>
                             <DollarSign size={18} />
-                            {language === 'en' ? `Optional: Tip for Mechanic (${mechanic.name})` : `አማራጭ፡ ለሜካኒኩ ጉርሻ (${mechanic.name})`}
+                            {t("Optional: Tip for Mechanic", { name: mechanic.name })}
                           </div>
                           <div style={{
                             padding: '16px',
@@ -1089,13 +1088,9 @@ const Billing = () => {
               className="auth-input"
               value={billingForm.currency}
               onChange={(e) => setBillingForm({ ...billingForm, currency: e.target.value })}
+              style={{ backgroundColor: '#ffffff', color: '#000000' }}
             >
               <option value="ETB">ETB (Birr)</option>
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="AED">AED (د.إ)</option>
-              <option value="SAR">SAR (ر.ስ)</option>
             </select>
           </div>
           <button type="submit" className="btn-primary" style={{ padding: '12px' }}>
@@ -1150,15 +1145,15 @@ const Billing = () => {
   const renderReports = () => (
     <div className="reports-dashboard">
       <div className="stat-card">
-        <div className="stat-label">TOTAL BILLED (ETB)</div>
+        <div className="stat-label">{t('TOTAL BILLED (ETB)')}</div>
         <div className="stat-value">{stats.total.toLocaleString()}</div>
       </div>
       <div className="stat-card">
-        <div className="stat-label">TOTAL PAID (ETB)</div>
+        <div className="stat-label">{t('TOTAL PAID (ETB)')}</div>
         <div className="stat-value" style={{ color: 'var(--success)' }}>{stats.paid.toLocaleString()}</div>
       </div>
       <div className="stat-card">
-        <div className="stat-label">OUTSTANDING (ETB)</div>
+        <div className="stat-label">{t('OUTSTANDING (ETB)')}</div>
         <div className="stat-value" style={{ color: 'var(--danger)' }}>{stats.unpaid.toLocaleString()}</div>
       </div>
     </div>
@@ -1183,9 +1178,9 @@ const Billing = () => {
             <div className="invoice-list-section">
               <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}>
                 {(currentUser?.permissions?.includes('all') || (currentUser?.permissions?.includes('billing_manage') && !['inventoryManager', 'storekeeper'].includes(currentUser?.role))) && (
-                  <button className="btn-primary" style={{ width: '100%', padding: '12px' }} onClick={() => setShowInvoiceForm(true)}>
-                    <FilePlus size={20} /> Create New Invoice
-                  </button>
+                    <button className="btn-primary" style={{ width: '100%', padding: '12px' }} onClick={() => setShowInvoiceForm(true)}>
+                      <FilePlus size={20} /> {t("Create New Invoice")}
+                    </button>
                 )}
               </div>
               <div className="invoice-list">
@@ -1714,11 +1709,11 @@ const Billing = () => {
 
                 <form id="perfect-bonus-form" onSubmit={handleSendBonus}>
                   <div className="form-group" style={{ marginBottom: 16 }}>
-                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 8, display: 'block' }}>Bonus Amount (ETB)</label>
+                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 8, display: 'block' }}>{t('Bonus Amount (ETB)')}</label>
                     <input
                       type="number"
                       className="auth-input"
-                      placeholder="Enter amount"
+                      placeholder={t("Enter amount")}
                       value={bonusAmount}
                       onChange={(e) => setBonusAmount(e.target.value)}
                       required
@@ -1728,10 +1723,10 @@ const Billing = () => {
 
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label style={{ fontWeight: 600, fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      Payment Screenshot
+                      {t('Payment Screenshot')}
                       {bonusScreenshot && (
                         <button type="button" onClick={() => setBonusScreenshot(null)} style={{ color: 'var(--danger)', fontSize: '0.8rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                          Remove
+                          {t('Remove')}
                         </button>
                       )}
                     </label>
@@ -1767,12 +1762,12 @@ const Billing = () => {
                       {bonusScreenshot ? (
                         <div style={{ position: 'relative', width: '100%' }}>
                           <img src={bonusScreenshot} style={{ maxWidth: '100%', maxHeight: '160px', borderRadius: 8, objectFit: 'contain' }} alt="Bonus Proof" />
-                          <div style={{ marginTop: 8, color: 'var(--success)', fontWeight: 700, fontSize: '0.8rem' }}>✓ Image Selected</div>
+                          <div style={{ marginTop: 8, color: 'var(--success)', fontWeight: 700, fontSize: '0.8rem' }}>✓ {t('Image Selected')}</div>
                         </div>
                       ) : (
                         <div style={{ opacity: 0.6 }}>
                           <ImageIcon size={32} style={{ marginBottom: 8, color: 'var(--primary)' }} />
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Tap to upload proof of transfer</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t('Tap to upload proof of transfer')}</div>
                         </div>
                       )}
                     </label>

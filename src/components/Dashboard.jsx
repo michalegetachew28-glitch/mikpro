@@ -4,14 +4,14 @@ import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import {
   Users, Car, Wrench, DollarSign, TrendingUp, AlertTriangle,
-  CheckCircle2, Clock, Trash2, CalendarClock, Package, Receipt, FileText, MessageSquare, Navigation, History, ClipboardList
+  CheckCircle2, Clock, Trash2, CalendarClock, Package, Receipt, FileText, MessageSquare, Navigation, History, ClipboardList, Plus, Briefcase
 } from 'lucide-react';
 import './Dashboard.css';
 
 /* ─────────────────────────────────────────────
    ADMIN DASHBOARD
 ───────────────────────────────────────────── */
-const AdminDashboard = ({ navigate, context }) => {
+const AdminDashboard = ({ navigate, context, user }) => {
   const { customers, vehicles, repairs, inventory, t, language, formatDate } = context;
   const activeRepairs = (repairs || []).filter(r => r.status === 'in-progress' || r.status === 'pending').length;
   const lowStockItems = (inventory || []).filter(i => i.quantity <= i.threshold);
@@ -25,9 +25,9 @@ const AdminDashboard = ({ navigate, context }) => {
   const presentToday = todayAttendance.filter(r => r.status === 'present').length;
 
   const statCards = [
-    { title: t('totalRevenue'), value: `$${(totalRevenue || 0).toLocaleString()}`, icon: <DollarSign size={24} />, color: 'var(--success)', trend: '+12% this month', link: '/billing' },
-    { title: t('activeRepairs'), value: activeRepairs || 0, icon: <Wrench size={24} />, color: 'var(--primary)', trend: '4 due today', link: '/repairs' },
-    { title: t('totalCustomers'), value: (customers || []).length, icon: <Users size={24} />, color: 'var(--secondary)', trend: '+3 this week', link: '/customers' },
+    { title: t('totalRevenue'), value: `ETB ${(totalRevenue || 0).toLocaleString()}`, icon: <DollarSign size={24} />, color: 'var(--success)', trend: t('thisMonthGrowth'), link: '/billing' },
+    { title: t('activeRepairs'), value: activeRepairs || 0, icon: <Wrench size={24} />, color: 'var(--primary)', trend: t('dueTodayCount'), link: '/repairs' },
+    { title: t('totalCustomers'), value: (customers || []).length, icon: <Users size={24} />, color: 'var(--secondary)', trend: t('weeklyGrowth'), link: '/customers' },
     { title: t("Live Trackers"), value: (context.activeTrackers || []).length, icon: <Navigation size={24} />, color: 'var(--danger)', trend: t("Active"), link: '/tracker' },
     { title: t("Total Vehicles"), value: (vehicles || []).length, icon: <Car size={24} />, color: 'var(--primary)', trend: t("Registered"), link: '/vehicles' },
     { title: t("Take Attendance"), value: presentToday || 0, icon: <ClipboardList size={24} />, color: 'var(--accent)', trend: t("Summary"), link: '/attendance' },
@@ -41,6 +41,32 @@ const AdminDashboard = ({ navigate, context }) => {
           <p className="subtitle">{t('welcome')}! {t('dashboardSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          {user?.garage?.displayId && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 20,
+              background: 'var(--primary-subtle, rgba(99,102,241,0.12))',
+              border: '1.5px solid var(--primary)',
+              color: 'var(--primary)', fontWeight: 700,
+              fontSize: '0.85rem', letterSpacing: '0.04em',
+              userSelect: 'all', cursor: 'text',
+            }} title="Garage ID">
+              🆔 {user.garage.displayId}
+            </div>
+          )}
+          {user?.ownerId && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 20,
+              background: 'var(--primary-subtle, rgba(99,102,241,0.12))',
+              border: '1.5px solid var(--primary)',
+              color: 'var(--primary)', fontWeight: 700,
+              fontSize: '0.85rem', letterSpacing: '0.04em',
+              userSelect: 'all', cursor: 'text',
+            }}>
+              🏢 {user.ownerId}
+            </div>
+          )}
           <button className="btn-outline" onClick={() => navigate('/attendance')}>
             <ClipboardList size={18} />{t('Take Attendance')}
           </button>
@@ -76,8 +102,8 @@ const AdminDashboard = ({ navigate, context }) => {
               <thead><tr><th>{t('vehicle')}</th><th>{t('customer')}</th><th>{t('dateIn')}</th><th>{t('status')}</th></tr></thead>
               <tbody>
                 {[...(repairs || [])].reverse().slice(0, 5).map(repair => {
-                  const vehicle = (vehicles || []).find(v => v.id === repair.vehicleId);
-                  const customer = (customers || []).find(c => c.id === vehicle?.customerId);
+                  const vehicle = repair.vehicle || (vehicles || []).find(v => v.id === repair.vehicleId);
+                  const customer = vehicle?.customer || (customers || []).find(c => c.id === vehicle?.customerId);
                   const statusMap = {
                     'pending': { icon: <Clock size={14} />, cls: 'status-pending' },
                     'in-progress': { icon: <Wrench size={14} />, cls: 'status-progress' },
@@ -89,7 +115,7 @@ const AdminDashboard = ({ navigate, context }) => {
                       <td><div className="td-content"><Car size={16} className="td-icon" />{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : t('Unknown')}</div></td>
                       <td>{customer?.name || t('Unknown')}</td>
                       <td>{formatDate(repair.dateIn)}</td>
-                      <td><span className={`status-badge ${s.cls}`}>{s.icon}{repair.status}</span></td>
+                      <td><span className={`status-badge ${s.cls}`}>{s.icon}{t(repair.status)}</span></td>
                     </tr>
                   );
                 })}
@@ -163,7 +189,7 @@ const MechanicDashboard = ({ navigate, context, user }) => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <div>
-          <h1>{language === 'en' ? `Welcome, ${user.name}` : `እንኳን ደህና መጡ፣ ${user.name}`}</h1>
+          <h1>{t('welcomeUser', { name: user.name })}</h1>
           <p className="subtitle">{t("Connected to Admin Command Center")}</p>
         </div>
       </div>
@@ -236,7 +262,7 @@ const MechanicDashboard = ({ navigate, context, user }) => {
                 <div className="command-text">{msg.text}</div>
                 <div className="command-meta">
                   <span>{new Date(msg.time).toLocaleTimeString()}</span>
-                  {!msg.read && <span className="new-badge">New</span>}
+                  {!msg.read && <span className="new-badge">{t('statusNew')}</span>}
                 </div>
               </div>
             ))}
@@ -252,37 +278,37 @@ const MechanicDashboard = ({ navigate, context, user }) => {
             <table className="modern-table">
               <thead><tr><th>{t('vehicle')}</th><th>{t('customer')}</th><th>{t('status')}</th><th>{t('actions')}</th></tr></thead>
               <tbody>
-                {[...(myRepairs || [])].reverse().filter(r => r.status !== 'completed').slice(0, 5).map(repair => {
-                  const vehicle = (vehicles || []).find(v => v.id === repair.vehicleId);
-                  const customer = (customers || []).find(c => c.id === vehicle?.customerId);
-                  const statusMap = {
-                    'pending': { icon: <Clock size={14} />, cls: 'status-pending' },
-                    'assigned': { icon: <Clock size={14} />, cls: 'status-pending' },
-                    'in-progress': { icon: <Wrench size={14} />, cls: 'status-progress' },
-                  };
-                  const s = statusMap[repair.status] || statusMap['pending'];
-                  return (
-                    <tr key={repair.id} className="clickable-row">
-                      <td onClick={() => navigate('/repairs')}><div className="td-content">{vehicle ? `${vehicle.make} ${vehicle.model}` : '—'}</div></td>
-                      <td onClick={() => navigate('/repairs')}>{customer?.name || '—'}</td>
-                      <td onClick={() => navigate('/repairs')}><span className={`status-badge ${s.cls}`}>{s.icon} {t(repair.status === 'in-progress' ? 'inProgress' : repair.status)}</span></td>
-                      <td>
-                        {repair.status === 'pending' || repair.status === 'assigned' ? (
-                          <button
-                            className="btn-primary-small"
-                            style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              context.updateItem('repairs', repair.id, { status: 'in-progress' });
-                            }}
-                          >
-                            {t('acceptJob')}
-                          </button>
-                        ) : '—'}
-                      </td>
-                    </tr>
-                  );
-                })}
+                  {[...(myRepairs || [])].reverse().filter(r => r.status !== 'completed').slice(0, 5).map(repair => {
+                    const vehicle = repair.vehicle || (vehicles || []).find(v => v.id === repair.vehicleId);
+                    const customer = vehicle?.customer || (customers || []).find(c => c.id === vehicle?.customerId);
+                    const statusMap = {
+                      'pending': { icon: <Clock size={14} />, cls: 'status-pending' },
+                      'assigned': { icon: <Clock size={14} />, cls: 'status-pending' },
+                      'in-progress': { icon: <Wrench size={14} />, cls: 'status-progress' },
+                    };
+                    const s = statusMap[repair.status] || statusMap['pending'];
+                    return (
+                      <tr key={repair.id} className="clickable-row">
+                        <td onClick={() => navigate('/repairs')}><div className="td-content">{vehicle ? `${vehicle.make} ${vehicle.model}` : '—'}</div></td>
+                        <td onClick={() => navigate('/repairs')}>{customer?.name || '—'}</td>
+                        <td onClick={() => navigate('/repairs')}><span className={`status-badge ${s.cls}`}>{s.icon} {t(repair.status === 'in-progress' ? 'inProgress' : repair.status)}</span></td>
+                        <td>
+                          {repair.status === 'pending' || repair.status === 'assigned' ? (
+                            <button
+                              className="btn-primary-small"
+                              style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                context.updateItem('repairs', repair.id, { status: 'in-progress' });
+                              }}
+                            >
+                              {t('acceptJob')}
+                            </button>
+                          ) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
@@ -317,7 +343,7 @@ const CustomerDashboard = ({ navigate, context, user }) => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <div>
-          <h1>{language === 'en' ? `Hello, ${user.name} 👋` : `ሰላም፣ ${user.name} 👋`}</h1>
+          <h1>{t('helloUser', { name: user.name })} 👋</h1>
           <p className="subtitle">{t("Track your vehicles and repair status.")}</p>
         </div>
       </div>
@@ -366,7 +392,7 @@ const CustomerDashboard = ({ navigate, context, user }) => {
                 {activeR.length > 0 ? (
                   <span className={`status-badge ${activeR[0].status === 'in-progress' ? 'status-progress' : 'status-pending'}`}>
                     {activeR[0].status === 'in-progress' ? <Wrench size={13} /> : <Clock size={13} />}
-                    {t(activeR[0].status === 'in-progress' ? 'inProgress' : 'pending')}
+                    {t(activeR[0].status)}
                   </span>
                 ) : (
                   (myRepairs || []).filter(r => r.vehicleId === v.id && r.status === 'completed').length > 0 && (
@@ -496,7 +522,7 @@ const ReceptionistDashboard = ({ navigate, context, user }) => {
                   <tr key={app.id}>
                     <td>{app.customerName}</td>
                     <td>{app.time}</td>
-                    <td><span className={`status-badge status-pending`}>{app.status}</span></td>
+                    <td><span className={`status-badge status-pending`}>{t(app.status)}</span></td>
                   </tr>
                 ))}
                 {todayAppointments.length === 0 && <tr><td colSpan="3" style={{ textAlign: 'center', padding: 20 }}>{t("No appointments today")}</td></tr>}
@@ -518,7 +544,7 @@ const CashierDashboard = ({ navigate, context, user }) => {
 
   const stats = [
     { title: t("Pending Payments"), value: (pendingInvoices || []).length, icon: <DollarSign size={24} />, color: 'var(--danger)', link: '/billing' },
-    { title: t('totalRevenue'), value: `$${(repairs || []).filter(r => r.paid).reduce((s, r) => s + (r.total || 0), 0).toLocaleString()}`, icon: <TrendingUp size={24} />, color: 'var(--success)', link: '/billing' },
+    { title: t('totalRevenue'), value: `ETB ${(repairs || []).filter(r => r.paid).reduce((s, r) => s + (r.total || 0), 0).toLocaleString()}`, icon: <TrendingUp size={24} />, color: 'var(--success)', link: '/billing' },
   ];
 
   return (
@@ -542,6 +568,24 @@ const CashierDashboard = ({ navigate, context, user }) => {
         ))}
       </div>
 
+      <div className="manager-quick-actions">
+        <button className="action-card secondary" onClick={() => navigate('/customers', { state: { showAddModal: true } })}>
+          <div className="action-icon"><Users size={32} /></div>
+          <div className="action-info">
+            <h3>{t('Add New Customer')}</h3>
+            <p>{t("Register a new client to the garage system.")}</p>
+          </div>
+        </button>
+
+        <button className="action-card accent" onClick={() => navigate('/vehicles', { state: { showAddModal: true } })}>
+          <div className="action-icon"><Car size={32} /></div>
+          <div className="action-info">
+            <h3>{t("Add Vehicle")}</h3>
+            <p>{t("Register a new vehicle under an existing customer.")}</p>
+          </div>
+        </button>
+      </div>
+
       <div className="dashboard-content-grid">
         <div className="content-card">
           <div className="card-header">
@@ -553,8 +597,8 @@ const CashierDashboard = ({ navigate, context, user }) => {
               <tbody>
                 {pendingInvoices.slice(0, 5).map(inv => (
                   <tr key={inv.id}>
-                    <td>{inv.customerName || 'Walk-in'}</td>
-                    <td>${inv.total || 0}</td>
+                    <td>{inv.customerName || t('Walk-in')}</td>
+                    <td>ETB {inv.total || 0}</td>
                     <td><button className="btn-primary-small" onClick={() => navigate('/billing')}>{t("Collect")}</button></td>
                   </tr>
                 ))}
@@ -622,10 +666,10 @@ const StorekeeperDashboard = ({ navigate, context, user }) => {
                   const mech = (context.staff || []).find(s => s.id === req.mechanicId);
                   return (
                     <tr key={req.id} className="clickable-row" onClick={() => navigate('/material-requests')}>
-                      <td>{part?.name || 'Unknown'}</td>
-                      <td>{mech?.name || 'Unknown'}</td>
+                      <td>{part?.name || t('Unknown')}</td>
+                      <td>{mech?.name || t('Unknown')}</td>
                       <td>{req.requestedQty}</td>
-                      <td><span className="status-badge status-pending">{req.status}</span></td>
+                      <td><span className="status-badge status-pending">{t(req.status)}</span></td>
                     </tr>
                   );
                 })}
@@ -671,7 +715,7 @@ const StorekeeperDashboard = ({ navigate, context, user }) => {
                 <div key={item.id} className="alert-item">
                   <div className="alert-details">
                     <h4>{item.name}</h4>
-                    <span>Stock: {item.quantity} (Threshold: {item.threshold})</span>
+                    <span>{t('stockLevel')}: {item.quantity} ({t('threshold')}: {item.threshold})</span>
                   </div>
                   <button className="btn-outline-small" onClick={() => navigate('/inventory')}>{t('reorder')}</button>
                 </div>
@@ -705,11 +749,6 @@ const ManagerDashboard = ({ navigate, context, user }) => {
           <h1>{t('dashboard')}</h1>
           <p className="subtitle">{t('welcome')}! {user.name} ({t('manager') || 'Manager'})</p>
         </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button className="btn-primary" onClick={() => navigate('/repairs')}>
-            <Wrench size={18} />{t('newRepairOrder')}
-          </button>
-        </div>
       </div>
 
       <div className="stats-grid">
@@ -727,6 +766,33 @@ const ManagerDashboard = ({ navigate, context, user }) => {
         ))}
       </div>
 
+      {/* Modern Quick Action Cards */}
+      <div className="manager-quick-actions">
+        <button className="action-card primary" onClick={() => navigate('/repairs', { state: { showAddModal: true } })}>
+          <div className="action-icon"><Plus size={32} /></div>
+          <div className="action-info">
+            <h3>{t('newRepairOrder')}</h3>
+            <p>{t("Initiate a new repair job and assign mechanics.")}</p>
+          </div>
+        </button>
+
+        <button className="action-card secondary" onClick={() => navigate('/customers', { state: { showAddModal: true } })}>
+          <div className="action-icon"><Users size={32} /></div>
+          <div className="action-info">
+            <h3>{t('Add New Customer')}</h3>
+            <p>{t("Register a new client to the garage system.")}</p>
+          </div>
+        </button>
+
+        <button className="action-card accent" onClick={() => navigate('/vehicles', { state: { showAddModal: true } })}>
+          <div className="action-icon"><Car size={32} /></div>
+          <div className="action-info">
+            <h3>{t("Add Vehicle")}</h3>
+            <p>{t("Register a new vehicle under an existing customer.")}</p>
+          </div>
+        </button>
+      </div>
+
       <div className="dashboard-content-grid">
         <div className="content-card">
           <div className="card-header">
@@ -738,8 +804,8 @@ const ManagerDashboard = ({ navigate, context, user }) => {
               <thead><tr><th>{t('vehicle')}</th><th>{t('customer')}</th><th>{t('dateIn')}</th><th>{t('status')}</th></tr></thead>
               <tbody>
                 {[...(repairs || [])].reverse().slice(0, 5).map(repair => {
-                  const vehicle = (context.vehicles || []).find(v => v.id === repair.vehicleId);
-                  const customer = (customers || []).find(c => c.id === vehicle?.customerId);
+                  const vehicle = repair.vehicle || (context.vehicles || []).find(v => v.id === repair.vehicleId);
+                  const customer = vehicle?.customer || (customers || []).find(c => c.id === vehicle?.customerId);
                   const statusMap = {
                     'pending': { icon: <Clock size={14} />, cls: 'status-pending' },
                     'in-progress': { icon: <Wrench size={14} />, cls: 'status-progress' },
@@ -751,7 +817,7 @@ const ManagerDashboard = ({ navigate, context, user }) => {
                       <td><div className="td-content"><Car size={16} className="td-icon" />{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : t('Unknown')}</div></td>
                       <td>{customer?.name || t('Unknown')}</td>
                       <td>{formatDate(repair.dateIn)}</td>
-                      <td><span className={`status-badge ${s.cls}`}>{s.icon}{repair.status}</span></td>
+                      <td><span className={`status-badge ${s.cls}`}>{s.icon}{t(repair.status)}</span></td>
                     </tr>
                   );
                 })}
@@ -803,7 +869,7 @@ const Dashboard = () => {
   if (!currentUser) return null;
 
   const dashboards = {
-    admin: <AdminDashboard navigate={navigate} context={context} />,
+    admin: <AdminDashboard navigate={navigate} context={context} user={currentUser} />,
     mechanic: <MechanicDashboard navigate={navigate} context={context} user={currentUser} />,
     customer: <CustomerDashboard navigate={navigate} context={context} user={currentUser} />,
     receptionist: <ReceptionistDashboard navigate={navigate} context={context} user={currentUser} />,

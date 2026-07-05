@@ -1,0 +1,35 @@
+.network-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483647; /* absolute max z-index above all dialogs */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(100%);
+  display: flex !important; /* enforce block */
+}
+
+/* Red Offline State */
+.network-status-bar.offline {
+  background-color: #ef4444; 
+  transform: translateY(0);
+}
+
+/* Green Online State */
+.network-status-bar.online {
+  background-color: #10b981; 
+  transform: translateY(0);
+}
+
+/* Hidden state (slide down) */
+.network-status-bar.hidden {
+  transform: translateY(100%);
+}

@@ -91,9 +91,7 @@ const Appointments = () => {
     if (isCustomer) {
       (staff || []).filter(s => s.role === 'admin' || s.role === 'receptionist' || s.role === 'manager').forEach(s => {
         addNotification(
-          language === 'en' 
-            ? `New appointment request from ${currentUser.name} for ${formatDate(formData.date)} at ${formData.time}` 
-            : `አዲስ የቀጠሮ ጥያቄ ከ ${currentUser.name} ለ ${formatDate(formData.date)} በ ${formData.time}`,
+          t('appReqNotify', { name: currentUser.name, date: formatDate(formData.date), time: formData.time }),
           'info',
           s.id,
           '/appointments',
@@ -137,9 +135,7 @@ const Appointments = () => {
     // Notify Staff
     (staff || []).filter(s => s.role === 'admin' || s.role === 'receptionist' || s.role === 'manager').forEach(s => {
       addNotification(
-        language === 'en' 
-          ? `Appointment cancelled by ${currentUser.name} for ${formatDate(apt.date)}` 
-          : `ቀጠሮ በ ${currentUser.name} ለ ${formatDate(apt.date)} ተሰርዟል`,
+        t('appCancelNotify', { name: currentUser.name, date: formatDate(apt.date) }),
         'warning',
         s.id,
         '/appointments',
@@ -218,19 +214,32 @@ const Appointments = () => {
           </div>
         )}
 
-        <div className="date-nav">
-          <button className="btn-outline-small" onClick={() => handleDateChange(-1)}>{t('prevDay')}</button>
-          <div className="current-date-display">
-            <CalendarIcon size={20} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontWeight: '700' }}>{formatDate(viewDate)}</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--primary)', opacity: 0.8 }}>
-                {formatEthiopianDate(viewDate, language)}
-              </span>
+        <div className="date-nav-wrapper">
+          <div className="date-nav">
+            <button className="btn-outline-small" onClick={() => handleDateChange(-1)}>{t('prevDay')}</button>
+            <div className="current-date-display">
+              <CalendarIcon size={20} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: '700' }}>{formatDate(viewDate)}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--primary)', opacity: 0.8 }}>
+                  {formatEthiopianDate(viewDate, language)}
+                </span>
+              </div>
             </div>
+            <button className="btn-outline-small" onClick={() => handleDateChange(1)}>{t('nextDay')}</button>
           </div>
-          <button className="btn-outline-small" onClick={() => handleDateChange(1)}>{t('nextDay')}</button>
-          <button className="btn-text" onClick={() => setViewDate(new Date().toISOString().split('T')[0])}>{t('today')}</button>
+          
+          <div className="date-nav-actions">
+            <div className="date-picker-compact">
+              <input 
+                type="date" 
+                value={viewDate} 
+                onChange={(e) => setViewDate(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+            <button className="btn-text today-btn" onClick={() => setViewDate(new Date().toISOString().split('T')[0])}>{t('today')}</button>
+          </div>
         </div>
         
         <div className="search-box">
@@ -320,7 +329,7 @@ const Appointments = () => {
                           style={{ fontSize: '0.8rem' }}
                           onClick={() => requestConfirmation(t('confirmDeleteAppointment'), () => handleCancel(apt))}
                         >
-                          {t("Cancel")}
+                          {t("cancel")}
                         </button>
                     )}
                   </div>

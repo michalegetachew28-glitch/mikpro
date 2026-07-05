@@ -362,7 +362,7 @@ const Attendance = () => {
                       <input
                         type="text"
                         className={`table-note-input ${isModified && draft.note !== record?.note ? 'modified' : ''}`}
-                        placeholder="..."
+                        placeholder={t('typeNote')}
                         value={note}
                         onChange={(e) => handleNoteChange(s.id, e.target.value)}
                       />

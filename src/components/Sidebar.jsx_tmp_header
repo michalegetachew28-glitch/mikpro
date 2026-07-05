@@ -1,0 +1,9 @@
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, Car, Wrench, Package, CreditCard, CalendarClock, BriefcaseBusiness, LogOut, Settings as SettingsIcon, Navigation, Briefcase, Download, History, ClipboardList, Moon, Sun, Globe, Landmark, MessageSquare, LayoutGrid, Zap, Plus, Sun as SunIcon, Moon as MoonIcon } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import InstallPWA from './InstallPWA';
+import './InstallPWA.css';
+
+const Sidebar = () => {

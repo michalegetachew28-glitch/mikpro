@@ -41,7 +41,7 @@ const InvoiceForm = ({ onClose, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!customerId || !vehicleId) {
-      alert('Please select a customer and vehicle.');
+      alert(t('Please select a customer and vehicle.'));
       return;
     }
 
@@ -126,7 +126,7 @@ const InvoiceForm = ({ onClose, onSave }) => {
 
           <div className="form-group" style={{ marginBottom: 24 }}>
             <label>{t('laborCost')}</label>
-            <input type="number" value={laborCost || ''} onChange={(e) => setLaborCost(e.target.value)} className="auth-input" placeholder="0.00" />
+            <input type="number" value={laborCost || ''} onChange={(e) => setLaborCost(e.target.value)} className="auth-input" placeholder="0.00" /> ETB
           </div>
 
 
@@ -144,14 +144,14 @@ const InvoiceForm = ({ onClose, onSave }) => {
 
           <div className="form-group" style={{ marginTop: 24 }}>
             <label>{t('notes')}</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="auth-input" rows="2" placeholder="Warranty info, payment terms, etc."></textarea>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="auth-input" rows="2" placeholder={t("Warranty info, payment terms, etc.")}></textarea>
           </div>
 
           <div className="modal-footer">
              <div className="total-preview">
-                <span style={{ fontSize: '0.9rem', color: '#64748b' }}>Total Preview:</span>
+                <span style={{ fontSize: '0.9rem', color: '#64748b' }}>{t("Total Preview:")}</span>
                 <span style={{ fontSize: '1.4rem', fontWeight: 800, marginLeft: 12, color: 'var(--primary)' }}>
-                   {billingSettings.currency || 'ETB'} {(calculateSubtotal() * (1 + taxRate/100) - parseFloat(discount || 0)).toLocaleString()}
+                   {t('ETB')} {(calculateSubtotal() * (1 + taxRate/100) - parseFloat(discount || 0)).toLocaleString()}
                 </span>
              </div>
              <div style={{ display: 'flex', gap: 12 }}>

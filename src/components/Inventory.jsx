@@ -32,9 +32,8 @@ const Inventory = () => {
     return (
       <div className="page-content">
         <div className="empty-state">
-          <AlertTriangle size={48} color="var(--danger)" />
-          <h2>{t("Access Denied") || "Access Denied"}</h2>
-          <p>{t("Managers do not have permission to view physical inventory lists.")}</p>
+          <h2>{t("Access Denied")}</h2>
+          <p>{t("managersNoInventoryPermission")}</p>
         </div>
       </div>
     );
@@ -229,7 +228,7 @@ const Inventory = () => {
                 <div className="detail-stat">
                   <span className="stat-label">{t("Unit Price")}</span>
                   <div className="price-display">
-                    ${item.price.toFixed(0)}
+                    {item.price.toFixed(0)} {t("ETB")}
                   </div>
                 </div>
               </div>
@@ -289,7 +288,7 @@ const Inventory = () => {
               </div>
 
               <div className="form-group">
-                <label>{t("Unit Price ($)")} *</label>
+                <label>{t("Unit Price")} ({t("ETB")}) *</label>
                 <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" step="1" />
               </div>
 

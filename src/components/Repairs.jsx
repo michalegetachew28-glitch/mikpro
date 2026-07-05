@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Wrench, Search, Plus, Edit2, Trash2, Calendar, DollarSign, Clock, CheckCircle2, MessageSquare, Package, Check, X, Mic, Square, Play, Store, ShoppingCart, ChevronDown, ChevronUp, Filter, Car, AlertCircle as AlertCircleIcon, Navigation, MapPin, History, Layout, List } from 'lucide-react';
+import { Wrench, Search, Plus, Edit2, Trash2, Calendar as CalendarIcon, DollarSign, Clock, CheckCircle2, MessageSquare, Package, Check, X, Mic, Square, Play, Store, ShoppingCart, ChevronDown, ChevronUp, Filter, Car, AlertCircle as AlertCircleIcon, Navigation, MapPin, History, Layout, List } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { storeMedia, getMedia } from '../utils/idbStorage';
 import { toEthiopian, formatEthiopianDate } from '../utils/ethiopianDate';
@@ -54,6 +54,7 @@ const Repairs = () => {
   });
   const [custSearch, setCustSearch] = useState('');
   const [showVehResults, setShowVehResults] = useState(false);
+  const [specificDate, setSpecificDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     if (location.state?.preselectCustomerId) {
@@ -63,9 +64,22 @@ const Repairs = () => {
         setCustSearch(customer.name);
         setShowVehResults(true);
       }
-      // Clear state to avoid re-opening on refresh
-      window.history.replaceState({}, document.title);
+    } else if (location.state?.showAddModal) {
+      handleOpenModal();
     }
+    
+    // Listen for sidebar actions
+    const handleSidebarAction = (e) => {
+      if (e.detail?.type === 'new-repair') {
+        handleOpenModal();
+      }
+    };
+    window.addEventListener('sidebar-action', handleSidebarAction);
+
+    // Clear state to avoid re-opening on refresh
+    window.history.replaceState({}, document.title);
+    
+    return () => window.removeEventListener('sidebar-action', handleSidebarAction);
   }, [location.state, customers]);
 
   const filteredRepairs = (repairs || []).filter(r => {
@@ -104,6 +118,12 @@ const Repairs = () => {
         const todayStr = new Date().toISOString().split('T')[0];
         return r.dateIn === todayStr;
       }
+      if (dateFilter === 'yesterday') {
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        return r.dateIn === yesterdayStr;
+      }
       if (dateFilter === 'week') {
         const weekAgo = new Date();
         weekAgo.setDate(now.getDate() - 7);
@@ -118,6 +138,14 @@ const Repairs = () => {
         const yearAgo = new Date();
         yearAgo.setFullYear(now.getFullYear() - 1);
         return repairDate >= yearAgo && repairDate <= now;
+      }
+      if (dateFilter === 'earlier') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(now.getMonth() - 1);
+        return repairDate < monthAgo;
+      }
+      if (dateFilter === 'specific' && specificDate) {
+        return r.dateIn === specificDate;
       }
       if (dateFilter === 'custom') {
         return r.dateIn >= customRange.start && r.dateIn <= customRange.end;
@@ -281,7 +309,7 @@ const Repairs = () => {
       uniqueRecipients.forEach(id => {
         if (id && String(id) !== String(currentUser.id)) {
           addNotification(
-            language === 'en' ? `✅ ${currentUser.name} accepted Repair #${repair.id}` : `✅ ${currentUser.name} የጥገና ትዕዛዝ #${repair.id} ተቀብሏል`, 
+            t('repairAcceptedNotify', { name: currentUser.name, id: repair.id }), 
             'success', id, '/repairs'
           );
         }
@@ -350,7 +378,7 @@ const Repairs = () => {
       uniqueRecipients.forEach(id => {
         if (id && String(id) !== String(currentUser.id)) {
           addNotification(
-            language === 'en' ? `❌ ${currentUser.name} declined Repair #${declineTarget.id}` : `❌ ${currentUser.name} የጥገና ትዕዛዝ #${declineTarget.id} አልተቀበለም`, 
+            t('repairDeclinedNotify', { name: currentUser.name, id: declineTarget.id }), 
             'warning', id, '/repairs'
           );
         }
@@ -372,7 +400,7 @@ const Repairs = () => {
 
   // Permission checks for UI
   const p = currentUser?.permissions || [];
-  const canCreate = p.includes('all') || p.includes('repairs_manage');
+  const canCreate = (p.includes('all') || p.includes('repairs_manage')) && currentUser?.role !== 'mechanic';
   const canEditCost = p.includes('all') || p.includes('billing_manage');
   const canDelete = p.includes('all');
   const canAssign = p.includes('all') || p.includes('repairs_manage');
@@ -447,7 +475,7 @@ const Repairs = () => {
             <div className="date-filters-container" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <Filter size={16} color="var(--text-secondary)" />
               <div className="date-filter-chips">
-                {['today', 'week', 'month', 'year', 'custom'].map(f => (
+                {['today', 'yesterday', 'week', 'month', 'year', 'earlier', 'specific', 'custom'].map(f => (
                   <button
                     key={f}
                     className={`chip-mini ${dateFilter === f ? 'active' : ''}`}
@@ -463,7 +491,7 @@ const Repairs = () => {
                       fontSize: '0.8rem'
                     }}
                   >
-                    {t(f) || (f.charAt(0).toUpperCase() + f.slice(1))}
+                    {f === 'specific' ? t('specificDay') : (t(f) || t(f.charAt(0).toUpperCase() + f.slice(1)))}
                   </button>
                 ))}
               </div>
@@ -471,10 +499,24 @@ const Repairs = () => {
           )}
         </div>
 
+        {viewMode === 'history' && dateFilter === 'specific' && (
+          <div className="custom-date-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)', width: 'fit-content' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CalendarIcon size={16} />
+              <input 
+                type="date" 
+                value={specificDate}
+                onChange={(e) => setSpecificDate(e.target.value)}
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 600, color: 'var(--text-primary)' }}
+              />
+            </div>
+          </div>
+        )}
+
         {viewMode === 'history' && dateFilter === 'custom' && (
           <div className="custom-date-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)', width: 'fit-content' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>From:</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('From')}:</label>
               <input 
                 type="date" 
                 value={customRange.start} 
@@ -483,7 +525,7 @@ const Repairs = () => {
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>To:</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('To')}:</label>
               <input 
                 type="date" 
                 value={customRange.end} 
@@ -691,7 +733,7 @@ const Repairs = () => {
                                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                                 >
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{c?.name || 'Walk-in'}</div>
+                                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{c?.name || t('Walk-in')}</div>
                                     <div className="plate-badge-small" style={{ margin: 0 }}>{v.plate}</div>
                                   </div>
                                   <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: 4 }}>{v.year} {v.make} {v.model}</div>
@@ -785,11 +827,11 @@ const Repairs = () => {
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
                             <Clock size={14} color="#f59e0b" />
-                            <span><strong>{stats.pending}</strong> {t("Pending")}</span>
+                            <span><strong>{stats.pending}</strong> {t("pending")}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
                             <Wrench size={14} color="var(--primary)" />
-                            <span><strong>{stats.inProgress}</strong> {t("In Progress")}</span>
+                            <span><strong>{stats.inProgress}</strong> {t("inProgress")}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
                             <CheckCircle2 size={14} color="var(--success)" />
@@ -805,10 +847,19 @@ const Repairs = () => {
               <div className="form-group grid-2-col">
                 <div>
                   <label>{t('dateIn')} *</label>
-                  <input type="date" name="dateIn" value={formData.dateIn} onChange={handleChange} required disabled={!canAssign} />
+                  {language === 'am' ? (
+                    <EthiopianSelector
+                      value={formData.dateIn}
+                      onChange={(val) => setFormData({ ...formData, dateIn: val })}
+                      size="small"
+                      language="am"
+                    />
+                  ) : (
+                    <input type="date" name="dateIn" value={formData.dateIn} onChange={handleChange} required disabled={!canAssign} />
+                  )}
                   {formData.dateIn && (
                     <div style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '600', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Calendar size={12} />
+                      <CalendarIcon size={12} />
                       {formatEthiopianDate(formData.dateIn, language)}
                     </div>
                   )}
@@ -885,7 +936,7 @@ const Repairs = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <Package size={18} color="var(--primary)" />
                           <strong style={{ fontSize: '1rem' }}>{shopName}</strong>
-                          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({shopParts.length} items)</span>
+                          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({shopParts.length} {t('items')})</span>
                         </div>
                         {expandedShop === mId ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </div>
@@ -992,8 +1043,8 @@ const Repairs = () => {
 
                 <div style={{ borderTop: '2px solid var(--border)', paddingTop: '15px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '1.1rem', fontWeight: 800 }}>
-                    <span>Total Estimate:</span>
-                    <span style={{ color: 'var(--primary)' }}>${requestBasket.reduce((sum, item) => sum + (item.price * (parseInt(item.qty) || 0)), 0).toFixed(0)}</span>
+                    <span>{t('Total Estimate')}:</span>
+                    <span style={{ color: 'var(--primary)' }}>{requestBasket.reduce((sum, item) => sum + (item.price * (parseInt(item.qty) || 0)), 0).toFixed(0)} {t('ETB')}</span>
                   </div>
                   <button 
                     onClick={submitMaterialRequest}
@@ -1001,7 +1052,7 @@ const Repairs = () => {
                     className="btn-primary w-full"
                     style={{ padding: '15px' }}
                   >
-                    {language === 'en' ? `Send ${requestBasket.length} Requests` : `${requestBasket.length} ትዕዛዞችን ላክ`}
+                    {t('sendRequestsCount', { count: requestBasket.length })}
                   </button>
                 </div>
               </div>
@@ -1022,7 +1073,7 @@ const Repairs = () => {
               </p>
               
               <div className="form-group" style={{ marginBottom: '15px' }}>
-                <label>Reason (Text)</label>
+                <label>{t('Reason (Text)')}</label>
                 <textarea 
                   className="auth-input" 
                   style={{ height: '80px', paddingTop: '10px' }}
@@ -1041,7 +1092,7 @@ const Repairs = () => {
                 border: isRecording ? '2px solid var(--danger)' : '1px solid var(--border)'
               }}>
                 <div style={{ marginBottom: '10px', fontSize: '0.85rem', fontWeight: 600 }}>
-                  {isRecording ? 'RECORDING...' : audioBlob ? 'VOICE RECORDED' : 'VOICE NOTE (OPTIONAL)'}
+                  {isRecording ? t('RECORDING...') : audioBlob ? t('VOICE RECORDED') : t('VOICE NOTE (OPTIONAL)')}
                 </div>
                 
                 {!isRecording && !audioBlob ? (
@@ -1056,9 +1107,9 @@ const Repairs = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                     <audio src={audioUrl} controls style={{ width: '100%', height: '35px' }} />
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button type="button" className="btn-outline-small" onClick={() => { setAudioBlob(null); setAudioUrl(null); }}>Redo</button>
+                      <button type="button" className="btn-outline-small" onClick={() => { setAudioBlob(null); setAudioUrl(null); }}>{t('Redo')}</button>
                       <div style={{ background: 'var(--success)', color: 'white', padding: '10px 15px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} /> Recorded
+                        <Check size={16} /> {t('Recorded')}
                       </div>
                     </div>
                   </div>
@@ -1071,7 +1122,7 @@ const Repairs = () => {
                 disabled={(!declineText.trim() && !audioBlob) || isRecording || submitting}
                 style={{ marginTop: '10px' }}
               >
-                {isRecording ? 'Stop Recording first...' : submitting ? 'Processing...' : 'Submit Response'}
+                {isRecording ? t('Stop Recording first...') : submitting ? t('Processing...') : t('Submit Response')}
               </button>
             </form>
           </div>
@@ -1095,9 +1146,9 @@ const RepairHistoryCard = ({
   handleOpenModal, handleOpenRequestModal, handleAssignmentAction, 
   canDelete, canEditCost, requestConfirmation, deleteItem, openChatWith, language 
 }) => {
-  const vehicle = (vehicles || []).find(v => String(v.id) === String(repair.vehicleId));
-  const owner = vehicle ? (customers || []).find(c => String(c.id) === String(vehicle.customerId)) : null;
-  const mechanic = (staff || []).find(s => String(s.id) === String(repair.mechanicId));
+  const vehicle = repair.vehicle || (vehicles || []).find(v => String(v.id) === String(repair.vehicleId));
+  const owner = vehicle?.customer || (vehicle ? (customers || []).find(c => String(c.id) === String(vehicle.customerId)) : null);
+  const mechanic = repair.mechanic || (staff || []).find(s => String(s.id) === String(repair.mechanicId));
 
   return (
     <div className={`repair-card ${repair.assignmentStatus === 'declined' ? 'card-declined' : ''}`} key={repair.id}>
@@ -1125,12 +1176,12 @@ const RepairHistoryCard = ({
         </div>
       </div>
       
-      <h4 className="vehicle-name">{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown'}</h4>
+      <h4 className="vehicle-name">{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : t('Unknown')}</h4>
       <span className="plate-badge-small">{vehicle?.plate}</span>
 
       <div className="repair-details">
         <div className="detail-row">
-          <Calendar size={14} /> <span>{formatDate(repair.dateIn)}</span>
+          <CalendarIcon size={14} /> <span>{formatDate(repair.dateIn)}</span>
         </div>
         <div className="detail-row">
           <Wrench size={14} /> <span>{mechanic ? mechanic.name : (t("Unassigned"))}</span>
@@ -1143,7 +1194,7 @@ const RepairHistoryCard = ({
 
       {(repair.status === 'completed' || canEditCost) && (
         <div className="repair-cost">
-          <DollarSign size={14} /> <span style={{ fontWeight: 700 }}>{t("Labor")} : ${repair.laborCost || 0}</span>
+          <DollarSign size={14} /> <span style={{ fontWeight: 700 }}>{t("Labor")} : {repair.laborCost || 0} {t('ETB')}</span>
         </div>
       )}
 
@@ -1202,9 +1253,7 @@ const RepairHistoryCard = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {repair.assignmentStatus === 'accepted' ? <Check size={16} /> : <AlertCircleIcon size={16} />}
             <span style={{ textTransform: 'uppercase' }}>
-              {language === 'en' 
-                ? `Assignment: ${repair.assignmentStatus}` 
-                : `ምደባ፡ ${repair.assignmentStatus === 'accepted' ? 'ተቀብሏል' : 'እምቢ ብሏል'}`}
+              {t('assignmentStatusMsg', { status: t(repair.assignmentStatus === 'accepted' ? 'accepted' : 'declined') })}
             </span>
           </div>
 
@@ -1240,13 +1289,14 @@ const RepairHistoryCard = ({
       )}
       
       {repair.assignmentStatus === 'declined' && (
-        <div className="declined-watermark">DECLINED</div>
+        <div className="declined-watermark">{t('declined').toUpperCase()}</div>
       )}
     </div>
   );
 };
 
 const DeclineVoicePlayer = ({ mediaId }) => {
+  const { t } = useAppContext();
   const [url, setUrl] = useState(null);
   useEffect(() => {
     getMedia(mediaId).then(data => {
@@ -1255,7 +1305,7 @@ const DeclineVoicePlayer = ({ mediaId }) => {
     return () => { if (url) URL.revokeObjectURL(url); };
   }, [mediaId]);
 
-  if (!url) return <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Loading audio...</div>;
+  if (!url) return <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>{t('Loading audio...')}</div>;
 
   return (
     <div style={{ marginTop: '8px' }}>

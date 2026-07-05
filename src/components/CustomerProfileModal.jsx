@@ -10,12 +10,12 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
 
   if (!customer) return null;
 
-  const customerVehicles = vehicles.filter(v => v.customerId === customer.id);
-  const customerRepairs = repairs.filter(r => {
-    const v = vehicles.find(veh => veh.id === r.vehicleId);
+  const customerVehicles = customer.vehicles || vehicles.filter(v => v.customerId === customer.id);
+  const customerRepairs = customer.repairs || repairs.filter(r => {
+    const v = r.vehicle || vehicles.find(veh => veh.id === r.vehicleId);
     return v && v.customerId === customer.id;
   });
-  const customerInvoices = invoices.filter(inv => inv.customerId === customer.id);
+  const customerInvoices = customer.invoices || invoices.filter(inv => inv.customerId === customer.id);
 
   return (
     <div className="modal-overlay" style={{ zIndex: 2000 }}>

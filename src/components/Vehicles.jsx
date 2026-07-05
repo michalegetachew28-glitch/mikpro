@@ -2,19 +2,36 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { Car, Search, Plus, Edit2, Trash2, Calendar, Hash, Wrench, User, Navigation, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Vehicles.css';
 
 const Vehicles = () => {
   const { vehicles, repairs, customers, deleteItem, addItem, updateItem, t, language, requestConfirmation, openChatWith } = useAppContext();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ 
     customerId: '', make: '', model: '', year: new Date().getFullYear(), plate: '', mileage: '' 
   });
+
+  React.useEffect(() => {
+    if (location.state?.showAddModal) {
+      handleOpenModal();
+      // Clear state
+      window.history.replaceState({}, document.title);
+    }
+
+    const handleSidebarAction = (e) => {
+      if (e.detail?.type === 'add-vehicle') {
+        handleOpenModal();
+      }
+    };
+    window.addEventListener('sidebar-action', handleSidebarAction);
+    return () => window.removeEventListener('sidebar-action', handleSidebarAction);
+  }, [location.state]);
 
   const permissions = currentUser?.permissions || [];
   const canManage = permissions.includes('all') || permissions.includes('vehicles_manage');
@@ -146,7 +163,7 @@ const Vehicles = () => {
                     <td>
                       <span className="plate-badge">{vehicle.plate}</span>
                     </td>
-                    <td>{(vehicle.mileage || 0).toLocaleString()} mi</td>
+                    <td>{(vehicle.mileage || 0).toLocaleString()} {t('kilometersShort')}</td>
                     <td>
                       <div className="action-buttons">
                         <button className="icon-btn-small" onClick={() => navigate('/tracker')} title={t("Live Track")}>
@@ -207,12 +224,12 @@ const Vehicles = () => {
                 </div>
                 <div>
                   <label>{t("Mileage")}</label>
-                  <input type="number" name="mileage" value={formData.mileage} onChange={handleChange} placeholder="e.g. 45000" />
+                  <input type="number" name="mileage" value={formData.mileage} onChange={handleChange} placeholder={t("e.g. 45000")} />
                 </div>
               </div>
               <div className="form-group">
                 <label>{t('plate')} *</label>
-                <input type="text" name="plate" value={formData.plate} onChange={handleChange} required placeholder="ABC-123" className="uppercase-input" />
+                <input type="text" name="plate" value={formData.plate} onChange={handleChange} required placeholder={t("ABC-123")} className="uppercase-input" />
               </div>
               <div className="form-group">
                 <label>{t('owner')} ({t('customer')}) *</label>

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Settings as SettingsIcon, Globe, ShieldAlert, Trash2, Download, Upload, Briefcase, FileText, User as UserIcon, Camera, Key, Phone, MapPin, Save, Plus } from 'lucide-react';
+import { Settings as SettingsIcon, Globe, ShieldAlert, Trash2, Download, Upload, Briefcase, FileText, User as UserIcon, Camera, Key, Phone, MapPin, Save, Plus, Image } from 'lucide-react';
 import { compressImage } from '../utils/imageUtils';
 import { generateBackupPDF } from '../utils/pdfUtils';
 import PhoneInput from './PhoneInput';
+import { api } from '../services/api';
 import './Settings.css';
 
 const Settings = () => {
@@ -28,6 +29,45 @@ const Settings = () => {
   });
   const [isPhoneValid, setIsPhoneValid] = useState(true);
   const [saveStatus, setSaveStatus] = useState(null); // 'success' | 'error' | null
+
+  // Garage profile state (admin only)
+  const [garageProfile, setGarageProfile] = useState({
+    name: currentUser?.garageName || '',
+    address: currentUser?.address || '',
+    phone: currentUser?.phone || '',
+    logoUrl: '',
+    description: '',
+    services: ''
+  });
+  const [garageProfileSaving, setGarageProfileSaving] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin && currentUser?.garageId) {
+      api.getGarageProfile().then(g => {
+        setGarageProfile({
+          name: g.name || '',
+          address: g.address || '',
+          phone: g.phone || '',
+          logoUrl: g.logoUrl || '',
+          description: g.description || '',
+          services: g.services || ''
+        });
+      }).catch(() => {});
+    }
+  }, [isAdmin, currentUser?.garageId]);
+
+  const handleSaveGarageProfile = async (e) => {
+    e.preventDefault();
+    setGarageProfileSaving(true);
+    try {
+      await api.updateGarageProfile(garageProfile);
+      alert(t('Garage profile updated successfully!'));
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setGarageProfileSaving(false);
+    }
+  };
 
   const [showMechanicAccountModal, setShowMechanicAccountModal] = useState(false);
   const [newMechanicAccount, setNewMechanicAccount] = useState({ provider: '', accName: '', accNumber: '' });
@@ -343,42 +383,103 @@ const Settings = () => {
         <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Briefcase size={20} /> {t("Garage Profile")}
         </h2>
-        <div className="setting-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 15 }}>
-          <div style={{ width: '100%' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: 5, opacity: 0.8 }}>
-              {t("Garage Name")}
-            </label>
-            <input 
-              type="text" 
-              className="auth-input" 
-              defaultValue={currentUser?.garageName}
-              id="settings-garage-name"
-              placeholder="e.g. Miky Garage"
-              style={{ margin: 0, maxWidth: 'none' }}
-              disabled={!isAdmin}
-            />
-          </div>
-          {isAdmin && (
-            <button 
-              className="btn-primary" 
-              onClick={() => {
-                const newName = document.getElementById('settings-garage-name').value.trim();
-                if (newName) {
-                  updateGarageInfo(currentUser.ownerId, { garageName: newName });
-                  // Save to permanent metadata that survives "Clear Data"
-                  const metaKey = `garage_${currentUser.ownerId}_metadata`;
-                  const meta = JSON.parse(localStorage.getItem(metaKey) || '{}');
-                  localStorage.setItem(metaKey, JSON.stringify({ ...meta, garageName: newName }));
-                  alert(t("Garage name updated for all staff!"));
-                }
-              }}
-              style={{ padding: '8px 24px' }}
-            >
-              {t("Save Changes")}
+        {isAdmin ? (
+          <form onSubmit={handleSaveGarageProfile} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Logo preview + URL */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '12px 16px', background: 'var(--bg-main)', borderRadius: 12, border: '1px solid var(--border)' }}>
+              {garageProfile.logoUrl ? (
+                <img src={garageProfile.logoUrl} alt="Garage Logo" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', border: '2px solid var(--primary)' }} />
+              ) : (
+                <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--primary-subtle, rgba(99,102,241,0.12))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontSize: '1.5rem', border: '2px dashed var(--primary)' }}>
+                  🏢
+                </div>
+              )}
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', opacity: 0.7, marginBottom: 4 }}>{t("Logo URL")}</label>
+                <input
+                  type="url"
+                  className="auth-input"
+                  style={{ margin: 0 }}
+                  value={garageProfile.logoUrl}
+                  onChange={e => setGarageProfile(p => ({ ...p, logoUrl: e.target.value }))}
+                  placeholder="https://your-logo-url.com/logo.png"
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group flex-1">
+                <label>🆔 {t("Garage ID")}</label>
+                <input type="text" className="auth-input" value={currentUser?.garage?.displayId || t('Not Assigned')} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+              </div>
+              <div className="form-group flex-1">
+                <label><Briefcase size={14} /> {t("Garage Name")}</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  value={garageProfile.name}
+                  onChange={e => setGarageProfile(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. Miky Garage"
+                  required
+                />
+              </div>
+              <div className="form-group flex-1">
+                <label><Phone size={14} /> {t("phone")}</label>
+                <input
+                  type="tel"
+                  className="auth-input"
+                  value={garageProfile.phone}
+                  onChange={e => setGarageProfile(p => ({ ...p, phone: e.target.value }))}
+                  placeholder="+251..."
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label><MapPin size={14} /> {t("address")}</label>
+              <input
+                type="text"
+                className="auth-input"
+                value={garageProfile.address}
+                onChange={e => setGarageProfile(p => ({ ...p, address: e.target.value }))}
+                placeholder="e.g. Bole Road, Addis Ababa"
+              />
+            </div>
+
+            <div className="form-group">
+              <label><FileText size={14} /> {t("Description")} <span style={{ opacity: 0.5, fontSize: '0.75rem' }}>({t("Opt.")})</span></label>
+              <textarea
+                className="auth-input"
+                style={{ minHeight: 70, resize: 'vertical' }}
+                value={garageProfile.description}
+                onChange={e => setGarageProfile(p => ({ ...p, description: e.target.value }))}
+                placeholder="A short description about your garage..."
+              />
+            </div>
+
+            <div className="form-group">
+              <label>⭐ {t("Our Services")} <span style={{ opacity: 0.5, fontSize: '0.75rem' }}>({t("shown to new users")})</span></label>
+              <textarea
+                className="auth-input"
+                style={{ minHeight: 110, resize: 'vertical', fontFamily: 'inherit' }}
+                value={garageProfile.services}
+                onChange={e => setGarageProfile(p => ({ ...p, services: e.target.value }))}
+                placeholder={"e.g.\n• Oil Change & Servicing\n• Engine Diagnostics\n• Body Work & Painting\n• Tyre & Brake Repair"}
+              />
+              <small style={{ opacity: 0.55, fontSize: '0.75rem' }}>{t("This text is displayed to customers choosing your garage.")}</small>
+            </div>
+
+            <button type="submit" className="btn-primary save-profile-btn" disabled={garageProfileSaving} style={{ alignSelf: 'flex-start' }}>
+              <Save size={16} /> {garageProfileSaving ? t('Saving...') : t('Save Garage Profile')}
             </button>
-          )}
-        </div>
+          </form>
+        ) : (
+          <div style={{ padding: '12px 0', color: 'var(--text-secondary)' }}>
+            <strong>{currentUser?.garageName}</strong>
+          </div>
+        )}
       </div>
+
 
       <div className="settings-section">
         <h2><Globe size={20} /> {t("Preferences")}</h2>
@@ -393,11 +494,8 @@ const Settings = () => {
               onChange={(e) => setLanguage(e.target.value)}
               style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-main)', color: 'var(--text-primary)' }}
             >
-              <option value="en">English</option>
+              <option value="en">English (English)</option>
               <option value="am">አማርኛ (Amharic)</option>
-              <option value="om">Afaan Oromoo</option>
-              <option value="so">Soomaali (Somali)</option>
-              <option value="ti">ትግርኛ (Tigrinya)</option>
             </select>
           </div>
         </div>
@@ -479,36 +577,38 @@ const Settings = () => {
         </div>
       )}
 
-      <div className="settings-section">
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={20} /> {t("System Health Logs")}</h2>
-        <p className="subtitle" style={{ marginBottom: 15 }}>{t("Recent data operations (Last 20 operations)")}</p>
-        <div style={{ background: 'var(--bg-main)', borderRadius: 12, border: '1px solid var(--border)', maxHeight: 300, overflowY: 'auto', padding: 10 }}>
-          {(() => {
-            try {
-              const logs = JSON.parse(localStorage.getItem('garage_debug_logs') || '[]');
-              return (Array.isArray(logs) ? logs : []).map((log, i) => (
-                <div key={i} style={{ 
-                  display: 'flex', gap: 15, padding: '8px 12px', 
-                  fontSize: '0.8rem', borderBottom: '1px solid var(--border)',
-                  opacity: (log.op || '').includes('FAIL') || (log.op || '').includes('REJECTED') ? 1 : 0.7 
-                }}>
-                  <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{new Date(log.time).toLocaleTimeString()}</span>
-                  <span style={{ 
-                    fontWeight: 700, minWidth: 100,
-                    color: (log.op || '').includes('SUCCESS') ? 'var(--success)' : (log.op || '').includes('FAIL') || (log.op || '').includes('REJECTED') ? 'var(--danger)' : 'var(--primary)'
-                  }}>{log.op}</span>
-                  <span style={{ flex: 1 }}>{log.key}: {log.details}</span>
-                </div>
-              ));
-            } catch (e) {
-              return <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-secondary)' }}>Log format error.</div>;
-            }
-          })()}
-          {(!localStorage.getItem('garage_debug_logs') || localStorage.getItem('garage_debug_logs') === '[]') && (
-            <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-secondary)' }}>No logs recorded yet.</div>
-          )}
+      {currentUser?.role === 'coder' && (
+        <div className="settings-section">
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={20} /> {t("System Health Logs")}</h2>
+          <p className="subtitle" style={{ marginBottom: 15 }}>{t("Recent data operations (Last 20 operations)")}</p>
+          <div style={{ background: 'var(--bg-main)', borderRadius: 12, border: '1px solid var(--border)', maxHeight: 300, overflowY: 'auto', padding: 10 }}>
+            {(() => {
+              try {
+                const logs = JSON.parse(localStorage.getItem('garage_debug_logs') || '[]');
+                return (Array.isArray(logs) ? logs : []).map((log, i) => (
+                  <div key={i} style={{ 
+                    display: 'flex', gap: 15, padding: '8px 12px', 
+                    fontSize: '0.8rem', borderBottom: '1px solid var(--border)',
+                    opacity: (log.op || '').includes('FAIL') || (log.op || '').includes('REJECTED') ? 1 : 0.7 
+                  }}>
+                    <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{new Date(log.time).toLocaleTimeString()}</span>
+                    <span style={{ 
+                      fontWeight: 700, minWidth: 100,
+                      color: (log.op || '').includes('SUCCESS') ? 'var(--success)' : (log.op || '').includes('FAIL') || (log.op || '').includes('REJECTED') ? 'var(--danger)' : 'var(--primary)'
+                    }}>{log.op}</span>
+                    <span style={{ flex: 1 }}>{log.key}: {log.details}</span>
+                  </div>
+                ));
+              } catch (e) {
+                return <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-secondary)' }}>Log format error.</div>;
+              }
+            })()}
+            {(!localStorage.getItem('garage_debug_logs') || localStorage.getItem('garage_debug_logs') === '[]') && (
+              <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-secondary)' }}>No logs recorded yet.</div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {showMechanicAccountModal && (
         <div className="modal-overlay">

@@ -1,0 +1,8 @@
+Starting password resets...
+Updated demoadmin password count: 1
+Updated manager password count: 1
+Updated cashier password count: 1
+Updated mechanic password count: 1
+Updated inventoryManager password count: 1
+Updated customer password count: 1
+Password resets finished successful!

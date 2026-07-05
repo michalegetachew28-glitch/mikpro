@@ -1,5 +1,8 @@
 @echo off
-echo Starting Garage Management System...
+echo Starting Garage Management System Backend...
+start cmd /k "cd backend && node index.js"
+echo Starting Garage Management System Frontend...
 echo Open Chrome and go to: http://localhost:5173
 echo.
-node "%~dp0node_modules\vite\bin\vite.js"
+npm run dev
+

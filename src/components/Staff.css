@@ -32,16 +32,25 @@
 .staff-avatar {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #4361ee, #f72585);
+  color: #ffffff;
   font-size: 2rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+  box-shadow: 0 4px 16px rgba(67, 97, 238, 0.35);
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+/* Light mode: ensure gradient shows clearly (not washed out) */
+:not(.dark-theme) .staff-avatar {
+  background: linear-gradient(135deg, #4361ee, #f72585);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(67, 97, 238, 0.25);
 }
 
 .staff-info h3 {

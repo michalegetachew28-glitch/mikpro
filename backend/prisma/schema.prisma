@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+//  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               String           @id @default(cuid())
+  ownerId          String // Link to the top-level owner (system or admin)
+  name             String
+  email            String           @unique
+  phone            String           @unique
+  password         String
+  role             String           @default("admin")
+  garageName       String?
+  address          String?
+  status           String           @default("active")
+  permissions      String[] // Array of permission strings
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  expiryDate       DateTime? // For subscription management
+  
+  // Relations
+  garageId         String?
+  garage           Garage?          @relation(fields: [garageId], references: [id])
+  paymentRequests  PaymentRequest[]
+  repairsManaged   Repair[]         @relation("MechanicRepairs")
+  materialRequests MaterialRequest[]
+  bonuses          Bonus[]
+  staffRecord      Staff?
+}
+
+model Garage {
+  id              String           @id @default(cuid())
+  ownerId         String           @unique
+  displayId       String?          @unique
+  name            String
+  address         String?
+  phone           String?
+  email           String?
+  ownerName       String?
+  logoUrl         String?
+  description     String?
+  services        String?
+  status          String           @default("active")
+  createdAt       DateTime         @default(now())
+  
+  // Relations
+  users           User[]
+  customers       Customer[]
+  vehicles        Vehicle[]
+  repairs         Repair[]
+  inventory       Inventory[]
+  appointments    Appointment[]
+  paymentRequests PaymentRequest[]
+  invoices        Invoice[]
+  staff           Staff[]
+  materialRequests MaterialRequest[]
+}
+
+model Customer {
+  id          String        @id @default(cuid())
+  garageId    String
+  garage      Garage        @relation(fields: [garageId], references: [id])
+  name        String
+  phone       String
+  email       String?
+  address     String?
+  memberSince DateTime      @default(now())
+  
+  // Relations
+  vehicles    Vehicle[]
+  appointments Appointment[]
+}
+
+model Vehicle {
+  id           String        @id @default(cuid())
+  garageId     String
+  garage       Garage        @relation(fields: [garageId], references: [id])
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  plateNumber  String        @unique
+  make         String?
+  model        String
+  year         String?
+  vin          String?
+  color        String?
+  type         String?       @default("car")
+  
+  // Relations
+  repairs      Repair[]
+  appointments Appointment[]
+}
+
+model Repair {
+  id          String        @id @default(cuid())
+  garageId    String
+  garage      Garage        @relation(fields: [garageId], references: [id])
+  vehicleId   String
+  vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
+  mechanicId  String?
+  mechanic    User?         @relation("MechanicRepairs", fields: [mechanicId], references: [id])
+  entryDate   DateTime      @default(now())
+  exitDate    DateTime?
+  status      String        @default("pending") // pending, completed
+  description String?
+  laborCost   Float         @default(0)
+  partsCost   Float         @default(0)
+  totalAmount Float         @default(0)
+  mileage     String?
+  
+  // Relations
+  parts       RepairPart[]
+}
+
+model RepairPart {
+  id       String @id @default(cuid())
+  repairId String
+  repair   Repair @relation(fields: [repairId], references: [id])
+  partName String
+  quantity Int
+  price    Float
+}
+
+model Inventory {
+  id       String @id @default(cuid())
+  garageId String
+  garage   Garage @relation(fields: [garageId], references: [id])
+  partName String
+  category String?
+  quantity Int    @default(0)
+  price    Float  @default(0)
+  minStock Int    @default(5)
+}
+
+model Appointment {
+  id         String   @id @default(cuid())
+  garageId   String
+  garage     Garage   @relation(fields: [garageId], references: [id])
+  vehicleId  String
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  date       DateTime
+  time       String
+  type       String?
+  status     String   @default("scheduled") // scheduled, completed, cancelled
+}
+
+model PaymentRequest {
+  id              String    @id @default(cuid())
+  garageId        String?
+  garage          Garage?   @relation(fields: [garageId], references: [id])
+  adminId         String
+  admin           User      @relation(fields: [adminId], references: [id])
+  planId          String
+  planName        String
+  amount          Float
+  receipt         String // URL to storage
+  createdAt       DateTime  @default(now())
+  approvedAt      DateTime?
+  status          String    @default("pending") // pending, approved, rejected
+  referenceNumber String?
+  bankName        String?
+  notes           String?
+  rejectionReason String?
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  garageId    String
+  garage      Garage   @relation(fields: [garageId], references: [id])
+  orderId     String   @unique
+  customerName String
+  totalAmount Float
+  status      String   @default("unpaid")
+  createdAt   DateTime @default(now())
+}
+
+model Staff {
+  id          String   @id @default(cuid())
+  garageId    String
+  garage      Garage   @relation(fields: [garageId], references: [id])
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  role        String
+  phone       String
+  status      String   @default("active")
+  joinDate    DateTime @default(now())
+}
+
+model Bonus {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  amount Float
+  reason String
+  date   DateTime @default(now())
+}
+
+model MaterialRequest {
+  id       String @id @default(cuid())
+  garageId String
+  garage   Garage @relation(fields: [garageId], references: [id])
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  item     String
+  quantity Int
+  status   String @default("pending")
+  date     DateTime @default(now())
+}
+
+model PlatformSettings {
+  id             String @id @default("singleton")
+  plans          Json // Store plans as JSON: [{id, name, price, duration}]
+  paymentMethods Json // Store bank accounts as JSON: [{id, type, provider, accountName, ...}]
+  taxRate        Float  @default(15.0)
+  platformFees   Float  @default(0.0)
+  trialDays      Int    @default(7)
+  garageIdCounter Int   @default(0)
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  garageId  String?
+  userId    String
+  action    String
+  details   String?
+  timestamp DateTime @default(now())
+}

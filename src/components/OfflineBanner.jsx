@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOffline } from '../context/OfflineContext';
-import { WifiOff, RefreshCw, CheckCircle, CloudOff } from 'lucide-react';
+import { WifiOff, RefreshCw, CloudOff } from 'lucide-react';
 
 /**
  * OfflineBanner
@@ -8,36 +8,43 @@ import { WifiOff, RefreshCw, CheckCircle, CloudOff } from 'lucide-react';
  * Shows:
  *  • Offline strip   – when isOnline === false
  *  • Syncing strip   – while isSyncing === true (after reconnect)
- *  • Success flash   – briefly after sync completes
+ *  • Success flash   – hides after 5 s
  * ─────────────────────────────────────────────────────────────────
  */
 const OfflineBanner = () => {
   const { isOnline, isSyncing, pendingCount, syncProgress, triggerSync } = useOffline();
-  const [showSuccess, setShowSuccess]   = useState(false);
-  const [isHiding,    setIsHiding]      = useState(false);
-  const [wasOffline,  setWasOffline]    = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isHiding,    setIsHiding]    = useState(false);
+  // ref instead of state — changing it never triggers a re-render or effect cleanup
+  const wasOffline = useRef(false);
 
-  /* Track transitions to show success flash */
+  /* Track going offline */
   useEffect(() => {
-    if (!isOnline) { setWasOffline(true); setShowSuccess(false); }
+    if (!isOnline) {
+      wasOffline.current = true;
+      setShowSuccess(false);
+      setIsHiding(false);
+    }
   }, [isOnline]);
 
+  /* Back online: show success strip, then hide after 5 s */
   useEffect(() => {
-    if (wasOffline && isOnline && !isSyncing) {
+    if (wasOffline.current && isOnline && !isSyncing) {
+      wasOffline.current = false; // ref — no re-render, no cleanup cancel
       setShowSuccess(true);
-      setWasOffline(false);
-      
-      const timer = setTimeout(() => {
+      setIsHiding(false);
+
+      const hideTimer = setTimeout(() => {
         setIsHiding(true);
         setTimeout(() => {
           setShowSuccess(false);
           setIsHiding(false);
-        }, 500); // Wait for transition
+        }, 400);
       }, 5000);
-      
-      return () => clearTimeout(timer);
+
+      return () => clearTimeout(hideTimer);
     }
-  }, [wasOffline, isOnline, isSyncing]);
+  }, [isOnline, isSyncing]);
 
   /* Nothing to show */
   if (isOnline && !isSyncing && !showSuccess) return null;
@@ -71,8 +78,16 @@ const OfflineBanner = () => {
     },
     success: {
       cls:   'offline-banner--success',
-      icon:  <CheckCircle size={18} />,
-      label: 'you are back to online',
+      icon:  <span style={{
+        display: 'inline-block',
+        width: 10, height: 10,
+        borderRadius: '50%',
+        background: '#10b981',
+        boxShadow: '0 0 0 0 rgba(16,185,129,0.6)',
+        animation: 'onlinePulse 1.8s ease-out 3',
+        flexShrink: 0,
+      }} />,
+      label: 'You are back online',
       extra: null,
       action: null,
     },

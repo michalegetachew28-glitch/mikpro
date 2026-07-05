@@ -168,7 +168,7 @@ const Salary = () => {
     // To 'reset' we just delete the last payment or modify it, 
     // but a cleaner way for demo is to just notify it's reset.
     // Real implementation: remove the lock by ignoring the last payment's date.
-    addNotification(`Payment lock for ${employees.find(e => e.id === empId)?.name} has been reset.`, 'info');
+    addNotification(`${t('paymentLockReset')} ${employees.find(e => e.id === empId)?.name}.`, 'info');
   };
 
   const role = currentUser?.role || 'customer';
@@ -282,12 +282,12 @@ const Salary = () => {
 
     if (existing) {
       updateItem('salaries', existing.id, newData);
-      addNotification(`Salary configuration updated for ${selectedEmployee.name}`, 'success');
+      addNotification(`${t('salaryConfigUpdated')} ${selectedEmployee.name}`, 'success');
     } else {
       newData.id = `sal_${Date.now()}`;
       newData.createdAt = new Date().toISOString();
       addItem('salaries', newData);
-      addNotification(`Salary configuration created for ${selectedEmployee.name}`, 'success');
+      addNotification(`${t('salaryConfigCreated')} ${selectedEmployee.name}`, 'success');
     }
     logActivity('Salary Managed', `Admin updated salary for ${selectedEmployee.name} to ${manageData.amount} ETB (${manageData.type})`);
     setShowManageModal(false);
@@ -322,10 +322,10 @@ const Salary = () => {
     };
 
     addItem('salaryPayments', newPayment);
-    addNotification(`Salary payment of ${paymentData.amount} ETB processed for ${selectedEmployee.name}`, 'success');
+    addNotification(`${t('salaryProcessed')} ${paymentData.amount} ETB ${t('processedFor')} ${selectedEmployee.name}`, 'success');
 
     // Notify employee
-    addNotification(`Your salary of ${paymentData.amount} ETB has been processed via ${paymentData.method}.`, 'success', selectedEmployee.id);
+    addNotification(`${t('yourSalaryProcessed')} ${paymentData.amount} ETB ${t('processedVia')} ${paymentData.method}.`, 'success', selectedEmployee.id);
 
     logActivity('Salary Payment', `${currentUser.name} processed ${paymentData.amount} ETB for ${selectedEmployee.name}`);
     setShowPayModal(false);
@@ -338,8 +338,8 @@ const Salary = () => {
       confirmedById: currentUser.id,
       confirmedAt: new Date().toISOString()
     });
-    addNotification(`Cash payment for ${payment.employeeName} confirmed.`, 'success');
-    addNotification(`Your cash salary payment has been confirmed by the cashier.`, 'success', payment.employeeId);
+    addNotification(`${t('cashSalaryConfirmed')} ${payment.employeeName}.`, 'success');
+    addNotification(`${t('cashSalaryConfirmed')} ${t('confirmedByCashier')}.`, 'success', payment.employeeId);
     logActivity('Salary Confirmation', `Cashier confirmed payment for ${payment.employeeName}`);
   };
 
@@ -392,21 +392,21 @@ const Salary = () => {
         <div className="stat-card liability">
           <div className="stat-icon"><TrendingDown size={28} strokeWidth={2.5} /></div>
           <div className="stat-info">
-            <span className="label">Net Liability</span>
+            <span className="label">{t('netLiability')}</span>
             <span className="value">{stats.totalLiability.toLocaleString()} ETB</span>
           </div>
         </div>
         <div className="stat-card pending">
           <div className="stat-icon"><AlertCircle size={28} strokeWidth={2.5} /></div>
           <div className="stat-info">
-            <span className="label">Total Deductions</span>
+            <span className="label">{t('totalDeductions')}</span>
             <span className="value">{stats.totalDeductions.toLocaleString()} ETB</span>
           </div>
         </div>
         <div className="stat-card paid">
           <div className="stat-icon"><TrendingUp size={28} strokeWidth={2.5} /></div>
           <div className="stat-info">
-            <span className="label">Paid This Month</span>
+            <span className="label">{t('paidThisMonth')}</span>
             <span className="value">{stats.paidThisMonth.toLocaleString()} ETB</span>
           </div>
         </div>
@@ -460,17 +460,17 @@ const Salary = () => {
 
               <div className="salary-details">
                 <div className="detail-item">
-                  <span className="label">Original Salary</span>
-                  <span className="value">{sal ? sal.amount.toLocaleString() : 'Not Set'} {sal && 'ETB'}</span>
+                  <span className="label">{t('originalSalary')}</span>
+                  <span className="value">{sal ? sal.amount.toLocaleString() : t('Not Set')} {sal && 'ETB'}</span>
                 </div>
                 {sal?.isDeductionEnabled && totalDeduction > 0 && (
                   <div className="detail-item deduction">
-                    <span className="label">Deductions ({absentDays} Abs)</span>
+                    <span className="label">{t('deductions')} ({absentDays} {t('abs')})</span>
                     <span className="value text-danger">-{totalDeduction.toLocaleString()} ETB</span>
                   </div>
                 )}
                 <div className="detail-item">
-                  <span className="label">Next Date</span>
+                  <span className="label">{t('nextDate')}</span>
                   <span className="value" style={{ color: status === 'paid' ? 'var(--success)' : 'inherit' }}>
                     {nextDate && !isNaN(nextDate.getTime()) ? formatDate(nextDate.toISOString()) : '—'}
                   </span>
@@ -478,7 +478,7 @@ const Salary = () => {
                 <div className="detail-item">
                   <span className="label">{t('Status')}</span>
                   <span className="value" style={{ color: status === 'paid' ? 'var(--success)' : status === 'overdue' ? 'var(--danger)' : 'var(--warning)' }}>
-                    {status === 'paid' ? `${t('Paid')} (${daysLeft}d)` : status === 'overdue' ? t('Overdue') : t('Payable')}
+                    {status === 'paid' ? `${t('Paid')} (${daysLeft}d)` : status === 'overdue' ? t('Overdue') : t('payable')}
                   </span>
                 </div>
               </div>
@@ -486,7 +486,7 @@ const Salary = () => {
               <div className="salary-actions">
                 {isAdmin && (
                   <button className="btn-manage" onClick={() => handleOpenManage(emp)}>
-                    <Settings size={16} /> Manage
+                    <Settings size={16} /> {t('Manage')}
                   </button>
                 )}
                 {status === 'paid' ? (
@@ -494,8 +494,8 @@ const Salary = () => {
                     <div className="striking-content">
                       <CheckCircle2 size={20} />
                       <div>
-                        <strong>Salary Processed</strong>
-                        <span>Next available in {daysLeft} days</span>
+                        <strong>{t('salaryProcessed')}</strong>
+                        <span>{t('nextAvailableIn')} {daysLeft} {t('days')}</span>
                       </div>
                     </div>
                   </div>
@@ -504,9 +504,9 @@ const Salary = () => {
                     className="btn-pay"
                     onClick={() => handleOpenPay(emp)}
                     disabled={!sal || (isCashier && isOwnSalary)}
-                    title={isCashier && isOwnSalary ? "Cashiers cannot pay their own salary" : ""}
+                    title={isCashier && isOwnSalary ? t("Cashiers cannot pay their own salary") : ""}
                   >
-                    <Wallet size={16} /> Process Pay
+                    <Wallet size={16} /> {t('processPay')}
                   </button>
                 )}
               </div>
@@ -525,30 +525,30 @@ const Salary = () => {
     return (
       <div className="salary-employee-view">
         <div className="employee-welcome">
-          <h1>Welcome, {currentUser.name}</h1>
-          <p>Your personal salary and payment information</p>
+          <h1>{t('welcomeName')}, {currentUser.name}</h1>
+          <p>{t('salaryInfoSubtitle')}</p>
         </div>
 
         <div className="employee-stats">
           <div className="stat-card current">
-            <div className="stat-label">Remaining Salary</div>
+            <div className="stat-label">{t('remainingSalary')}</div>
             <div className="stat-value" style={{ color: 'var(--primary)' }}>{finalSalary.toLocaleString()} ETB</div>
-            <div className="stat-sub">Base: {mySalary?.amount?.toLocaleString()} ETB</div>
+            <div className="stat-sub">{t('base')}: {mySalary?.amount?.toLocaleString()} ETB</div>
           </div>
           <div className="stat-card earned">
-            <div className="stat-label">Total Deductions</div>
+            <div className="stat-label">{t('totalDeductions')}</div>
             <div className="stat-value text-danger">-{totalDeduction.toLocaleString()} ETB</div>
-            <div className="stat-sub">{absentDays} Abs / {lateDays} Late</div>
+            <div className="stat-sub">{absentDays} {t('abs')} / {lateDays} {t('late')}</div>
           </div>
           <div className="stat-card last">
-            <div className="stat-label">{status === 'paid' ? 'Next Payment In' : 'Payment Status'}</div>
+            <div className="stat-label">{status === 'paid' ? t('nextPaymentIn') : t('Payment Status')}</div>
             <div className="stat-value" style={{ color: status === 'paid' ? 'var(--success)' : 'var(--warning)' }}>
-              {status === 'paid' ? `${daysLeft} Days` : 'Due Now'}
+              {status === 'paid' ? `${daysLeft} ${t('days')}` : t('dueNow')}
             </div>
             <div className="stat-sub">
               {status === 'paid' && nextDate && !isNaN(nextDate.getTime())
-                ? `Available: ${formatDate(nextDate.toISOString())}`
-                : 'Contact Cashier'}
+                ? `${t('Available')}: ${formatDate(nextDate.toISOString())}`
+                : t('contactCashier')}
             </div>
           </div>
         </div>
@@ -598,7 +598,7 @@ const Salary = () => {
             <div className="account-slot">
               <div className="slot-label">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Bank size={16} /> {t('Bank Account')}
+                  <Bank size={16} /> {t('bankAccount')}
                   {!mySalary?.bankInfo && <Star size={12} fill="var(--warning)" color="var(--warning)" />}
                 </div>
                 <span className={`status-badge ${mySalary?.bankInfo ? 'linked' : 'unlinked'}`}>
@@ -806,14 +806,14 @@ const Salary = () => {
         <div className="title-section">
           <Bank size={32} color="var(--primary)" />
           <div>
-            <h1>Salary Management</h1>
-            <p>{isAdmin ? "System-wide payroll and employee compensation" : "Track and manage your compensation"}</p>
+            <h1>{t('salaryManagement')}</h1>
+            <p>{isAdmin ? t("payrollSubtitleAdmin") : t("payrollSubtitleEmployee")}</p>
           </div>
         </div>
         {(isAdmin || isCashier) && (
           <div className="header-tabs">
-            <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>Overview</button>
-            <button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>Payment Logs</button>
+            <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>{t('overview')}</button>
+            <button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>{t('paymentLogs')}</button>
           </div>
         )}
       </div>
@@ -829,7 +829,7 @@ const Salary = () => {
       {activeTab === 'history' && (
         <div className="salary-history-full">
           <div className="section-header">
-            <h2>System Payment History</h2>
+            <h2>{t('systemPaymentHistory')}</h2>
             <div className="filters">
               <div className="search-input-wrapper animate-fadeIn">
                 <input
@@ -850,14 +850,14 @@ const Salary = () => {
           <div className="history-table-container">
             <table className="history-table">
               <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Employee</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Processed By</th>
-                  <th>Status</th>
-                </tr>
+                  <tr>
+                    <th>{t('Date')}</th>
+                    <th>{t('Employee')}</th>
+                    <th>{t('Amount')}</th>
+                    <th>{t('Method')}</th>
+                    <th>{t('processedBy')}</th>
+                    <th>{t('Status')}</th>
+                  </tr>
               </thead>
               <tbody>
                 {salaryPayments
@@ -900,7 +900,7 @@ const Salary = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Manage Salary: {selectedEmployee.name}</h2>
+              <h2>{t('manageSalary')}: {selectedEmployee.name}</h2>
               <button className="close-btn" onClick={() => setShowManageModal(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSaveSalary} className="modal-form">
@@ -925,35 +925,35 @@ const Salary = () => {
               </div>
 
               <div className="form-group">
-                <label>Salary Type</label>
+                <label>{t('salaryType')}</label>
                 <div className="type-selector">
                   <button
                     type="button"
                     className={manageData.type === 'weekly' ? 'active' : ''}
                     onClick={() => setManageData({ ...manageData, type: 'weekly' })}
-                  >Weekly</button>
+                  >{t('weekly')}</button>
                   <button
                     type="button"
                     className={manageData.type === 'monthly' ? 'active' : ''}
                     onClick={() => setManageData({ ...manageData, type: 'monthly' })}
-                  >Monthly</button>
+                  >{t('monthly')}</button>
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Status</label>
+                <label>{t('Status')}</label>
                 <select
                   value={manageData.status}
                   onChange={(e) => setManageData({ ...manageData, status: e.target.value })}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">{t('Active')}</option>
+                  <option value="inactive">{t('Inactive')}</option>
                 </select>
               </div>
 
               <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="form-group">
-                  <label>Absent Deduction (per day)</label>
+                  <label>{t('absentDeduction')}</label>
                   <input
                     type="number"
                     value={manageData.absentDeduction}
@@ -962,7 +962,7 @@ const Salary = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Late Deduction (per day)</label>
+                  <label>{t('lateDeduction')}</label>
                   <input
                     type="number"
                     value={manageData.lateDeduction}
@@ -980,12 +980,12 @@ const Salary = () => {
                     onChange={(e) => setManageData({ ...manageData, isDeductionEnabled: e.target.checked })}
                     style={{ width: '18px', height: '18px' }}
                   />
-                  <span>Enable Automatic Deductions</span>
+                  <span>{t('enableAutoDeductions')}</span>
                 </label>
               </div>
 
               <div className="modal-actions">
-                <button type="submit" className="btn-primary">Save Configuration</button>
+                <button type="submit" className="btn-primary">{t('saveConfig')}</button>
               </div>
             </form>
           </div>
@@ -1018,21 +1018,21 @@ const Salary = () => {
                     onClick={() => setPaymentData({ ...paymentData, method: 'Bank Transfer' })}
                   >
                     <Bank size={20} />
-                    <span>Bank Transfer</span>
+                    <span>{t('bankTransfer')}</span>
                   </div>
                   <div
                     className={`method-card ${paymentData.method === 'Mobile Banking' ? 'active' : ''}`}
                     onClick={() => setPaymentData({ ...paymentData, method: 'Mobile Banking' })}
                   >
                     <Smartphone size={20} />
-                    <span>Mobile Banking</span>
+                    <span>{t('mobileBanking')}</span>
                   </div>
                   <div
                     className={`method-card ${paymentData.method === 'Cash' ? 'active' : ''}`}
                     onClick={() => setPaymentData({ ...paymentData, method: 'Cash' })}
                   >
                     <Banknote size={20} />
-                    <span>Cash Payment</span>
+                    <span>{t('cashPayment')}</span>
                   </div>
                 </div>
               </div>
@@ -1097,7 +1097,7 @@ const Salary = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="submit" className="btn-primary">Confirm Payment</button>
+                <button type="submit" className="btn-primary">{t('confirmPayment')}</button>
               </div>
             </form>
           </div>
@@ -1207,7 +1207,7 @@ const Salary = () => {
             <div className="proof-viewer">
               <img src={selectedProof} alt="Payment Proof" />
               <a href={selectedProof} download="salary_receipt.png" className="btn-primary download-btn">
-                Download Screenshot
+                {t('downloadScreenshot')}
               </a>
             </div>
           </div>

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "cmqqrq53700026s83uend1l6q",
+    "name": "Demo Admin",
+    "email": "demoadmin@garage.com",
+    "phone": "251912345678",
+    "role": "admin"
+  },
+  {
+    "id": "cmqqtivrb0002lhleuk3er3ju",
+    "name": "Mich",
+    "email": "getachewmichale46@gmail.com",
+    "phone": "251911223333",
+    "role": "admin"
+  },
+  {
+    "id": "cmqtxsfet0002u2a4ohv30ito",
+    "name": "Michale Getachew",
+    "email": "yechale1216@gmail.com",
+    "phone": "251987360877",
+    "role": "admin"
+  },
+  {
+    "id": "cmqu9lwda0002rhpdp2g7vtvp",
+    "name": "Michale Getachew",
+    "email": "yechale126@gmail.com",
+    "phone": "251987368877",
+    "role": "admin"
+  },
+  {
+    "id": "cmquxzi2m0002aj21096pefk5",
+    "name": "Michale Getachew",
+    "email": "yechale1217@gmail.com",
+    "phone": "251987360870",
+    "role": "admin"
+  },
+  {
+    "id": "cmquyixgx0002ahg1gwzm6chi",
+    "name": "cdnvfmgb ,",
+    "email": "yechale1210@gmail.com",
+    "phone": "251987360879",
+    "role": "admin"
+  },
+  {
+    "id": "cmquys2lx0004ahg1wtcs4gs2",
+    "name": "ddd",
+    "email": "yechale16@gmail.com",
+    "phone": "251963636363",
+    "role": "customer"
+  },
+  {
+    "id": "cmr0mz5pv0001ujexvjueb3ye",
+    "name": "miko",
+    "email": "yechale20@gmail.com",
+    "phone": "251966666611",
+    "role": "customer"
+  },
+  {
+    "id": "cmr0no0vu0002h0tf3nradnpp",
+    "name": "miko",
+    "email": "251987888888@mechpro.staff",
+    "phone": "251987888888",
+    "role": "cashier"
+  },
+  {
+    "id": "cmr0noo430007h0tffc5f6c2x",
+    "name": "yedg",
+    "email": "251984444444@mechpro.staff",
+    "phone": "251984444444",
+    "role": "mechanic"
+  },
+  {
+    "id": "cmr0npf8g000ch0tfgk04it1t",
+    "name": "nn",
+    "email": "251986666666@mechpro.staff",
+    "phone": "251986666666",
+    "role": "manager"
+  },
+  {
+    "id": "cmr0nw0ps000kh0tf6hmn6jv0",
+    "name": "miko",
+    "email": "251985555555@mechpro.staff",
+    "phone": "251985555555",
+    "role": "inventoryManager"
+  },
+  {
+    "id": "cmr0ym3hd0003sp6bv1jmiq6c",
+    "name": "ccc",
+    "email": "cc@gmail.com",
+    "phone": "251987365252",
+    "role": "admin"
+  },
+  {
+    "id": "cmr0zuvfu0003ovbf2l2l1s17",
+    "name": "Makbel Solomon",
+    "email": "yechale99@gmail.com",
+    "phone": "251987360811",
+    "role": "admin"
+  },
+  {
+    "id": "cmr0zvckf0007ovbfs764pibd",
+    "name": "Test Garage Owner",
+    "email": "testowner_1782844981233@test.com",
+    "phone": "251979391147",
+    "role": "admin"
+  }
+]
