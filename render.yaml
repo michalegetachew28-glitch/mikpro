@@ -20,7 +20,7 @@ services:
           property: host
 
   # Vite React Frontend Static Site
-  - type: static
+  - type: web
     name: garage-frontend
     runtime: static
     buildCommand: npm install && npm run build
