@@ -191,42 +191,48 @@ const Repairs = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingId) {
-      updateItem('repairs', editingId, formData);
-    } else {
-      const newRepair = {
-        id: `r${Date.now()}`,
-        ...formData,
-        ownerId: currentUser?.ownerId,
-        laborCost: parseFloat(formData.laborCost) || 0,
-        parts: [],
-        assignmentStatus: formData.mechanicId ? 'pending' : null,
-        isRoadside: formData.isRoadside,
-        location: formData.location
-      };
-      addItem('repairs', newRepair);
-      
-      if (formData.isRoadside && formData.location) {
-        addItem('trackers', {
-          id: `tr_${newRepair.id}`,
-          repairId: newRepair.id,
-          mechanicId: formData.mechanicId,
-          customerId: currentUser?.id,
-          customerLocation: formData.location,
-          mechanicLocation: [9.03, 38.74], // Default garage location
-          status: formData.mechanicId ? 'assigned' : 'pending',
-          timestamp: new Date().toISOString()
-        });
-        addNotification(t("Repair request sent with location!"), 'success');
-      }
+    if (submitting) return; // Prevent duplicate submissions
+    setSubmitting(true);
+    try {
+      if (editingId) {
+        await updateItem('repairs', editingId, formData);
+      } else {
+        const newRepair = {
+          id: `r${Date.now()}`,
+          ...formData,
+          ownerId: currentUser?.ownerId,
+          laborCost: parseFloat(formData.laborCost) || 0,
+          parts: [],
+          assignmentStatus: formData.mechanicId ? 'pending' : null,
+          isRoadside: formData.isRoadside,
+          location: formData.location
+        };
+        await addItem('repairs', newRepair);
 
-      if (formData.mechanicId) {
-        handleRepairStatusChange(newRepair, 'pending', formData.mechanicId);
+        if (formData.isRoadside && formData.location) {
+          addItem('trackers', {
+            id: `tr_${newRepair.id}`,
+            repairId: newRepair.id,
+            mechanicId: formData.mechanicId,
+            customerId: currentUser?.id,
+            customerLocation: formData.location,
+            mechanicLocation: [9.03, 38.74],
+            status: formData.mechanicId ? 'assigned' : 'pending',
+            timestamp: new Date().toISOString()
+          });
+          addNotification(t("Repair request sent with location!"), 'success');
+        }
+
+        if (formData.mechanicId) {
+          handleRepairStatusChange(newRepair, 'pending', formData.mechanicId);
+        }
       }
+      handleCloseModal();
+    } finally {
+      setSubmitting(false);
     }
-    handleCloseModal();
   };
 
   const handleOpenRequestModal = (repair) => {
@@ -885,9 +891,15 @@ const Repairs = () => {
               </div>
               
               <div className="modal-actions">
-                <button type="button" className="btn-text" onClick={handleCloseModal}>{t('cancel')}</button>
-                <button type="submit" className="btn-primary">
-                  {editingId ? t('save') : (t("Create Order"))}
+                <button type="button" className="btn-text" onClick={handleCloseModal} disabled={submitting}>{t('cancel')}</button>
+                <button type="submit" className="btn-primary" disabled={submitting} style={{ opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                  {submitting ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div className="spinner-small" /> {t('saving')}...
+                    </span>
+                  ) : (
+                    editingId ? t('save') : t('Create Order')
+                  )}
                 </button>
               </div>
             </form>

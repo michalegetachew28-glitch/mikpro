@@ -457,7 +457,11 @@ export const AppProvider = ({ children }) => {
 
         setVehicles(v || []);
         setCustomers(c || []);
-        setRepairs(r || []);
+        setRepairs((r || []).map(item => ({
+          ...item,
+          notes: item.description || item.notes || '',
+          dateIn: item.entryDate ? item.entryDate.split('T')[0] : item.dateIn
+        })));
         setInventory(i || []);
         setStaff(s || []);
         setAppointments(a || []);
@@ -1144,7 +1148,7 @@ export const AppProvider = ({ children }) => {
       let finalUpdates = { ...newData };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1167,12 +1171,29 @@ export const AppProvider = ({ children }) => {
               color: newData.color,
               type: newData.type
             });
+          } else if (collectionName === 'repairs') {
+            const currentItem = repairs.find(r => String(r.id) === String(id)) || {};
+            response = await api.updateRepair(id, {
+              vehicleId: newData.vehicleId !== undefined ? newData.vehicleId : currentItem.vehicleId,
+              mechanicId: newData.mechanicId !== undefined ? newData.mechanicId : currentItem.mechanicId,
+              description: newData.notes !== undefined ? newData.notes : (newData.description !== undefined ? newData.description : currentItem.notes || currentItem.description || ''),
+              laborCost: newData.laborCost !== undefined ? parseFloat(newData.laborCost || 0) : currentItem.laborCost,
+              mileage: newData.mileage !== undefined ? newData.mileage : currentItem.mileage,
+              status: newData.status !== undefined ? newData.status : currentItem.status,
+              parts: newData.parts !== undefined ? newData.parts : currentItem.parts
+            });
           }
 
           if (response) {
             finalUpdates = { ...finalUpdates, ...response };
             if (response.plateNumber && !response.plate) {
               finalUpdates.plate = response.plateNumber;
+            }
+            if (collectionName === 'repairs') {
+              finalUpdates.notes = response.description || finalUpdates.notes || '';
+              if (response.entryDate) {
+                finalUpdates.dateIn = response.entryDate.split('T')[0];
+              }
             }
           }
         } catch (apiErr) {
@@ -1286,7 +1307,7 @@ export const AppProvider = ({ children }) => {
       let finalItem = { ...item };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1309,12 +1330,27 @@ export const AppProvider = ({ children }) => {
               color: item.color || '',
               type: item.type || 'car'
             });
+          } else if (collectionName === 'repairs') {
+            response = await api.createRepair({
+              vehicleId: item.vehicleId,
+              mechanicId: item.mechanicId,
+              description: item.notes || item.description || '',
+              laborCost: item.laborCost,
+              mileage: item.mileage || '',
+              parts: item.parts || []
+            });
           }
 
           if (response) {
             finalItem = { ...finalItem, ...response };
             if (response.plateNumber && !response.plate) {
               finalItem.plate = response.plateNumber;
+            }
+            if (collectionName === 'repairs') {
+              finalItem.notes = response.description || finalItem.notes || '';
+              if (response.entryDate) {
+                finalItem.dateIn = response.entryDate.split('T')[0];
+              }
             }
           }
         } catch (apiErr) {
@@ -1417,13 +1453,15 @@ export const AppProvider = ({ children }) => {
     }
 
     try {
-      if (currentUser && ['customers', 'vehicles'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           if (collectionName === 'customers') {
             await api.deleteCustomer(id);
           } else if (collectionName === 'vehicles') {
             await api.deleteVehicle(id);
+          } else if (collectionName === 'repairs') {
+            await api.deleteRepair(id);
           }
         } catch (apiErr) {
           console.error(`[API Delete Error] Failed to delete ${collectionName}`, apiErr);
