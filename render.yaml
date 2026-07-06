@@ -17,6 +17,7 @@ services:
       - key: FRONTEND_URL
         fromService:
           name: garage-frontend
+          type: web
           property: host
 
   # Vite React Frontend Static Site
