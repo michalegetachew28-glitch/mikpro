@@ -2,7 +2,7 @@ services:
   # Express Backend API
   - type: web
     name: garage-backend
-    env: node
+    runtime: node
     rootDir: backend
     plan: free
     buildCommand: npm install && npx prisma generate
@@ -22,7 +22,7 @@ services:
   # Vite React Frontend Static Site
   - type: static
     name: garage-frontend
-    env: static
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
