@@ -1,5 +1,5 @@
 // Central API service layer - connects frontend to the Node.js/Express backend
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getToken = () => localStorage.getItem('garage_token');
 
