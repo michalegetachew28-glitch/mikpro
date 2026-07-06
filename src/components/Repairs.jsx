@@ -1290,69 +1290,152 @@ const RepairHistoryCard = ({
         </div>
       )}
 
-      {/* Show mechanic their accepted status */}
+      {/* Show mechanic their accepted status + complete action */}
       {currentUser.role === 'mechanic' && repair.assignmentStatus === 'accepted' && (
-        <div style={{
-          marginTop: 12, padding: '8px 12px', borderRadius: 10,
-          background: 'rgba(16,185,129,0.12)', color: '#059669',
-          fontWeight: 700, fontSize: '0.85rem',
-          display: 'flex', alignItems: 'center', gap: 6,
-          border: '1px solid rgba(16,185,129,0.3)'
-        }}>
-          <Check size={14} /> {t('Job Accepted — You are working on this')}
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Accepted badge */}
+          <div style={{
+            padding: '8px 12px', borderRadius: 10,
+            background: 'rgba(16,185,129,0.12)', color: '#059669',
+            fontWeight: 700, fontSize: '0.85rem',
+            display: 'flex', alignItems: 'center', gap: 6,
+            border: '1px solid rgba(16,185,129,0.3)'
+          }}>
+            <Check size={14} />
+            {repair.status === 'completed'
+              ? '✅ Job Completed'
+              : '🔧 Accepted — You are working on this'}
+          </div>
+
+          {/* Mark as Completed button — only shows while work not done */}
+          {repair.status !== 'completed' && (
+            <button
+              onClick={() => updateItem('repairs', repair.id, { status: 'completed' })}
+              style={{
+                width: '100%',
+                padding: '10px 0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: 'linear-gradient(135deg,#10b981,#059669)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+                transition: 'opacity 0.15s'
+              }}
+              onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
+            >
+              <CheckCircle2 size={16} /> Mark as Completed
+            </button>
+          )}
         </div>
       )}
 
-      {/* Admin View of Response */}
-      {(currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'coder') && repair.assignmentStatus && (
-        <div className={`assignment-badge ${repair.assignmentStatus}`} style={{ 
-          marginTop: '12px', 
-          padding: '12px', 
-          borderRadius: '12px', 
-          fontSize: '0.85rem',
-          fontWeight: 700,
-          background: repair.assignmentStatus === 'accepted' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.15)',
-          color: repair.assignmentStatus === 'accepted' ? '#059669' : '#dc2626',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          border: `1px solid ${repair.assignmentStatus === 'accepted' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.4)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {repair.assignmentStatus === 'accepted' ? <Check size={16} /> : <AlertCircleIcon size={16} />}
-            <span style={{ textTransform: 'uppercase' }}>
-              {t('assignmentStatusMsg', { status: t(repair.assignmentStatus === 'accepted' ? 'accepted' : 'declined') })}
-            </span>
-          </div>
-
-          {repair.assignmentStatus === 'accepted' && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              padding: '6px 10px',
-              background: 'rgba(255, 255, 255, 0.4)',
-              borderRadius: '8px',
-              width: 'fit-content',
-              border: '1px solid rgba(0,0,0,0.05)'
+      {/* Admin / Manager view of mechanic response */}
+      {(currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'coder') && (
+        <div style={{ marginTop: 14 }}>
+          {/* No response yet */}
+          {!repair.assignmentStatus && repair.mechanicId && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 12px', borderRadius: 8,
+              background: 'rgba(245,158,11,0.08)',
+              border: '1px dashed rgba(245,158,11,0.5)',
+              color: '#d97706', fontSize: '0.8rem', fontWeight: 600
             }}>
-              <Clock size={14} />
-              <span style={{ fontWeight: 800 }}>
-                {t("Work Status: ")}
-                <span style={{ color: repair.status === 'completed' ? 'var(--success)' : (repair.status === 'in-progress' ? 'var(--primary)' : 'inherit') }}>
-                  {t(repair.status === 'in-progress' ? 'inProgress' : repair.status)}
-                </span>
-              </span>
+              <Clock size={13} /> Awaiting mechanic response…
             </div>
           )}
 
-          {repair.declineReason && (
-            <div style={{ fontWeight: 500, fontSize: '0.8rem', background: 'rgba(255,255,255,0.5)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.05)' }}>
-              <strong style={{ display: 'block', marginBottom: '2px' }}>{t("Reason:")}</strong>
-              {repair.declineReason}
+          {/* ACCEPTED */}
+          {repair.assignmentStatus === 'accepted' && (
+            <div style={{
+              borderRadius: 12, overflow: 'hidden',
+              border: '2px solid #10b981'
+            }}>
+              {/* Header bar */}
+              <div style={{
+                background: 'linear-gradient(135deg,#10b981,#059669)',
+                color: '#fff', padding: '8px 14px',
+                display: 'flex', alignItems: 'center', gap: 8,
+                fontWeight: 700, fontSize: '0.85rem'
+              }}>
+                <Check size={15} /> ACCEPTED BY MECHANIC
+              </div>
+              {/* Status pill row */}
+              <div style={{
+                padding: '10px 14px',
+                background: 'rgba(16,185,129,0.07)',
+                display: 'flex', alignItems: 'center', gap: 8
+              }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  Work Status:
+                </span>
+                {/* pending pill */}
+                <span style={{
+                  padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
+                  background: repair.status === 'pending' ? '#f59e0b' : 'rgba(0,0,0,0.06)',
+                  color: repair.status === 'pending' ? '#fff' : 'var(--text-secondary)',
+                  border: repair.status === 'pending' ? '2px solid #f59e0b' : '2px solid var(--border)'
+                }}>
+                  Pending
+                </span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>→</span>
+                {/* in-progress pill */}
+                <span style={{
+                  padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
+                  background: repair.status === 'in-progress' ? 'var(--primary)' : 'rgba(0,0,0,0.06)',
+                  color: repair.status === 'in-progress' ? '#fff' : 'var(--text-secondary)',
+                  border: repair.status === 'in-progress' ? '2px solid var(--primary)' : '2px solid var(--border)'
+                }}>
+                  In Progress
+                </span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>→</span>
+                {/* completed pill */}
+                <span style={{
+                  padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
+                  background: repair.status === 'completed' ? '#10b981' : 'rgba(0,0,0,0.06)',
+                  color: repair.status === 'completed' ? '#fff' : 'var(--text-secondary)',
+                  border: repair.status === 'completed' ? '2px solid #10b981' : '2px solid var(--border)'
+                }}>
+                  Completed
+                </span>
+              </div>
             </div>
           )}
-          {repair.declineVoice && <DeclineVoicePlayer mediaId={repair.declineVoice} />}
+
+          {/* DECLINED */}
+          {repair.assignmentStatus === 'declined' && (
+            <div style={{
+              borderRadius: 12, overflow: 'hidden',
+              border: '2px solid #ef4444'
+            }}>
+              {/* Header bar */}
+              <div style={{
+                background: 'linear-gradient(135deg,#ef4444,#dc2626)',
+                color: '#fff', padding: '8px 14px',
+                display: 'flex', alignItems: 'center', gap: 8,
+                fontWeight: 700, fontSize: '0.85rem'
+              }}>
+                <X size={15} /> DECLINED BY MECHANIC
+              </div>
+              {/* Reason */}
+              {(repair.declineReason || repair.declineVoice) && (
+                <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.06)' }}>
+                  {repair.declineReason && (
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
+                      <strong style={{ color: '#dc2626' }}>Reason: </strong>
+                      {repair.declineReason}
+                    </div>
+                  )}
+                  {repair.declineVoice && <DeclineVoicePlayer mediaId={repair.declineVoice} />}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       
