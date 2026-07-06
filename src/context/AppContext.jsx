@@ -445,14 +445,15 @@ export const AppProvider = ({ children }) => {
       setIsSyncing(true);
       try {
         console.log(`${DIAG} Syncing core data with backend...`);
-        const [v, c, r, i, s, a, st] = await Promise.all([
+        const [v, c, r, i, s, a, st, mr] = await Promise.all([
           api.getVehicles().catch(() => []),
           api.getCustomers().catch(() => []),
           api.getRepairs().catch(() => []),
           api.getInventory().catch(() => []),
           api.getStaff().catch(() => []),
           api.getAppointments().catch(() => []),
-          api.getSettings().catch(() => null)
+          api.getSettings().catch(() => null),
+          api.getMaterialRequests().catch(() => [])
         ]);
 
         setVehicles(v || []);
@@ -462,9 +463,14 @@ export const AppProvider = ({ children }) => {
           notes: item.description || item.notes || '',
           dateIn: item.entryDate ? item.entryDate.split('T')[0] : item.dateIn
         })));
-        setInventory(i || []);
+        setInventory((i || []).map(item => ({
+          ...item,
+          name: item.partName || item.name || '',
+          threshold: item.minStock !== undefined ? item.minStock : (item.threshold || 5)
+        })));
         setStaff(s || []);
         setAppointments(a || []);
+        setMaterialRequests(mr || []);
         if (st) {
           setBillingSettings(prev => ({
             ...prev,
@@ -1148,7 +1154,7 @@ export const AppProvider = ({ children }) => {
       let finalUpdates = { ...newData };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1180,11 +1186,36 @@ export const AppProvider = ({ children }) => {
               laborCost: newData.laborCost !== undefined ? parseFloat(newData.laborCost || 0) : currentItem.laborCost,
               mileage: newData.mileage !== undefined ? newData.mileage : currentItem.mileage,
               status: newData.status !== undefined ? newData.status : currentItem.status,
-              parts: newData.parts !== undefined ? newData.parts : currentItem.parts
+              parts: newData.parts !== undefined ? newData.parts : currentItem.parts,
+              assignmentStatus: newData.assignmentStatus !== undefined ? newData.assignmentStatus : currentItem.assignmentStatus,
+              declineReason: newData.declineReason !== undefined ? newData.declineReason : currentItem.declineReason,
+              declineVoice: newData.declineVoice !== undefined ? newData.declineVoice : currentItem.declineVoice
+            });
+          } else if (collectionName === 'inventory') {
+            const currentItem = inventory.find(i => String(i.id) === String(id)) || {};
+            response = await api.updateInventoryItem(id, {
+              partName: newData.name !== undefined ? newData.name : currentItem.name,
+              quantity: newData.quantity !== undefined ? parseInt(newData.quantity) : currentItem.quantity,
+              price: newData.price !== undefined ? parseFloat(newData.price) : currentItem.price,
+              minStock: newData.threshold !== undefined ? parseInt(newData.threshold) : currentItem.threshold,
+              category: newData.category !== undefined ? newData.category : currentItem.category
+            });
+          } else if (collectionName === 'materialRequests') {
+            const currentItem = materialRequests.find(m => String(m.id) === String(id)) || {};
+            response = await api.updateMaterialRequest(id, {
+              status: newData.status !== undefined ? newData.status : currentItem.status,
+              approvedQty: newData.approvedQty !== undefined ? parseInt(newData.approvedQty) : currentItem.approvedQty,
+              notes: newData.notes !== undefined ? newData.notes : currentItem.notes
             });
           }
 
           if (response) {
+            if (collectionName === 'inventory') {
+              response.name = response.partName || response.name;
+              response.threshold = response.minStock !== undefined ? response.minStock : response.threshold;
+            } else if (collectionName === 'materialRequests') {
+              response.requestedQty = response.requestedQty || response.quantity;
+            }
             finalUpdates = { ...finalUpdates, ...response };
             if (response.plateNumber && !response.plate) {
               finalUpdates.plate = response.plateNumber;
@@ -1193,6 +1224,11 @@ export const AppProvider = ({ children }) => {
               finalUpdates.notes = response.description || finalUpdates.notes || '';
               if (response.entryDate) {
                 finalUpdates.dateIn = response.entryDate.split('T')[0];
+              }
+              if (newData.status === 'completed') {
+                api.getMaterialRequests().then(mr => {
+                  setMaterialRequests(mr || []);
+                }).catch(err => console.error("Error refreshing material requests on completion:", err));
               }
             }
           }
@@ -1307,7 +1343,7 @@ export const AppProvider = ({ children }) => {
       let finalItem = { ...item };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1339,9 +1375,30 @@ export const AppProvider = ({ children }) => {
               mileage: item.mileage || '',
               parts: item.parts || []
             });
+          } else if (collectionName === 'inventory') {
+            response = await api.createInventoryItem({
+              partName: item.name,
+              quantity: parseInt(item.quantity) || 0,
+              price: parseFloat(item.price) || 0,
+              minStock: parseInt(item.threshold) || 5,
+              category: item.category || ''
+            });
+          } else if (collectionName === 'materialRequests') {
+            response = await api.createMaterialRequest({
+              partId: item.partId,
+              repairId: item.repairId,
+              requestedQty: parseInt(item.requestedQty || item.quantity || 1, 10),
+              notes: item.notes || ''
+            });
           }
 
           if (response) {
+            if (collectionName === 'inventory') {
+              response.name = response.partName || response.name;
+              response.threshold = response.minStock !== undefined ? response.minStock : response.threshold;
+            } else if (collectionName === 'materialRequests') {
+              response.requestedQty = response.requestedQty || response.quantity;
+            }
             finalItem = { ...finalItem, ...response };
             if (response.plateNumber && !response.plate) {
               finalItem.plate = response.plateNumber;
@@ -1453,7 +1510,7 @@ export const AppProvider = ({ children }) => {
     }
 
     try {
-      if (currentUser && ['customers', 'vehicles', 'repairs'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           if (collectionName === 'customers') {
@@ -1462,6 +1519,10 @@ export const AppProvider = ({ children }) => {
             await api.deleteVehicle(id);
           } else if (collectionName === 'repairs') {
             await api.deleteRepair(id);
+          } else if (collectionName === 'inventory') {
+            await api.deleteInventoryItem(id);
+          } else if (collectionName === 'materialRequests') {
+            await api.deleteMaterialRequest(id);
           }
         } catch (apiErr) {
           console.error(`[API Delete Error] Failed to delete ${collectionName}`, apiErr);

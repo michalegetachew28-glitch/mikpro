@@ -8,7 +8,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-//  directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -32,7 +32,7 @@ model User {
   garage           Garage?          @relation(fields: [garageId], references: [id])
   paymentRequests  PaymentRequest[]
   repairsManaged   Repair[]         @relation("MechanicRepairs")
-  materialRequests MaterialRequest[]
+  materialRequests MaterialRequest[] @relation("MechanicRequests")
   bonuses          Bonus[]
   staffRecord      Staff?
 }
@@ -114,10 +114,13 @@ model Repair {
   laborCost   Float         @default(0)
   partsCost   Float         @default(0)
   totalAmount Float         @default(0)
-  mileage     String?
+  assignmentStatus String?
+  declineReason    String?
+  declineVoice     String?
   
   // Relations
-  parts       RepairPart[]
+  parts            RepairPart[]
+  materialRequests MaterialRequest[]
 }
 
 model RepairPart {
@@ -138,6 +141,8 @@ model Inventory {
   quantity Int    @default(0)
   price    Float  @default(0)
   minStock Int    @default(5)
+
+  materialRequests MaterialRequest[]
 }
 
 model Appointment {
@@ -207,15 +212,25 @@ model Bonus {
 }
 
 model MaterialRequest {
-  id       String @id @default(cuid())
-  garageId String
-  garage   Garage @relation(fields: [garageId], references: [id])
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
-  item     String
-  quantity Int
-  status   String @default("pending")
-  date     DateTime @default(now())
+  id           String    @id @default(cuid())
+  garageId     String
+  garage       Garage    @relation(fields: [garageId], references: [id])
+  partId       String
+  part         Inventory @relation(fields: [partId], references: [id])
+  repairId     String
+  repair       Repair    @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  mechanicId   String
+  mechanic     User      @relation("MechanicRequests", fields: [mechanicId], references: [id])
+  managerId    String?
+  requestedQty Int       @default(1)
+  approvedQty  Int       @default(0)
+  status       String    @default("pending")
+  notes        String?
+  timestamp    DateTime  @default(now())
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  pickedUpAt   DateTime?
+  pickedUpBy   String?
 }
 
 model PlatformSettings {

@@ -155,21 +155,15 @@ const MaterialRequests = () => {
     const part = inventory.find(i => i.id === selectedRequest.partId);
     if (!part) return;
 
+    const qty = parseInt(reviewData.approvedQty) || 0;
     const isIssuingNow = reviewData.status === 'picked-up' && selectedRequest.status !== 'picked-up';
-    
+
     if (isIssuingNow) {
-      const qty = parseInt(reviewData.approvedQty) || 0;
-      if (part.stock < qty) {
-        alert(language === 'en' ? `Insufficient stock. Available: ${part.stock}` : `በቂ እቃ የለም። ያለው፡ ${part.stock}`);
+      const currentStock = parseInt(part.quantity || 0, 10);
+      if (currentStock < qty) {
+        alert(language === 'en' ? `Insufficient stock. Available: ${currentStock}` : `በቂ እቃ የለም። ያለው፡ ${currentStock}`);
         return; // Stop if inventory check fails
       }
-      
-      // Deduct from inventory
-      updateItem('inventory', part.id, {
-        ...part,
-        stock: part.stock - qty,
-        lastUpdated: new Date().toISOString()
-      });
     }
 
     const newRequest = {
@@ -285,16 +279,28 @@ const MaterialRequests = () => {
   };
 
   const confirmPickup = (req) => {
-    const success = handleIssueMaterial(req);
-    if (success) {
-      const updatedRequest = {
-        ...req,
-        status: 'picked-up',
-        pickedUpAt: new Date().toISOString(),
-        pickedUpBy: currentUser.id
-      };
-      updateItem('materialRequests', req.id, updatedRequest);
+    const part = inventory.find(i => String(i.id) === String(req.partId));
+    if (!part) {
+      alert(t("Error: Part not found in inventory."));
+      return;
     }
+
+    const currentStock = parseInt(part.quantity || 0, 10);
+    const finalQty = parseInt(req.approvedQty ?? req.requestedQty ?? 0, 10);
+
+    if (currentStock < finalQty) {
+      alert(`${t('insufficientStock')}: ${part.name} (Available: ${currentStock})`);
+      return;
+    }
+
+    const updatedRequest = {
+      ...req,
+      status: 'picked-up',
+      approvedQty: finalQty,
+      pickedUpAt: new Date().toISOString(),
+      pickedUpBy: currentUser.id
+    };
+    updateItem('materialRequests', req.id, updatedRequest);
   };
 
   const getStatusBadge = (status) => {

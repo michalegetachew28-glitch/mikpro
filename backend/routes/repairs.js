@@ -116,6 +116,12 @@ router.put('/:id', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Access denied: You are not the assigned mechanic' });
     }
 
+    // Prevent editing completed repair unless authorized
+    const isAuthorizedReopener = ['admin', 'manager', 'coder'].includes(req.user.role);
+    if (existingRepair.status === 'completed' && !isAuthorizedReopener) {
+      return res.status(403).json({ error: 'Access denied: Completed repair orders cannot be edited by mechanics' });
+    }
+
     // Clean mechanic assignment
     if (data.mechanicId === '') {
       data.mechanicId = null;
@@ -147,6 +153,13 @@ router.put('/:id', authenticate, async (req, res) => {
           });
         }
         partsCost = parts.reduce((sum, p) => sum + parseFloat(p.price || 0) * parseInt(p.quantity || 0), 0);
+      }
+
+      if (data.status === 'completed') {
+        await tx.materialRequest.updateMany({
+          where: { repairId, status: { in: ['picked-up', 'approved', 'pending'] } },
+          data: { status: 'completed' }
+        });
       }
 
       const totalAmount = laborCost + partsCost;

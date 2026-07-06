@@ -12,6 +12,7 @@ const staffRoutes = require('./routes/staff');
 const appointmentRoutes = require('./routes/appointments');
 const settingsRoutes = require('./routes/settings');
 const superAdminRoutes = require('./routes/superAdmin');
+const materialRequestRoutes = require('./routes/materialRequests');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/super-admin', superAdminRoutes);
+app.use('/api/material-requests', materialRequestRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -55,6 +57,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Garage API Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Garage API Server running on http://0.0.0.0:${PORT}`);
 });

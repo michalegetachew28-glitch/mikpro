@@ -99,5 +99,10 @@ export const api = {
   getAppointments: () => request('GET', '/appointments'),
   createAppointment: (data) => request('POST', '/appointments', data),
   updateAppointment: (id, data) => request('PUT', `/appointments/${id}`, data),
-  deleteAppointment: (id) => request('DELETE', `/appointments/${id}`)
+  deleteAppointment: (id) => request('DELETE', `/appointments/${id}`),
+
+  getMaterialRequests: () => request('GET', '/material-requests'),
+  createMaterialRequest: (data) => request('POST', '/material-requests', data),
+  updateMaterialRequest: (id, data) => request('PUT', `/material-requests/${id}`, data),
+  deleteMaterialRequest: (id) => request('DELETE', `/material-requests/${id}`)
 };
