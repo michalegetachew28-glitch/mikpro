@@ -301,30 +301,36 @@ const Repairs = () => {
     setShowRequestModal(false);
   };
 
-  const handleAssignmentAction = (repair, action) => {
+  const handleAssignmentAction = async (repair, action) => {
     if (action === 'accept') {
-      const updatedRepair = { ...repair, assignmentStatus: 'accepted' };
-      updateItem('repairs', repair.id, updatedRepair);
-      
-      // Notify Admin & Manager
-      const notifyList = staff.filter(s => s.role === 'admin' || s.role === 'manager');
-      // Also notify owner if not in staff list
-      const ownerId = currentUser.ownerId;
-      
-      const uniqueRecipients = new Set([...notifyList.map(s => s.id), ownerId]);
-      uniqueRecipients.forEach(id => {
-        if (id && String(id) !== String(currentUser.id)) {
-          addNotification(
-            t('repairAcceptedNotify', { name: currentUser.name, id: repair.id }), 
-            'success', id, '/repairs'
-          );
-        }
-      });
-      logActivity('Job Accepted', `${currentUser.name} accepted Repair #${repair.id}`);
+      try {
+        // Mark as accepted + move to in-progress
+        await updateItem('repairs', repair.id, {
+          assignmentStatus: 'accepted',
+          status: 'in-progress'
+        });
+
+        // Notify admins & managers
+        const recipients = staff.filter(s => s.role === 'admin' || s.role === 'manager');
+        const recipientIds = new Set([...recipients.map(s => s.id), currentUser.ownerId].filter(Boolean));
+        recipientIds.forEach(id => {
+          if (String(id) !== String(currentUser.id)) {
+            addNotification(
+              `✅ ${currentUser.name} accepted Repair #${repair.id} and started work`,
+              'success', id, '/repairs'
+            );
+          }
+        });
+        logActivity('Job Accepted', `${currentUser.name} accepted Repair #${repair.id}`);
+      } catch (err) {
+        addNotification('Failed to accept job. Please try again.', 'error');
+      }
     } else {
+      // Open decline modal
       setDeclineTarget(repair);
       setDeclineText('');
       setAudioBlob(null);
+      setAudioUrl(null);
       setShowDeclineModal(true);
     }
   };
@@ -358,6 +364,10 @@ const Repairs = () => {
   const submitDecline = async (e) => {
     e.preventDefault();
     if (!declineTarget || submitting) return;
+    if (!declineText.trim() && !audioBlob) {
+      addNotification('Please provide a reason or voice note.', 'warning');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -367,38 +377,34 @@ const Repairs = () => {
         await storeMedia(voiceId, audioBlob, { name: 'decline_reason.webm', type: 'audio/webm' });
       }
 
-      const updatedRepair = { 
-        ...declineTarget, 
+      await updateItem('repairs', declineTarget.id, {
         assignmentStatus: 'declined',
-        declineReason: declineText,
+        declineReason: declineText.trim(),
         declineVoice: voiceId
-      };
-      
-      updateItem('repairs', declineTarget.id, updatedRepair);
-      
-      // Notify Admin & Manager
-      const notifyList = staff.filter(s => s.role === 'admin' || s.role === 'manager');
-      const ownerId = currentUser.ownerId;
-      
-      const uniqueRecipients = new Set([...notifyList.map(s => s.id), ownerId]);
-      uniqueRecipients.forEach(id => {
-        if (id && String(id) !== String(currentUser.id)) {
+      });
+
+      // Notify admins & managers
+      const recipients = staff.filter(s => s.role === 'admin' || s.role === 'manager');
+      const recipientIds = new Set([...recipients.map(s => s.id), currentUser.ownerId].filter(Boolean));
+      recipientIds.forEach(id => {
+        if (String(id) !== String(currentUser.id)) {
           addNotification(
-            t('repairDeclinedNotify', { name: currentUser.name, id: declineTarget.id }), 
+            `⚠️ ${currentUser.name} declined Repair #${declineTarget.id}`,
             'warning', id, '/repairs'
           );
         }
       });
-      logActivity('Job Declined', `${currentUser.name} declined Repair #${declineTarget.id}. Reason: ${declineText || 'Voice Note'}`);
+      logActivity('Job Declined', `${currentUser.name} declined Repair #${declineTarget.id}. Reason: ${declineText.trim() || 'Voice Note'}`);
 
       setShowDeclineModal(false);
       setDeclineTarget(null);
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
       setDeclineText('');
+      setAudioBlob(null);
     } catch (err) {
-      console.error("Submission failed", err);
-      addNotification('Failed to submit response. Please try again.', 'error');
+      console.error('Decline failed', err);
+      addNotification('Failed to submit decline. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -1235,15 +1241,65 @@ const RepairHistoryCard = ({
         </button>
       )}
 
-      {/* Job Approval UI for Mechanic */}
-      {currentUser.role === 'mechanic' && repair.assignmentStatus === 'pending' && (
-        <div className="assignment-actions" style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-          <button className="btn-primary" style={{ flex: 1, background: 'var(--success)' }} onClick={() => handleAssignmentAction(repair, 'accept')}>
-            <Check size={16} /> {t("Accept")}
+      {/* Accept / Decline buttons — shown to assigned mechanic while status is pending */}
+      {currentUser.role === 'mechanic' &&
+        String(repair.mechanicId) === String(currentUser.id) &&
+        !repair.assignmentStatus && (
+        <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => handleAssignmentAction(repair, 'accept')}
+            style={{
+              flex: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '10px 0',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+              transition: 'transform 0.15s, opacity 0.15s'
+            }}
+            onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseOut={e => e.currentTarget.style.opacity = '1'}
+          >
+            <Check size={16} /> {t('Accept Job')}
           </button>
-          <button className="btn-outline-danger" style={{ flex: 1 }} onClick={() => handleAssignmentAction(repair, 'decline')}>
-            <X size={16} /> {t("Decline")}
+          <button
+            onClick={() => handleAssignmentAction(repair, 'decline')}
+            style={{
+              flex: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '10px 0',
+              background: 'transparent',
+              color: '#ef4444',
+              border: '2px solid #ef4444',
+              borderRadius: 10,
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.15s, color 0.15s'
+            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ef4444'; }}
+          >
+            <X size={16} /> {t('Decline')}
           </button>
+        </div>
+      )}
+
+      {/* Show mechanic their accepted status */}
+      {currentUser.role === 'mechanic' && repair.assignmentStatus === 'accepted' && (
+        <div style={{
+          marginTop: 12, padding: '8px 12px', borderRadius: 10,
+          background: 'rgba(16,185,129,0.12)', color: '#059669',
+          fontWeight: 700, fontSize: '0.85rem',
+          display: 'flex', alignItems: 'center', gap: 6,
+          border: '1px solid rgba(16,185,129,0.3)'
+        }}>
+          <Check size={14} /> {t('Job Accepted — You are working on this')}
         </div>
       )}
 
