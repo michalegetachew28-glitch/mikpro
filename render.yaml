@@ -5,20 +5,17 @@ services:
     runtime: node
     rootDir: backend
     plan: free
-    buildCommand: npm install && npx prisma generate
-    startCommand: npx prisma db push && node index.js
+    buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss
+    startCommand: node index.js
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: garage-db
-          property: connectionString
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        fromService:
-          name: garage-frontend
-          type: web
-          property: host
+        sync: false
 
   # Vite React Frontend Static Site
   - type: web
