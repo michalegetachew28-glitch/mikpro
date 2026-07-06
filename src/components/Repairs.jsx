@@ -749,7 +749,7 @@ const Repairs = () => {
                           {vehicles.filter(v => {
                             const c = customers.find(cust => String(cust.id) === String(v.customerId));
                             const search = custSearch.toLowerCase();
-                            return v.plate.toLowerCase().includes(search) || (c?.name || '').toLowerCase().includes(search) || (v.model || '').toLowerCase().includes(search);
+                            return (v.plate || v.plateNumber || '').toLowerCase().includes(search) || (c?.name || '').toLowerCase().includes(search) || (v.model || '').toLowerCase().includes(search);
                           }).length === 0 && (
                             <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>
                               {t("No vehicles found")}
@@ -1165,7 +1165,7 @@ const RepairHistoryCard = ({
   return (
     <div className={`repair-card ${repair.assignmentStatus === 'declined' ? 'card-declined' : ''}`} key={repair.id}>
       <div className="repair-card-header">
-        <span className="repair-id">#{repair.id.toUpperCase()}</span>
+        <span className="repair-id">#{(repair.id || '').toUpperCase()}</span>
         <div className="action-buttons">
           {owner && (
             <button className="icon-btn-small chat-btn" style={{ color: 'white', background: 'var(--primary)' }} onClick={() => openChatWith(owner)} title={t('chat')}>

@@ -104,7 +104,7 @@ const InvoiceForm = ({ onClose, onSave }) => {
               <label><Car size={16} /> {t('selectVehicle')}</label>
               <select value={vehicleId} onChange={(e) => { setVehicleId(e.target.value); setRepairId(''); }} required disabled={!customerId} className="auth-input">
                 <option value="">-- {t('selectVehicle')} --</option>
-                {customerVehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.make} {v.model}</option>)}
+                {customerVehicles.map(v => <option key={v.id} value={v.id}>{v.plate || v.plateNumber || 'No Plate'} - {v.make || ''} {v.model}</option>)}
               </select>
             </div>
           </div>
@@ -115,7 +115,7 @@ const InvoiceForm = ({ onClose, onSave }) => {
               <option value="">-- {t("Select Completed Repair (Optional)")} --</option>
               {vehicleRepairs.map(r => (
                 <option key={r.id} value={r.id}>
-                  #{r.id.toUpperCase()} - {r.notes.substring(0, 30)}... ({formatDate(r.dateIn)})
+                  #{(r.id || '').toUpperCase()} - {(r.notes || r.description || '').substring(0, 30)}... ({formatDate(r.dateIn || r.entryDate)})
                 </option>
               ))}
             </select>
