@@ -70,7 +70,7 @@ const MaterialRequests = () => {
       const partName = part ? part.name.toLowerCase() : '';
       const repair = (repairs || []).find(r => r.id === req.repairId);
       const vehicle = repair ? (vehicles || []).find(v => v.id === repair.vehicleId) : null;
-      const vehicleName = vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.plate}`.toLowerCase() : '';
+      const vehicleName = vehicle ? `${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.plate || vehicle.plateNumber || ''}`.toLowerCase() : '';
       
       const searchMatch = partName.includes(searchTerm.toLowerCase()) || 
                           vehicleName.includes(searchTerm.toLowerCase()) ||

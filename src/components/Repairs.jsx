@@ -104,7 +104,7 @@ const Repairs = () => {
 
     // 4. Search Filter
     const vehicle = (vehicles || []).find(v => v.id === r.vehicleId);
-    const vMatch = vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.plate}`.toLowerCase() : '';
+    const vMatch = vehicle ? `${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.plate || vehicle.plateNumber || ''}`.toLowerCase() : '';
     const matchesSearch = vMatch.includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
 
@@ -715,7 +715,7 @@ const Repairs = () => {
                             .filter(v => {
                               const c = customers.find(cust => String(cust.id) === String(v.customerId));
                               const search = custSearch.toLowerCase();
-                              return v.plate.toLowerCase().includes(search) || 
+                              return (v.plate || v.plateNumber || '').toLowerCase().includes(search) || 
                                      (c?.name || '').toLowerCase().includes(search) || 
                                      (v.model || '').toLowerCase().includes(search);
                             })
