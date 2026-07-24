@@ -6,7 +6,7 @@ import {
   collection, query, where, onSnapshot, addDoc, 
   serverTimestamp, orderBy, updateDoc, doc 
 } from 'firebase/firestore';
-import { ref, set, onValue, onDisconnect } from 'firebase/database';
+import { ref, set, onValue, onDisconnect, off, update } from 'firebase/database';
 import { translations } from '../data/translations';
 import { formatEthiopianDate } from '../utils/ethiopianDate';
 
@@ -94,11 +94,11 @@ export const AppProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
   const [activeTrackers, setActiveTrackers] = useState([]);
-  const [invoices, setInvoices] = useState([]);
-  const [adminPaymentDetails, setAdminPaymentDetails] = useState([]);
+  const [invoices, _setInvoices] = useState([]);
+  const [adminPaymentDetails, _setAdminPaymentDetails] = useState([]);
   const [mechanicPaymentDetails, setMechanicPaymentDetails] = useState([]);
-  const [bonuses, setBonuses] = useState([]);
-  const [billingSettings, setBillingSettings] = useState({
+  const [bonuses, _setBonuses] = useState([]);
+  const [billingSettings, _setBillingSettings] = useState({
     currency: 'ETB',
     taxRate: 15,
     exchangeRate: 55 // ETB per USD (Mock)
@@ -110,6 +110,7 @@ export const AppProvider = ({ children }) => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isBillingLoading, setIsBillingLoading] = useState(false);
   const [salaryPayments, setSalaryPayments] = useState([]);
   const [salaries, setSalaries] = useState([]);
   const [internalMessages, setInternalMessages] = useState([]);
@@ -133,6 +134,135 @@ export const AppProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const [groupCalls, setGroupCalls] = useState({}); // groupId -> { type, participants: [], startTime, activeSpeakers: [] }
   const [callHistory, setCallHistory] = useState([]);
+
+  const setInvoices = useCallback(async (valOrFunc) => {
+    let next;
+    if (typeof valOrFunc === 'function') {
+      next = valOrFunc(invoices);
+    } else {
+      next = valOrFunc;
+    }
+    _setInvoices(next);
+
+    if (!currentUser || !isInitialLoadComplete) return;
+
+    try {
+      if (next.length > invoices.length) {
+        const added = next.find(n => !invoices.some(i => i.id === n.id));
+        if (added) {
+          // Prevent double-post if InvoiceForm already successfully created it and assigned a real INV- ID.
+          if (String(added.id).startsWith('INV-TEMP')) {
+             const resp = await api.createInvoice(added);
+             _setInvoices(prev => prev.map(inv => inv.id === added.id ? resp : inv));
+          }
+        }
+      } else if (next.length < invoices.length) {
+        const deleted = invoices.find(i => !next.some(n => n.id === i.id));
+        if (deleted) {
+          await api.deleteInvoice(deleted.id);
+        }
+      } else {
+        const updated = next.find(n => {
+          const orig = invoices.find(i => i.id === n.id);
+          return orig && JSON.stringify(orig) !== JSON.stringify(n);
+        });
+        if (updated) {
+          const orig = invoices.find(i => i.id === updated.id);
+          if (orig.status !== updated.status && updated.status !== 'payment-submitted') {
+            await api.updateInvoiceStatus(updated.id, updated.status, updated.paymentMethod);
+          }
+          if (updated.hasProof && (!orig.hasProof || JSON.stringify(updated.proofDetails) !== JSON.stringify(orig.proofDetails))) {
+            try {
+              await api.submitInvoiceProof(updated.id, updated.proofDetails);
+            } catch (err) {
+              console.error("Proof upload failed:", err);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Invoice sync error", err);
+    }
+  }, [invoices, currentUser, isInitialLoadComplete]);
+
+  const setAdminPaymentDetails = useCallback(async (valOrFunc) => {
+    let next;
+    if (typeof valOrFunc === 'function') {
+      next = valOrFunc(adminPaymentDetails);
+    } else {
+      next = valOrFunc;
+    }
+    _setAdminPaymentDetails(next);
+
+    if (!currentUser || !isInitialLoadComplete) return;
+
+    try {
+      if (next.length > adminPaymentDetails.length) {
+        const added = next.find(n => !adminPaymentDetails.some(a => a.id === n.id));
+        if (added) {
+          const resp = await api.createPaymentAccount(added);
+          _setAdminPaymentDetails(prev => prev.map(a => a.id === added.id ? resp : a));
+        }
+      } else if (next.length < adminPaymentDetails.length) {
+        const deleted = adminPaymentDetails.find(i => !next.some(n => n.id === i.id));
+        if (deleted) {
+          await api.deletePaymentAccount(deleted.id);
+        }
+      } else {
+        const updated = next.find(n => {
+          const orig = adminPaymentDetails.find(a => a.id === n.id);
+          return orig && JSON.stringify(orig) !== JSON.stringify(n);
+        });
+        if (updated) {
+          await api.updatePaymentAccount(updated.id, updated);
+        }
+      }
+    } catch (err) {
+      console.error("Payment details sync error", err);
+    }
+  }, [adminPaymentDetails, currentUser, isInitialLoadComplete]);
+
+  const setBonuses = useCallback(async (valOrFunc) => {
+    let next;
+    if (typeof valOrFunc === 'function') {
+      next = valOrFunc(bonuses);
+    } else {
+      next = valOrFunc;
+    }
+    _setBonuses(next);
+
+    if (!currentUser || !isInitialLoadComplete) return;
+
+    try {
+      if (next.length > bonuses.length) {
+        const added = next.find(n => !bonuses.some(b => b.id === n.id));
+        if (added) {
+          const resp = await api.createBonus(added);
+          _setBonuses(prev => prev.map(b => b.id === added.id ? resp : b));
+        }
+      }
+    } catch (err) {
+      console.error("Bonuses sync error", err);
+    }
+  }, [bonuses, currentUser, isInitialLoadComplete]);
+
+  const setBillingSettings = useCallback(async (valOrFunc) => {
+    let next;
+    if (typeof valOrFunc === 'function') {
+      next = valOrFunc(billingSettings);
+    } else {
+      next = valOrFunc;
+    }
+    _setBillingSettings(next);
+
+    if (!currentUser || !isInitialLoadComplete) return;
+
+    try {
+      await api.updateBillingSettings(next);
+    } catch (err) {
+      console.error("Billing settings sync error", err);
+    }
+  }, [billingSettings, currentUser, isInitialLoadComplete]);
 
   // Real-time Broadcast Channel for cross-tab 'socket-like' synchronization
   const syncChannel = useMemo(() => {
@@ -438,14 +568,53 @@ export const AppProvider = ({ children }) => {
         const data = snapshot.val() || {};
         setUserPresence(data);
       });
+
+      // ── Firebase RTDB: Live Tracker real-time sync ────────────────────────
+      // Customer writes location to rtdb/liveTrackers/{trackerId}
+      // Admin / Mechanic reads from here in real time — no WebSocket needed
+      const liveTrackersRef = ref(rtdb, 'liveTrackers');
+      const handleLiveTrackerUpdate = (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        setActiveTrackers(prev => {
+          let updated = [...prev];
+          Object.entries(data).forEach(([trackerId, liveData]) => {
+            const idx = updated.findIndex(t => t.id === trackerId);
+            if (idx !== -1) {
+              // Merge live GPS into existing tracker
+              updated[idx] = {
+                ...updated[idx],
+                customerLocation: liveData.lat != null ? [liveData.lat, liveData.lng] : updated[idx].customerLocation,
+                mechanicLocation: liveData.mechanicLat != null ? [liveData.mechanicLat, liveData.mechanicLng] : updated[idx].mechanicLocation,
+                status: liveData.status || updated[idx].status,
+                timestamp: liveData.timestamp || updated[idx].timestamp,
+              };
+            } else if (liveData.fullTracker) {
+              // New tracker pushed by customer — add to list
+              const ft = liveData.fullTracker;
+              updated.push({
+                ...ft,
+                id: trackerId,
+                customerLocation: ft.customerLat != null ? [ft.customerLat, ft.customerLng] : null,
+                mechanicLocation: ft.mechanicLat != null ? [ft.mechanicLat, ft.mechanicLng] : null,
+              });
+            }
+          });
+          return updated;
+        });
+      };
+
+      onValue(liveTrackersRef, handleLiveTrackerUpdate);
     }
 
     const fetchAllData = async () => {
       if (!currentUser) return;
       setIsSyncing(true);
+      setIsBillingLoading(true);
       try {
         console.log(`${DIAG} Syncing core data with backend...`);
-        const [v, c, r, i, s, a, st, mr] = await Promise.all([
+        const [v, c, r, i, s, a, st, mr, tr, invs, accounts, bSettings, bns] = await Promise.all([
           api.getVehicles().catch(() => []),
           api.getCustomers().catch(() => []),
           api.getRepairs().catch(() => []),
@@ -453,7 +622,12 @@ export const AppProvider = ({ children }) => {
           api.getStaff().catch(() => []),
           api.getAppointments().catch(() => []),
           api.getSettings().catch(() => null),
-          api.getMaterialRequests().catch(() => [])
+          api.getMaterialRequests().catch(() => []),
+          api.getTrackers().catch(() => []),
+          api.getInvoices().catch(() => []),
+          api.getPaymentAccounts().catch(() => []),
+          api.getBillingSettings().catch(() => null),
+          api.getBonuses().catch(() => [])
         ]);
 
         setVehicles(v || []);
@@ -471,8 +645,22 @@ export const AppProvider = ({ children }) => {
         setStaff(s || []);
         setAppointments(a || []);
         setMaterialRequests(mr || []);
+
+        _setInvoices(invs || []);
+        _setAdminPaymentDetails(accounts || []);
+        _setBonuses(bns || []);
+        setIsBillingLoading(false);
+
+        // Load active trackers from backend database
+        if (Array.isArray(tr)) {
+          setActiveTrackers(tr.map(t => ({
+            ...t,
+            customerLocation: t.customerLat != null ? [t.customerLat, t.customerLng] : null,
+            mechanicLocation: t.mechanicLat != null ? [t.mechanicLat, t.mechanicLng] : null,
+          })));
+        }
         if (st) {
-          setBillingSettings(prev => ({
+          _setBillingSettings(prev => ({
             ...prev,
             plans: st.plans || prev.plans,
             paymentMethods: st.paymentMethods || prev.paymentMethods,
@@ -480,19 +668,165 @@ export const AppProvider = ({ children }) => {
             platformFees: st.platformFees !== undefined ? st.platformFees : prev.platformFees,
           }));
         }
+        if (bSettings) {
+          _setBillingSettings(prev => ({
+            ...prev,
+            taxRate: bSettings.taxRate !== undefined ? bSettings.taxRate : prev.taxRate,
+            currency: bSettings.currency || prev.currency
+          }));
+        }
         console.log(`${DIAG} Core data sync complete.`);
       } catch (err) {
         console.error(`${DIAG} Core data sync failed`, err);
       } finally {
         setIsSyncing(false);
+        setIsBillingLoading(false);
       }
     };
 
     fetchAllData();
+
+    // ── Silent Polling for Repairs ─────────────────────────────────────────────
+    // To solve cross-device sync issues (e.g. mechanic on phone, admin on PC), 
+    // fetch repairs every 15 seconds silently.
+    const pollInterval = setInterval(async () => {
+      try {
+        const r = await api.getRepairs().catch(() => null);
+        if (r) {
+          setRepairs(r.map(item => ({
+            ...item,
+            notes: item.description || item.notes || '',
+            dateIn: item.entryDate ? item.entryDate.split('T')[0] : item.dateIn
+          })));
+        }
+      } catch (e) {}
+    }, 15000);
+
     return () => {
       if (unsubscribeMessages) unsubscribeMessages();
+      if (currentUser) {
+        const liveTrackersRef = ref(rtdb, 'liveTrackers');
+        off(liveTrackersRef, 'value');
+      }
+      clearInterval(pollInterval);
     };
   }, [currentUser?.id, userPrefix]);
+
+  const refreshBillingData = useCallback(async () => {
+    if (!currentUser) return;
+    setIsBillingLoading(true);
+    try {
+      console.log(`${DIAG} Manually refreshing billing data...`);
+      const [invs, accounts, bSettings, bns] = await Promise.all([
+        api.getInvoices().catch(() => []),
+        api.getPaymentAccounts().catch(() => []),
+        api.getBillingSettings().catch(() => null),
+        api.getBonuses().catch(() => [])
+      ]);
+      _setInvoices(invs || []);
+      _setAdminPaymentDetails(accounts || []);
+      _setBonuses(bns || []);
+      if (bSettings) {
+        _setBillingSettings(prev => ({
+          ...prev,
+          taxRate: bSettings.taxRate !== undefined ? bSettings.taxRate : prev.taxRate,
+          currency: bSettings.currency || prev.currency
+        }));
+      }
+    } catch (err) {
+      console.error(`${DIAG} Manual billing refresh failed`, err);
+    } finally {
+      setIsBillingLoading(false);
+    }
+  }, [currentUser?.id, userPrefix]);
+
+
+  // ── WebSocket real-time live tracker sync ──────────────────────────────────
+  const wsRef = useRef(null);
+  const wsReconnectTimer = useRef(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const token = localStorage.getItem('garage_token');
+    if (!token) return;
+
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const wsBase = apiBase.replace(/^http/, 'ws').replace('/api', '');
+    const wsUrl = `${wsBase}?token=${encodeURIComponent(token)}`;
+
+    let ws;
+    let closed = false;
+
+    const connect = () => {
+      if (closed) return;
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log('[WS Client] Connected to live tracker server');
+        // Clear any pending reconnect
+        if (wsReconnectTimer.current) {
+          clearTimeout(wsReconnectTimer.current);
+          wsReconnectTimer.current = null;
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+
+          const normalizeTracker = (tr) => ({
+            ...tr,
+            customerLocation: tr.customerLat != null ? [tr.customerLat, tr.customerLng] : null,
+            mechanicLocation: tr.mechanicLat != null ? [tr.mechanicLat, tr.mechanicLng] : null,
+          });
+
+          if (msg.type === 'tracker_update' && msg.tracker) {
+            const normalized = normalizeTracker(msg.tracker);
+            setActiveTrackers(prev => {
+              const exists = prev.find(t => t.id === normalized.id);
+              if (exists) return prev.map(t => t.id === normalized.id ? { ...t, ...normalized } : t);
+              return [...prev, normalized];
+            });
+          }
+
+          // New tracker created by customer — add to admin/manager list immediately
+          if (msg.type === 'new_tracker' && msg.tracker) {
+            const normalized = normalizeTracker(msg.tracker);
+            setActiveTrackers(prev => {
+              const exists = prev.find(t => t.id === normalized.id);
+              if (exists) return prev;
+              return [...prev, normalized];
+            });
+            // Show notification to admin/manager
+            addNotification(`🚨 New roadside assistance request!`, 'danger');
+          }
+        } catch (e) {
+          console.warn('[WS Client] Failed to parse message', e);
+        }
+      };
+
+      ws.onclose = () => {
+        if (!closed) {
+          console.log('[WS Client] Disconnected. Reconnecting in 5s...');
+          wsReconnectTimer.current = setTimeout(connect, 5000);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.warn('[WS Client] Error:', err);
+      };
+    };
+
+    connect();
+
+    return () => {
+      closed = true;
+      if (wsReconnectTimer.current) clearTimeout(wsReconnectTimer.current);
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, [currentUser?.id]);
 
   // Unified persistence effect - prevents fragmented saves and race conditions
   useEffect(() => {
@@ -1175,7 +1509,12 @@ export const AppProvider = ({ children }) => {
               year: newData.year,
               vin: newData.vin,
               color: newData.color,
-              type: newData.type
+              type: newData.type,
+              regionName: newData.regionName,
+              regionAbbreviation: newData.regionAbbreviation,
+              regionCode: newData.regionCode,
+              amharicLetters: newData.amharicLetters,
+              vehicleNumber: newData.vehicleNumber
             });
           } else if (collectionName === 'repairs') {
             const currentItem = repairs.find(r => String(r.id) === String(id)) || {};
@@ -1189,7 +1528,8 @@ export const AppProvider = ({ children }) => {
               parts: newData.parts !== undefined ? newData.parts : currentItem.parts,
               assignmentStatus: newData.assignmentStatus !== undefined ? newData.assignmentStatus : currentItem.assignmentStatus,
               declineReason: newData.declineReason !== undefined ? newData.declineReason : currentItem.declineReason,
-              declineVoice: newData.declineVoice !== undefined ? newData.declineVoice : currentItem.declineVoice
+              declineVoice: newData.declineVoice !== undefined ? newData.declineVoice : currentItem.declineVoice,
+              completionNotes: newData.completionNotes !== undefined ? newData.completionNotes : currentItem.completionNotes
             });
           } else if (collectionName === 'inventory') {
             const currentItem = inventory.find(i => String(i.id) === String(id)) || {};
@@ -1298,6 +1638,15 @@ export const AppProvider = ({ children }) => {
         ownerId: currentUser?.ownerId
       });
 
+      // Show success toast for key entity updates
+      if (collectionName === 'customers') {
+        showToast('Customer updated successfully!', 'success');
+      } else if (collectionName === 'vehicles') {
+        showToast('Vehicle updated successfully!', 'success');
+      } else if (collectionName === 'repairs') {
+        showToast('Repair order updated!', 'success');
+      }
+
       // Log activity for significant updates
       if (['staff', 'repairs', 'inventory', 'billing', 'customers', 'vehicles'].includes(collectionName)) {
         logActivity(`Updated ${collectionName}`, `ID: ${id}`);
@@ -1331,7 +1680,7 @@ export const AppProvider = ({ children }) => {
 
     // Security Check: Role-Based Access Control
     const permissions = currentUser?.permissions || [];
-    const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
+    const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage') || ['admin', 'manager', 'receptionist', 'coder'].includes(currentUser?.role);
     
     if (collectionName === 'repairs' && !isManagerOrAdmin) {
       console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot create repairs.`);
@@ -1358,13 +1707,17 @@ export const AppProvider = ({ children }) => {
           } else if (collectionName === 'vehicles') {
             response = await api.createVehicle({
               customerId: item.customerId,
-              plateNumber: item.plate,
               make: item.make || '',
               model: item.model,
               year: String(item.year),
               vin: item.vin || '',
               color: item.color || '',
-              type: item.type || 'car'
+              type: item.type || 'car',
+              regionName: item.regionName,
+              regionAbbreviation: item.regionAbbreviation,
+              regionCode: item.regionCode,
+              amharicLetters: item.amharicLetters,
+              vehicleNumber: item.vehicleNumber
             });
           } else if (collectionName === 'repairs') {
             response = await api.createRepair({
@@ -1472,6 +1825,15 @@ export const AppProvider = ({ children }) => {
           notifType: 'danger',
           time: Date.now()
         }));
+      }
+
+      // Show success toast for key entities
+      if (collectionName === 'customers') {
+        showToast('Customer saved successfully!', 'success');
+      } else if (collectionName === 'vehicles') {
+        showToast('Vehicle registered successfully!', 'success');
+      } else if (collectionName === 'repairs') {
+        showToast('Repair order created!', 'success');
       }
 
       // Log activity
@@ -2641,6 +3003,9 @@ export const AppProvider = ({ children }) => {
     addNotification, sendMessage, deleteMessage, editMessage, clearMessages, markMessagesRead, openChatWith, clearNotifications, markNotifRead, markNotificationsReadForContact, dataLoaded, isInitialLoadComplete,
     invoices: backendFilteredInvoices, adminPaymentDetails, billingSettings, setInvoices, setAdminPaymentDetails, setBillingSettings, setActivityLogs,
     bonuses, mechanicPaymentDetails, setBonuses, setMechanicPaymentDetails,
+    isBillingLoading,
+    isSyncing,
+    refreshBillingData,
     materialRequests, setMaterialRequests,
     attendance, setAttendance,
     salaries, setSalaries,
@@ -2658,13 +3023,14 @@ export const AppProvider = ({ children }) => {
     blockedUsers, setBlockedUsers, blockUser, unblockUser,
     privacySettings, setPrivacySettings,
     deferredPrompt, setDeferredPrompt,
-    toasts, showToast
+    toasts, showToast,
+    wsRef
   }), [
     customers, vehicles, repairs, inventory, staff, appointments, notifications, messages, activeTrackers, language, activeChatContact,
     callState, activeCall, callSubStatus, activityLogs, groupCalls,
     updateItem, addItem, deleteItem, clearAllData, t, formatDate, formatTime, logActivity, generateInvoice, ensureEntityArray,
     addNotification, sendMessage, deleteMessage, editMessage, markMessagesRead, openChatWith, clearNotifications, markNotifRead, markNotificationsReadForContact, dataLoaded,
-    backendFilteredInvoices, adminPaymentDetails, billingSettings, materialRequests, bonuses, mechanicPaymentDetails,
+    backendFilteredInvoices, adminPaymentDetails, billingSettings, materialRequests, bonuses, mechanicPaymentDetails, isBillingLoading, isSyncing, refreshBillingData,
     darkMode, toggleDarkMode,
     isSidebarOpen,
     showNotifs,

@@ -6,6 +6,7 @@ import {
   Users, Car, Wrench, DollarSign, TrendingUp, AlertTriangle,
   CheckCircle2, Clock, Trash2, CalendarClock, Package, Receipt, FileText, MessageSquare, Navigation, History, ClipboardList, Plus, Briefcase
 } from 'lucide-react';
+import { SkeletonDashboard } from './SkeletonLoader';
 import './Dashboard.css';
 
 /* ─────────────────────────────────────────────
@@ -25,7 +26,7 @@ const AdminDashboard = ({ navigate, context, user }) => {
   const presentToday = todayAttendance.filter(r => r.status === 'present').length;
 
   const statCards = [
-    { title: t('totalRevenue'), value: `ETB ${(totalRevenue || 0).toLocaleString()}`, icon: <DollarSign size={24} />, color: 'var(--success)', trend: t('thisMonthGrowth'), link: '/billing' },
+    { title: t('totalRevenue'), value: `ETB ${(totalRevenue || 0).toLocaleString()}`, icon: <DollarSign size={24} />, color: 'var(--success)', trend: t('thisMonthGrowth'), link: '/revenue' },
     { title: t('activeRepairs'), value: activeRepairs || 0, icon: <Wrench size={24} />, color: 'var(--primary)', trend: t('dueTodayCount'), link: '/repairs' },
     { title: t('totalCustomers'), value: (customers || []).length, icon: <Users size={24} />, color: 'var(--secondary)', trend: t('weeklyGrowth'), link: '/customers' },
     { title: t("Live Trackers"), value: (context.activeTrackers || []).length, icon: <Navigation size={24} />, color: 'var(--danger)', trend: t("Active"), link: '/tracker' },
@@ -52,19 +53,6 @@ const AdminDashboard = ({ navigate, context, user }) => {
               userSelect: 'all', cursor: 'text',
             }} title="Garage ID">
               🆔 {user.garage.displayId}
-            </div>
-          )}
-          {user?.ownerId && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 14px', borderRadius: 20,
-              background: 'var(--primary-subtle, rgba(99,102,241,0.12))',
-              border: '1.5px solid var(--primary)',
-              color: 'var(--primary)', fontWeight: 700,
-              fontSize: '0.85rem', letterSpacing: '0.04em',
-              userSelect: 'all', cursor: 'text',
-            }}>
-              🏢 {user.ownerId}
             </div>
           )}
           <button className="btn-outline" onClick={() => navigate('/attendance')}>
@@ -867,6 +855,20 @@ const Dashboard = () => {
   const { currentUser } = useAuth();
 
   if (!currentUser) return null;
+
+  // While the AppContext is syncing data from the backend, show a
+  // full‑page skeleton — never render real cards/tables/buttons mid‑load.
+  if (context.isSyncing) {
+    const cardCountByRole = {
+      admin: 6, mechanic: 6, customer: 3, receptionist: 3,
+      cashier: 2, storekeeper: 3, inventoryManager: 3, manager: 4, coder: 6
+    };
+    return (
+      <SkeletonDashboard
+        cardCount={cardCountByRole[currentUser.role] ?? 4}
+      />
+    );
+  }
 
   const dashboards = {
     admin: <AdminDashboard navigate={navigate} context={context} user={currentUser} />,
