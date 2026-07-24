@@ -35,6 +35,7 @@ model User {
   materialRequests MaterialRequest[] @relation("MechanicRequests")
   bonuses          Bonus[]
   staffRecord      Staff?
+  employee         Employee?
 }
 
 model Garage {
@@ -60,9 +61,19 @@ model Garage {
   inventory       Inventory[]
   appointments    Appointment[]
   paymentRequests PaymentRequest[]
+  paymentAccounts    PaymentAccount[]
+  billingSettings    GarageBillingSettings?
   invoices        Invoice[]
   staff           Staff[]
+  bonuses         Bonus[]
   materialRequests MaterialRequest[]
+  employees        Employee[]
+  salaryStructures SalaryStructure[]
+  attendances      Attendance[]
+  leaveRequests    LeaveRequest[]
+  salaryPeriods    SalaryPeriod[]
+  salaryCalculations SalaryCalculation[]
+  salaryPayments   SalaryPayment[]
 }
 
 model Customer {
@@ -94,33 +105,44 @@ model Vehicle {
   color        String?
   type         String?       @default("car")
   
+  regionName         String?
+  regionAbbreviation String?
+  regionCode         Int?
+  amharicLetters     String?
+  vehicleNumber      String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
   // Relations
   repairs      Repair[]
   appointments Appointment[]
 }
 
 model Repair {
-  id          String        @id @default(cuid())
-  garageId    String
-  garage      Garage        @relation(fields: [garageId], references: [id])
-  vehicleId   String
-  vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
-  mechanicId  String?
-  mechanic    User?         @relation("MechanicRepairs", fields: [mechanicId], references: [id])
-  entryDate   DateTime      @default(now())
-  exitDate    DateTime?
-  status      String        @default("pending") // pending, completed
-  description String?
-  laborCost   Float         @default(0)
-  partsCost   Float         @default(0)
-  totalAmount Float         @default(0)
+  id               String                @id @default(cuid())
+  garageId         String
+  garage           Garage                @relation(fields: [garageId], references: [id])
+  vehicleId        String
+  vehicle          Vehicle               @relation(fields: [vehicleId], references: [id])
+  mechanicId       String?
+  mechanic         User?                 @relation("MechanicRepairs", fields: [mechanicId], references: [id])
+  entryDate        DateTime              @default(now())
+  exitDate         DateTime?
+  status           String                @default("pending") // pending, completed, etc.
+  description      String?
+  laborCost        Float                 @default(0)
+  partsCost        Float                 @default(0)
+  totalAmount      Float                 @default(0)
   assignmentStatus String?
   declineReason    String?
   declineVoice     String?
+  completionNotes  String?
   
   // Relations
   parts            RepairPart[]
   materialRequests MaterialRequest[]
+  statusHistory    RepairStatusHistory[]
+  tracker          Tracker?
 }
 
 model RepairPart {
@@ -130,6 +152,17 @@ model RepairPart {
   partName String
   quantity Int
   price    Float
+}
+
+model RepairStatusHistory {
+  id          String   @id @default(cuid())
+  repairId    String
+  repair      Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  status      String
+  notes       String?
+  changedById String?
+  changedBy   String?
+  createdAt   DateTime @default(now())
 }
 
 model Inventory {
@@ -179,14 +212,47 @@ model PaymentRequest {
 }
 
 model Invoice {
-  id          String   @id @default(cuid())
-  garageId    String
-  garage      Garage   @relation(fields: [garageId], references: [id])
-  orderId     String   @unique
-  customerName String
-  totalAmount Float
-  status      String   @default("unpaid")
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  garageId        String
+  garage          Garage   @relation(fields: [garageId], references: [id])
+  orderId         String   @unique
+  customerId      String?
+  customerName    String
+  customerPhone   String?
+  customerAddress String?
+  vehicleId       String?
+  vehicleInfo     String?
+  vehiclePlate    String?
+  date            DateTime @default(now())
+  dueDate         DateTime
+  laborCost       Float    @default(0)
+  partsCost       Float    @default(0)
+  discount        Float    @default(0)
+  tax             Float    @default(0)
+  subtotal        Float    @default(0)
+  total           Float    @default(0)
+  status          String   @default("unpaid")
+  notes           String?
+  repairId        String?
+  invoice_type    String   @default("repair")
+  owner_id        String?
+  managerId       String?
+  managerName     String?
+  paymentMethod   String?
+  hasProof        Boolean  @default(false)
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  proofDetails    Json?
+  invoiceNumber   String?  @unique
+  mechanicId      String?
+  serviceList     Json?
+  partsList       Json?
+  paymentStatus   String?
+  invoiceStatus   String?
+  createdBy       String?
+  totalAmount     Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Staff {
@@ -203,12 +269,22 @@ model Staff {
 }
 
 model Bonus {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  amount Float
-  reason String
-  date   DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float
+  reason      String?
+  date        DateTime @default(now())
+  
+  garageId    String
+  garage      Garage   @relation(fields: [garageId], references: [id])
+  jobId       String?
+  invoiceId   String?
+  customerId  String?
+  status      String   @default("Submitted")
+  screenshot  String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model MaterialRequest {
@@ -250,4 +326,242 @@ model ActivityLog {
   action    String
   details   String?
   timestamp DateTime @default(now())
+}
+
+model Tracker {
+  id              String   @id
+  repairId        String   @unique
+  repair          Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  customerId      String
+  mechanicId      String?
+  customerLat     Float
+  customerLng     Float
+  mechanicLat     Float?
+  mechanicLng     Float?
+  speed           Float    @default(0)
+  heading         Float    @default(0)
+  status          String   @default("pending")
+  garageId        String
+  timestamp       DateTime @default(now())
+}
+
+model Employee {
+  id               String           @id @default(cuid())
+  garageId         String
+  garage           Garage           @relation(fields: [garageId], references: [id])
+  employeeNumber   String           @unique
+  fullName         String
+  phone            String
+  email            String?
+  roleId           String?
+  department       String?
+  hireDate         DateTime         @default(now())
+  employmentType   String?
+  status           String           @default("active")
+  bankName         String?
+  bankAccount      String?
+  mobileBank       String?
+  mobileAccount    String?
+  userId           String?          @unique
+  user             User?            @relation(fields: [userId], references: [id])
+  isDeleted        Boolean          @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  salaryStructures SalaryStructure[]
+  attendances      Attendance[]
+  leaveRequests    LeaveRequest[]
+  salaryCalculations SalaryCalculation[]
+  salaryPayments   SalaryPayment[]
+}
+
+model SalaryStructure {
+  id                       String    @id @default(cuid())
+  garageId                 String
+  garage                   Garage    @relation(fields: [garageId], references: [id])
+  employeeId               String
+  employee                 Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salaryType               String    @default("monthly") // Monthly, Weekly, Daily
+  baseSalary               Float     @default(0)
+  absencePenaltyPerDay     Float     @default(0)
+  latePenaltyPerOccurrence Float     @default(0)
+  effectiveFrom            DateTime  @default(now())
+  effectiveTo              DateTime?
+  active                   Boolean   @default(true)
+  isDeleted                Boolean   @default(false)
+  deletedAt                DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model Attendance {
+  id                String          @id @default(cuid())
+  garageId          String
+  garage            Garage          @relation(fields: [garageId], references: [id])
+  employeeId        String
+  employee          Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  attendanceDate    DateTime
+  checkIn           DateTime?
+  checkOut          DateTime?
+  workingHours      Float           @default(0)
+  overtimeHours     Float           @default(0)
+  lateMinutes       Int             @default(0)
+  earlyLeaveMinutes Int             @default(0)
+  status            String // Present, Absent, Half Day, Leave, Holiday, Weekend
+  approvedBy        String?
+  remarks           String?
+  isDeleted         Boolean         @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  attendanceLogs    AttendanceLog[]
+
+  @@unique([employeeId, attendanceDate])
+}
+
+model LeaveRequest {
+  id         String    @id @default(cuid())
+  garageId   String
+  garage     Garage    @relation(fields: [garageId], references: [id])
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType  String // Annual, Sick, Emergency, Unpaid
+  startDate  DateTime
+  endDate    DateTime
+  totalDays  Int
+  reason     String?
+  status     String    @default("pending") // pending, approved, rejected
+  approvedBy String?
+  approvedAt DateTime?
+  isDeleted  Boolean   @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model SalaryPeriod {
+  id           String              @id @default(cuid())
+  garageId     String
+  garage       Garage              @relation(fields: [garageId], references: [id])
+  periodName   String
+  salaryType   String // Monthly, Weekly, Daily
+  startDate    DateTime
+  endDate      DateTime
+  status       String              @default("Open") // Open, Locked, Paid
+  isDeleted    Boolean             @default(false)
+  deletedAt    DateTime?
+  calculations SalaryCalculation[]
+}
+
+model SalaryCalculation {
+  id               String          @id @default(cuid())
+  garageId         String
+  garage           Garage          @relation(fields: [garageId], references: [id])
+  employeeId       String
+  employee         Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salaryPeriodId   String
+  salaryPeriod     SalaryPeriod    @relation(fields: [salaryPeriodId], references: [id], onDelete: Cascade)
+  baseSalary       Float           @default(0)
+  workingDays      Int             @default(0)
+  presentDays      Float           @default(0)
+  absentDays       Float           @default(0)
+  halfDays         Float           @default(0)
+  leaveDays        Float           @default(0)
+  overtimeHours    Float           @default(0)
+  lateHours        Float           @default(0)
+  overtimeAmount   Float           @default(0)
+  bonus            Float           @default(0)
+  commission       Float           @default(0)
+  allowances       Float           @default(0)
+  tax              Float           @default(0)
+  pension          Float           @default(0)
+  absenceDeduction Float           @default(0)
+  lateDeduction    Float           @default(0)
+  otherDeduction   Float           @default(0)
+  grossSalary      Float           @default(0)
+  totalDeduction   Float           @default(0)
+  netSalary        Float           @default(0)
+  calculatedAt     DateTime        @default(now())
+  status           String          @default("Pending") // Pending, Approved, Paid
+  isDeleted        Boolean         @default(false)
+  deletedAt        DateTime?
+  payments         SalaryPayment[]
+  salaryLogs       SalaryLog[]
+
+  @@unique([employeeId, salaryPeriodId])
+}
+
+model SalaryPayment {
+  id                  String            @id @default(cuid())
+  garageId            String
+  garage              Garage            @relation(fields: [garageId], references: [id])
+  employeeId          String
+  employee            Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salaryCalculationId String
+  salaryCalculation   SalaryCalculation @relation(fields: [salaryCalculationId], references: [id], onDelete: Cascade)
+  paymentMethod       String // Cash, Bank Transfer, Mobile Banking
+  paymentReference    String?
+  amount              Float
+  paymentDate         DateTime          @default(now())
+  processedAt         DateTime          @default(now())
+  paidBy              String?           // userId of admin who processed
+  notes               String?
+  receiptNumber       String?
+  status              String            @default("Processing") // Processing, Paid, Rejected
+  approvedBy          String?           // userId of employee who approved
+  approvedAt          DateTime?         // when employee confirmed receipt
+  issueReason         String?           // reason if employee rejected
+  isDeleted           Boolean           @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime          @default(now())
+}
+
+model AttendanceLog {
+  id           String     @id @default(cuid())
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  oldValue     Json?
+  newValue     Json?
+  updatedBy    String?
+  reason       String?
+  createdAt    DateTime   @default(now())
+}
+
+model SalaryLog {
+  id                  String            @id @default(cuid())
+  salaryCalculationId String
+  salaryCalculation   SalaryCalculation @relation(fields: [salaryCalculationId], references: [id], onDelete: Cascade)
+  oldValue            Json?
+  newValue            Json?
+  updatedBy           String?
+  reason              String?
+  createdAt           DateTime          @default(now())
+}
+
+model PaymentAccount {
+  id            String   @id @default(cuid())
+  garageId      String
+  garage        Garage   @relation(fields: [garageId], references: [id])
+  type          String   // bank, phone
+  provider      String
+  accountName   String
+  accountNumber String
+  branch        String?
+  qrCode        String?
+  status        String   @default("active") // active, inactive
+  isDefault     Boolean  @default(false)
+  managerId     String?
+  managerRole   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model GarageBillingSettings {
+  id        String   @id @default(cuid())
+  garageId  String   @unique
+  garage    Garage   @relation(fields: [garageId], references: [id])
+  taxRate   Float    @default(15.0)
+  currency  String   @default("ETB")
+  updatedAt DateTime @updatedAt
 }
