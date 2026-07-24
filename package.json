@@ -6,11 +6,15 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "workspaces": [
+    "backend"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "npm install --prefix backend && npx prisma generate --schema=backend/prisma/schema.prisma"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
