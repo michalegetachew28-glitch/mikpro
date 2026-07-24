@@ -1,8 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate } = require('../middleware/auth');
+const { handleRouteError } = require('../middleware/errorHandler');
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // GET all material requests (with role scoping)
 router.get('/', authenticate, async (req, res) => {
@@ -51,7 +51,7 @@ router.get('/', authenticate, async (req, res) => {
 
     res.json(mapped);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /material-requests', res);
   }
 });
 
@@ -108,7 +108,7 @@ router.post('/', authenticate, async (req, res) => {
 
     res.status(201).json(mapped);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'POST /material-requests', res);
   }
 });
 
@@ -219,7 +219,10 @@ router.put('/:id', authenticate, async (req, res) => {
 
     res.json(mapped);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    if (err.message.includes('Insufficient stock') || err.message.includes('Part not found')) {
+      return res.status(400).json({ error: err.message });
+    }
+    handleRouteError(err, 'PUT /material-requests/:id', res);
   }
 });
 
@@ -240,7 +243,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'DELETE /material-requests/:id', res);
   }
 });
 

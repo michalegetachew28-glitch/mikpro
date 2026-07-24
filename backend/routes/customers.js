@@ -1,151 +1,186 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate } = require('../middleware/auth');
-const router = express.Router();
-const prisma = new PrismaClient();
+const { handleRouteError } = require('../middleware/errorHandler');
 
-// GET /api/customers - Get all customers for the garage
+const router = express.Router();
+const prisma = require('../db');
+
+// ─── Helper ──────────────────────────────────────────────────────────────────
+
+/**
+ * Always resolve garageId from the DB — never trust a stale JWT.
+ */
+async function resolveGarageId(userId) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { garageId: true, ownerId: true, garageName: true }
+  });
+  return user || null;
+}
+
+// ─── Routes ──────────────────────────────────────────────────────────────────
+
+// GET /api/customers
 router.get('/', authenticate, async (req, res) => {
   try {
+    const userInfo = await resolveGarageId(req.user.id);
+    if (!userInfo?.garageId) {
+      return res.status(400).json({ error: 'No garage linked to your account. Please log out and log back in.' });
+    }
+
     const customers = await prisma.customer.findMany({
-      where: { garageId: req.user.garageId },
+      where: { garageId: userInfo.garageId },
       include: { vehicles: true }
     });
     res.json(customers);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /customers', res);
   }
 });
 
-// POST /api/customers - Create both User (credentials) and Customer records
+// POST /api/customers
 router.post('/', authenticate, async (req, res) => {
+  console.log(`[POST /customers] User: ${req.user.id} | role: ${req.user.role}`);
   try {
     const { name, phone, email, address, password } = req.body;
 
-    if (!name || !phone) {
-      return res.status(400).json({ error: 'Name and phone are required' });
+    // 1. Validate required fields
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Customer name is required.' });
+    if (!phone || !phone.trim()) return res.status(400).json({ error: 'Customer phone is required.' });
+
+    // 2. Resolve garageId from DB
+    const userInfo = await resolveGarageId(req.user.id);
+    console.log(`[POST /customers] Resolved garageId: ${userInfo?.garageId}`);
+
+    if (!userInfo?.garageId) {
+      return res.status(400).json({
+        error: 'Your account has no linked garage. Please log out and log back in to refresh your session.'
+      });
     }
 
-    // Standardize phone format if needed, but phone should be passed normalized from UI
-    const finalPhone = phone.trim();
-    const finalEmail = (email && email.trim() !== '') ? email.trim() : `${finalPhone}@mechpro.tmp`;
+    // 3. Verify garage exists
+    const garage = await prisma.garage.findUnique({ where: { id: userInfo.garageId } });
+    if (!garage) {
+      return res.status(400).json({ error: `Garage (${userInfo.garageId}) not found. Contact support.` });
+    }
 
-    // Check if user already exists
+    const finalPhone = phone.trim();
+    const finalEmail = (email && email.trim()) ? email.trim() : `${finalPhone}@mechpro.tmp`;
+
+    // 4. Check for duplicate phone/email ONLY — not name
     const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { phone: finalPhone },
-          { email: finalEmail }
-        ]
-      }
+      where: { OR: [{ phone: finalPhone }, { email: finalEmail }] }
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'A user with this email or phone number already exists' });
+      // Check if it's just a temp email collision (same phone, different garage)
+      if (existingUser.phone === finalPhone) {
+        return res.status(400).json({ error: `Phone number ${finalPhone} is already registered.` });
+      }
+      if (email && email.trim() && existingUser.email === finalEmail) {
+        return res.status(400).json({ error: `Email ${finalEmail} is already registered.` });
+      }
     }
 
-    // Hash password (use default or admin provided)
-    const passToHash = password || 'cust123'; // Fallback just in case
-    const hashedPassword = await bcrypt.hash(passToHash, 10);
+    // 5. Hash password
+    const hashedPassword = await bcrypt.hash(password || 'cust123', 10);
 
-    // Create both records in a transaction to guarantee atomicity and ID alignment
+    // 6. Create User + Customer in a single atomic transaction
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create User
+      // Create User record
       const user = await tx.user.create({
         data: {
-          ownerId: req.user.ownerId || req.user.id,
-          name: name.trim(),
-          email: finalEmail,
-          phone: finalPhone,
-          password: hashedPassword,
-          role: 'customer',
-          garageName: req.user.garageName || null,
-          address: address ? address.trim() : null,
-          status: 'active',
+          ownerId:     userInfo.ownerId || req.user.id,
+          name:        name.trim(),
+          email:       finalEmail,
+          phone:       finalPhone,
+          password:    hashedPassword,
+          role:        'customer',
+          garageName:  garage.name,
+          address:     address ? address.trim() : null,
+          status:      'active',
           permissions: ['my_data_view'],
-          garageId: req.user.garageId
+          garageId:    userInfo.garageId
         }
       });
 
-      // 2. Create Customer with the EXACT same ID as the User
+      // Create Customer record with same ID as User
       const customer = await tx.customer.create({
         data: {
-          id: user.id, // Align IDs!
-          garageId: req.user.garageId,
-          name: name.trim(),
-          phone: finalPhone,
-          email: (email && email.trim() !== '') ? email.trim() : null,
-          address: address ? address.trim() : null
+          id:       user.id,
+          garageId: userInfo.garageId,
+          name:     name.trim(),
+          phone:    finalPhone,
+          email:    (email && email.trim()) ? email.trim() : null,
+          address:  address ? address.trim() : null
         },
-        include: {
-          vehicles: true
-        }
+        include: { vehicles: true }
       });
 
       return customer;
     });
 
+    console.log(`[POST /customers] Created customer: ${result.id} in garage: ${userInfo.garageId}`);
     res.status(201).json(result);
+
   } catch (err) {
-    console.error('[Customer Create Error]', err);
-    res.status(500).json({ error: err.message });
+    if (err.code === 'P2002') {
+      const field = err.meta?.target?.join(', ') || 'phone or email';
+      return res.status(400).json({ error: `A customer with this ${field} already exists.` });
+    }
+    if (err.code === 'P2003') {
+      return res.status(400).json({
+        error: 'Database relationship error. Ensure the garage exists and try again.'
+      });
+    }
+    handleRouteError(err, 'POST /customers', res);
   }
 });
 
-// PUT /api/customers/:id - Update Customer and User credentials
+// PUT /api/customers/:id
 router.put('/:id', authenticate, async (req, res) => {
+  console.log(`[PUT /customers/${req.params.id}] User: ${req.user.id}`);
   try {
     const { id } = req.params;
     const { name, phone, email, address, password } = req.body;
 
-    const existingCustomer = await prisma.customer.findUnique({ where: { id } });
-    if (!existingCustomer) {
-      return res.status(404).json({ error: 'Customer not found' });
-    }
+    const userInfo = await resolveGarageId(req.user.id);
+    if (!userInfo?.garageId) return res.status(400).json({ error: 'No garage linked. Please log back in.' });
 
-    // Ensure customer belongs to context garage
-    if (existingCustomer.garageId !== req.user.garageId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
+    const existingCustomer = await prisma.customer.findUnique({ where: { id } });
+    if (!existingCustomer) return res.status(404).json({ error: 'Customer not found.' });
+    if (existingCustomer.garageId !== userInfo.garageId) return res.status(403).json({ error: 'Unauthorized.' });
 
     const finalPhone = phone ? phone.trim() : undefined;
-    const finalEmail = (email && email.trim() !== '') ? email.trim() : (finalPhone ? `${finalPhone}@mechpro.tmp` : undefined);
+    const finalEmail = (email && email.trim()) ? email.trim() : (finalPhone ? `${finalPhone}@mechpro.tmp` : undefined);
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Update Customer
       const updatedCustomer = await tx.customer.update({
         where: { id },
         data: {
-          name: name ? name.trim() : undefined,
-          phone: finalPhone,
-          email: (email && email.trim() !== '') ? email.trim() : (email === '' ? null : undefined),
+          name:    name ? name.trim() : undefined,
+          phone:   finalPhone,
+          email:   (email && email.trim()) ? email.trim() : (email === '' ? null : undefined),
           address: address ? address.trim() : (address === '' ? null : undefined)
         },
-        include: {
-          vehicles: true
-        }
+        include: { vehicles: true }
       });
 
-      // 2. Prepare user updates
       const userUpdates = {
-        name: name ? name.trim() : undefined,
-        phone: finalPhone,
-        email: finalEmail,
+        name:    name ? name.trim() : undefined,
+        phone:   finalPhone,
+        email:   finalEmail,
         address: address ? address.trim() : (address === '' ? null : undefined)
       };
 
-      if (password && password.trim() !== '') {
+      if (password && password.trim()) {
         userUpdates.password = await bcrypt.hash(password, 10);
       }
 
-      // 3. Update User (if exists)
       const userExists = await tx.user.findUnique({ where: { id } });
       if (userExists) {
-        await tx.user.update({
-          where: { id },
-          data: userUpdates
-        });
+        await tx.user.update({ where: { id }, data: userUpdates });
       }
 
       return updatedCustomer;
@@ -153,49 +188,39 @@ router.put('/:id', authenticate, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('[Customer Update Error]', err);
-    res.status(500).json({ error: err.message });
+    if (err.code === 'P2002') {
+      const field = err.meta?.target?.join(', ') || 'phone or email';
+      return res.status(400).json({ error: `A customer with this ${field} already exists.` });
+    }
+    handleRouteError(err, 'PUT /customers/:id', res);
   }
 });
 
-// DELETE /api/customers/:id - Delete Customer and User files
+// DELETE /api/customers/:id
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existingCustomer = await prisma.customer.findUnique({ where: { id } });
-    if (!existingCustomer) {
-      return res.status(404).json({ error: 'Customer not found' });
-    }
+    const userInfo = await resolveGarageId(req.user.id);
+    if (!userInfo?.garageId) return res.status(400).json({ error: 'No garage linked. Please log back in.' });
 
-    // Ensure customer belongs to context garage
-    if (existingCustomer.garageId !== req.user.garageId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
+    const existingCustomer = await prisma.customer.findUnique({ where: { id } });
+    if (!existingCustomer) return res.status(404).json({ error: 'Customer not found.' });
+    if (existingCustomer.garageId !== userInfo.garageId) return res.status(403).json({ error: 'Unauthorized.' });
 
     await prisma.$transaction(async (tx) => {
-      // Clean up appointments referencing customer
       await tx.appointment.deleteMany({ where: { customerId: id } });
-
-      // Clean up vehicles referencing customer
       await tx.vehicle.deleteMany({ where: { customerId: id } });
-
-      // Delete Customer
       await tx.customer.delete({ where: { id } });
 
-      // Delete corresponding User
       const userExists = await tx.user.findUnique({ where: { id } });
-      if (userExists) {
-        await tx.user.delete({ where: { id } });
-      }
+      if (userExists) await tx.user.delete({ where: { id } });
     });
 
     res.json({ success: true });
   } catch (err) {
-    console.error('[Customer Delete Error]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'DELETE /customers/:id', res);
   }
 });
 
 module.exports = router;
-

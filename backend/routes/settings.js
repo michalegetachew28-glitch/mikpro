@@ -1,8 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { handleRouteError } = require('../middleware/errorHandler');
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 const DEFAULT_SETTINGS = {
   plans: [
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
       });
     }
     res.json(settings);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { handleRouteError(err, 'GET /settings', res); }
 });
 
 // PATCH /api/settings - Super Admin only
@@ -47,7 +47,7 @@ router.patch('/', authenticate, requireRole('superadmin', 'coder'), async (req, 
       create: { id: 'singleton', ...DEFAULT_SETTINGS, ...data }
     });
     res.json(settings);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { handleRouteError(err, 'PATCH /settings', res); }
 });
 
 // GET /api/settings/garage - Get garage profile for authenticated admin
@@ -64,7 +64,7 @@ router.get('/garage', authenticate, async (req, res) => {
     if (!garage) return res.status(404).json({ error: 'Garage not found' });
     res.json(garage);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /settings/garage', res);
   }
 });
 
@@ -84,7 +84,6 @@ router.patch('/garage', authenticate, requireRole('admin', 'coder'), async (req,
         ...(services !== undefined && { services })
       }
     });
-    // Also keep User.garageName in sync if name changed
     if (name) {
       await prisma.user.updateMany({
         where: { garageId: req.user.garageId },
@@ -93,7 +92,67 @@ router.patch('/garage', authenticate, requireRole('admin', 'coder'), async (req,
     }
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /settings/garage', res);
+  }
+});
+
+// GET /api/settings/billing - Retrieve per-garage taxRate & currency settings
+router.get('/billing', authenticate, async (req, res) => {
+  try {
+    const garageId = req.user.garageId;
+    if (!garageId) return res.status(400).json({ error: 'No garage associated with account' });
+
+    let settings = await prisma.garageBillingSettings.findUnique({
+      where: { garageId }
+    });
+
+    if (!settings) {
+      settings = await prisma.garageBillingSettings.create({
+        data: {
+          garageId,
+          taxRate: 15.0,
+          currency: 'ETB'
+        }
+      });
+    }
+
+    res.json({
+      taxRate: settings.taxRate,
+      currency: settings.currency
+    });
+  } catch (err) {
+    handleRouteError(err, 'GET /settings/billing', res);
+  }
+});
+
+// PATCH /api/settings/billing - Update per-garage taxRate & currency settings
+router.patch('/billing', authenticate, requireRole('admin', 'coder'), async (req, res) => {
+  try {
+    const garageId = req.user.garageId;
+    if (!garageId) return res.status(400).json({ error: 'No garage associated with account' });
+
+    const { taxRate, currency } = req.body;
+    const finalCurrency = currency || 'ETB';
+
+    const settings = await prisma.garageBillingSettings.upsert({
+      where: { garageId },
+      update: {
+        ...(taxRate !== undefined && { taxRate: parseFloat(taxRate) }),
+        currency: finalCurrency
+      },
+      create: {
+        garageId,
+        taxRate: taxRate !== undefined ? parseFloat(taxRate) : 15.0,
+        currency: finalCurrency
+      }
+    });
+
+    res.json({
+      taxRate: settings.taxRate,
+      currency: settings.currency
+    });
+  } catch (err) {
+    handleRouteError(err, 'PATCH /settings/billing', res);
   }
 });
 

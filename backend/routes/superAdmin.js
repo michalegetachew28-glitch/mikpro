@@ -1,9 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { handleRouteError } = require('../middleware/errorHandler');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // GET /api/super-admin/payment-requests - All pending payment requests
 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
@@ -14,7 +14,7 @@ router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder')
     });
     res.json(requests);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /super-admin/payment-requests', res);
   }
 });
 
@@ -56,8 +56,7 @@ router.patch('/payment-requests/:id/approve', authenticate, requireRole('superad
 
     res.json({ request: updatedRequest, updatedAdmin });
   } catch (err) {
-    console.error('[SuperAdmin/Approve]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/payment-requests/:id/approve', res);
   }
 });
 
@@ -73,7 +72,7 @@ router.patch('/payment-requests/:id/reject', authenticate, requireRole('superadm
     });
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/payment-requests/:id/reject', res);
   }
 });
 
@@ -90,7 +89,7 @@ router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (re
     });
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /super-admin/users', res);
   }
 });
 
@@ -102,7 +101,7 @@ router.patch('/users/:id/suspend', authenticate, requireRole('superadmin', 'code
     const { password: _, ...safe } = user;
     res.json(safe);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/users/:id/suspend', res);
   }
 });
 
@@ -117,7 +116,7 @@ router.patch('/users/:id/reinstate', authenticate, requireRole('superadmin', 'co
     const { password: _, ...safe } = user;
     res.json(safe);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/users/:id/reinstate', res);
   }
 });
 
@@ -133,7 +132,7 @@ router.patch('/users/:id/grant-unlimited', authenticate, requireRole('superadmin
     const { password: _, ...safe } = user;
     res.json(safe);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/users/:id/grant-unlimited', res);
   }
 });
 
@@ -150,7 +149,7 @@ router.patch('/users/:id/revoke-unlimited', authenticate, requireRole('superadmi
     const { password: _, ...safe } = user;
     res.json(safe);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /super-admin/users/:id/revoke-unlimited', res);
   }
 });
 
@@ -178,7 +177,7 @@ router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (
     }));
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /super-admin/clients', res);
   }
 });
 
@@ -285,8 +284,7 @@ router.get('/platform-stats', authenticate, requireRole('superadmin', 'coder'), 
       }
     });
   } catch (err) {
-    console.error('[platform-stats]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /super-admin/platform-stats', res);
   }
 });
 
@@ -350,8 +348,7 @@ router.delete('/clients/:garageId', authenticate, requireRole('superadmin', 'cod
 
     res.json({ success: true, message: `Garage "${garage.name}" and all associated data permanently deleted.` });
   } catch (err) {
-    console.error('[SuperAdmin/DeleteClient]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'DELETE /super-admin/clients/:garageId', res);
   }
 });
 
@@ -402,8 +399,7 @@ router.delete('/platform-purge', authenticate, requireRole('superadmin', 'coder'
 
     res.json({ success: true, message: 'Platform purged. All client data has been permanently deleted. Coder account and platform settings preserved.' });
   } catch (err) {
-    console.error('[SuperAdmin/PlatformPurge]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'DELETE /super-admin/platform-purge', res);
   }
 });
 

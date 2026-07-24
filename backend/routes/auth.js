@@ -1,10 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
+const { handleRouteError } = require('../middleware/errorHandler');
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -143,8 +143,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({ user: userWithoutPassword, token });
 
   } catch (err) {
-    console.error('[Auth/Register]', err);
-    res.status(500).json({ error: 'Registration failed', message: err.message });
+    handleRouteError(err, 'POST /auth/register', res);
   }
 });
 
@@ -201,12 +200,16 @@ router.post('/login', async (req, res) => {
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // Check suspension BEFORE password verification to give a clear, accurate error
+    if (user.status === 'suspended') {
+      return res.status(403).json({ error: 'Account suspended. Please contact your administrator.', suspended: true });
+    }
+    if (user.status === 'deleted') {
+      return res.status(401).json({ error: 'This account no longer exists.' });
+    }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-
-    if (user.status === 'suspended') {
-      return res.status(403).json({ error: 'Account suspended', user: { ...user, password: undefined } });
-    }
 
     const token = jwt.sign(
       { id: user.id, role: user.role, garageId: user.garageId },
@@ -218,8 +221,7 @@ router.post('/login', async (req, res) => {
     res.json({ user: userWithoutPassword, token });
 
   } catch (err) {
-    console.error('[Auth/Login]', err);
-    res.status(500).json({ error: 'Login failed', message: err.message });
+    handleRouteError(err, 'POST /auth/login', res);
   }
 });
 
@@ -232,14 +234,18 @@ router.get('/me', require('../middleware/auth').authenticate, async (req, res) =
         id: true, name: true, email: true, phone: true,
         role: true, status: true, garageName: true,
         address: true, expiryDate: true, garageId: true,
-        permissions: true, createdAt: true,
+        ownerId: true, permissions: true, createdAt: true,
         garage: { select: { displayId: true } }
       }
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
+    // Reject suspended users trying to restore session
+    if (user.status === 'suspended') {
+      return res.status(403).json({ error: 'Account suspended.', suspended: true });
+    }
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get user', message: err.message });
+    handleRouteError(err, 'GET /auth/me', res);
   }
 });
 
@@ -265,8 +271,7 @@ router.get('/garages', async (req, res) => {
     });
     res.json(garages);
   } catch (err) {
-    console.error('[Auth/Garages]', err);
-    res.status(500).json({ error: 'Failed to fetch garages', message: err.message });
+    handleRouteError(err, 'GET /auth/garages', res);
   }
 });
 

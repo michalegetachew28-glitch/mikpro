@@ -1,9 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate } = require('../middleware/auth');
+const { handleRouteError } = require('../middleware/errorHandler');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // GET /api/subscriptions/my - Get current admin's subscription info
 router.get('/my', authenticate, async (req, res) => {
@@ -15,7 +15,7 @@ router.get('/my', authenticate, async (req, res) => {
     });
     res.json({ user, requests });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /subscriptions/my', res);
   }
 });
 
@@ -41,7 +41,7 @@ router.post('/submit', authenticate, async (req, res) => {
     });
     res.status(201).json(request);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'POST /subscriptions/submit', res);
   }
 });
 

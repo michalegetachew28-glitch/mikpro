@@ -1,9 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
 const { authenticate } = require('../middleware/auth');
+const { handleRouteError } = require('../middleware/errorHandler');
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // Role-based default permissions
 const ROLE_DEFAULTS = {
@@ -23,7 +23,6 @@ router.get('/', authenticate, async (req, res) => {
     const users = await prisma.user.findMany({
       where: {
         garageId: req.user.garageId,
-        id: { not: req.user.id }, // Exclude themselves
         role: { in: ['admin', 'mechanic', 'receptionist', 'cashier', 'storekeeper', 'manager', 'inventoryManager'] }
       },
       select: {
@@ -33,11 +32,11 @@ router.get('/', authenticate, async (req, res) => {
     });
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'GET /staff', res);
   }
 });
 
-// POST /api/staff - Create a new staff User account linked to this garage
+// Create a new staff User account linked to this garage
 router.post('/', authenticate, async (req, res) => {
   try {
     const { name, phone, email, role, address, password } = req.body;
@@ -59,6 +58,9 @@ router.post('/', authenticate, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const staffRole = role || 'mechanic';
+    if (staffRole === 'customer') {
+      return res.status(400).json({ error: 'Cannot create a customer account via staff routes' });
+    }
     const permissions = ROLE_DEFAULTS[staffRole] || [];
 
     // Get garage info for ownerId linkage
@@ -99,8 +101,7 @@ router.post('/', authenticate, async (req, res) => {
 
     res.status(201).json(result);
   } catch (err) {
-    console.error('[Staff Create Error]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'POST /staff', res);
   }
 });
 
@@ -109,6 +110,9 @@ router.put('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, phone, email, role, address, password, status, permissions } = req.body;
+    if (role === 'customer') {
+      return res.status(400).json({ error: 'Cannot change a staff member reference to customer role' });
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) return res.status(404).json({ error: 'Staff member not found' });
@@ -160,8 +164,7 @@ router.put('/:id', authenticate, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('[Staff Update Error]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PUT /staff/:id', res);
   }
 });
 
@@ -194,8 +197,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error('[Staff Delete Error]', err);
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'DELETE /staff/:id', res);
   }
 });
 
@@ -219,7 +221,7 @@ router.patch('/:id/status', authenticate, async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /staff/:id/status', res);
   }
 });
 
@@ -237,7 +239,7 @@ router.patch('/:id/permissions', authenticate, async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleRouteError(err, 'PATCH /staff/:id/permissions', res);
   }
 });
 

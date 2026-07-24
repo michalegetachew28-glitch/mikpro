@@ -1,0 +1,582 @@
+/* ─── Customer Repairs Page ─────────────────────────────────────── */
+.cr-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── Page Header ─────────────────────────────────────────────────── */
+.cr-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cr-header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cr-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cr-last-updated {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.cr-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cr-refresh-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: rotate(180deg);
+}
+
+/* ─── Vehicle Filter Strip ────────────────────────────────────────── */
+.cr-vehicle-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.cr-vehicle-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cr-vehicle-chip:hover,
+.cr-vehicle-chip.active {
+  border-color: var(--primary);
+  background: rgba(67,97,238,0.08);
+  color: var(--primary);
+}
+
+/* ─── Filter Bar ──────────────────────────────────────────────────── */
+.cr-filter-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cr-status-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cr-status-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.cr-status-chip:hover,
+.cr-status-chip.active {
+  border-color: var(--primary);
+  background: rgba(67,97,238,0.1);
+  color: var(--primary);
+}
+
+.cr-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: rgba(67,97,238,0.12);
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ─── Cards Grid ──────────────────────────────────────────────────── */
+.cr-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 22px;
+}
+
+@media (max-width: 640px) {
+  .cr-cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Repair Card ─────────────────────────────────────────────────── */
+.cr-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.cr-card:hover {
+  box-shadow: 0 8px 28px rgba(67,97,238,0.12);
+  border-color: rgba(67,97,238,0.3);
+}
+.cr-card.cr-card-complete {
+  border-color: rgba(16,185,129,0.3);
+}
+.cr-card.cr-card-complete:hover {
+  box-shadow: 0 8px 28px rgba(16,185,129,0.15);
+}
+
+.cr-card-header {
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cr-card-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cr-order-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  background: var(--bg-main);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.cr-status-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cr-card-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cr-vehicle-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.cr-plate {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(67,97,238,0.08);
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(67,97,238,0.2);
+}
+
+.cr-card-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cr-meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--bg-main);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+.cr-meta-chip.cr-meta-green {
+  color: #059669;
+  background: rgba(16,185,129,0.07);
+  border-color: rgba(16,185,129,0.25);
+}
+
+/* ─── Progress Timeline ───────────────────────────────────────────── */
+.cr-timeline {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 0 20px 16px;
+  gap: 0;
+  scrollbar-width: none;
+}
+.cr-timeline::-webkit-scrollbar { display: none; }
+
+.cr-timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 68px;
+}
+
+.cr-step-line-before,
+.cr-step-line-after {
+  height: 2px;
+  flex: 1;
+  width: 100%;
+  background: var(--border);
+  position: absolute;
+  top: 15px;
+}
+.cr-step-line-before { right: 50%; }
+.cr-step-line-after  { left: 50%; }
+
+.cr-timeline-step:first-child .cr-step-line-before { display: none; }
+.cr-timeline-step:last-child  .cr-step-line-after  { display: none; }
+
+.cr-timeline-step.done .cr-step-line-before,
+.cr-timeline-step.done .cr-step-line-after,
+.cr-timeline-step.current .cr-step-line-before {
+  background: var(--primary);
+}
+
+.cr-step-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.cr-timeline-step.done .cr-step-dot {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.cr-timeline-step.current .cr-step-dot {
+  background: linear-gradient(135deg, var(--primary), #4cc9f0);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(67,97,238,0.2);
+  animation: pulse-ring 2s ease infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(67,97,238,0.35); }
+  70%  { box-shadow: 0 0 0 8px rgba(67,97,238,0); }
+  100% { box-shadow: 0 0 0 0 rgba(67,97,238,0); }
+}
+
+.cr-step-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+  max-width: 68px;
+  line-height: 1.3;
+}
+
+.cr-timeline-step.done .cr-step-label,
+.cr-timeline-step.current .cr-step-label {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ─── Description / Notes ─────────────────────────────────────────── */
+.cr-description {
+  margin: 0 20px 16px;
+  padding: 12px 14px;
+  background: var(--bg-main);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.87rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.cr-completion-notes {
+  display: flex;
+  gap: 10px;
+  margin: 0 20px 16px;
+  padding: 12px 14px;
+  background: rgba(16,185,129,0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(16,185,129,0.2);
+  font-size: 0.85rem;
+}
+
+.cr-section-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* ─── Expand Button ───────────────────────────────────────────────── */
+.cr-expand-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cr-expand-btn:hover {
+  background: rgba(67,97,238,0.05);
+}
+
+/* ─── Expanded Section ────────────────────────────────────────────── */
+.cr-expanded-section {
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-main);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Material Requests Table ─────────────────────────────────────── */
+.cr-mr-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.cr-mr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.cr-mr-table th {
+  background: var(--bg-card);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.cr-mr-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.cr-mr-table tr:last-child td { border-bottom: none; }
+.cr-mr-table tr:hover td { background: rgba(67,97,238,0.02); }
+
+.cr-mr-name { font-weight: 700; min-width: 120px; }
+.cr-mr-qty  { text-align: center; font-weight: 600; }
+.cr-mr-date { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; }
+.cr-mr-notes { font-size: 0.75rem; color: var(--text-secondary); max-width: 140px; }
+
+.cr-status-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cr-empty-mr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+}
+
+/* ─── Status History ──────────────────────────────────────────────── */
+.cr-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+}
+
+.cr-history-item {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+.cr-history-dot {
+  position: absolute;
+  left: -20px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--bg-main);
+}
+
+.cr-history-info {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.cr-history-status {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.cr-history-note {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.cr-history-date {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* ─── Invoice Button ──────────────────────────────────────────────── */
+.cr-invoice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(16,185,129,0.4);
+  background: rgba(16,185,129,0.08);
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cr-invoice-btn:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+/* ─── Loading / Empty States ──────────────────────────────────────── */
+.cr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.cr-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  text-align: center;
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+}
+
+.spinner-large {
+  width: 44px;
+  height: 44px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
