@@ -14,7 +14,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "npm install --prefix backend && npx prisma generate --schema=backend/prisma/schema.prisma"
+    "postinstall": "npm install --prefix backend --no-workspaces && npx prisma generate --schema=backend/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
