@@ -1,0 +1,17 @@
+﻿­ƒÜÇ Starting Employee Salary Rebuilt Flow Simulation...
+Using Garage Display ID: 12-0001-000 (Miky Garage)
+Creating unique mock test employee...
+Employee under test: Test Salary Mech 867630 (EMP-7630)
+Creating fresh salary structure for test employee...
+Active structure loaded. Type: weekly, Base: ETB 3500
+STEP A: Simulating initial generation... (equivalent to syncSalaries)
+Ô£à Calculated Net Payable: ETB 3550 (Expected: 3500 [Base] - 0 [Abs] - 0 [Late] + 50 [Bonus] = 3550)
+STEP B: Injecting mock Absences and Late Arrivals to verify dynamic updates...
+Ô£à Re-calculated Net: ETB 3330
+   Deductions: absentDeduction = ETB 200, lateDeduction = ETB 20
+Ô£à Attendance integration dynamic deduction assertion PASSED!
+STEP C: Simulating checkout payout...
+Ô£à Payment created with receipt number: PAY-SIM-3608
+Ô£à Next period calculation auto-generated successfully: cmrj2juz5000iexdb9b5k5821
+   Next Range: Payable status from 2026-07-19 to 3550 net
+­ƒÄë ALL WEEKLY / DAILY / MONTHLY AUTO PERIOD ENGINE TESTS PASSED SUCCESSFULLY! Ô£à

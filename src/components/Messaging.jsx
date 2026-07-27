@@ -12,6 +12,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import GroupCallBanner from './GroupCallBanner';
+import { SkeletonMessaging } from './SkeletonLoader';
 import './Messaging.css';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -216,7 +217,7 @@ const ProfilePanel = ({
   contact, onClose, messages, currentUser, formatTime, formatDate, initiateCall,
   updateGroup, addMembersToGroup, removeMemberFromGroup, promoteMember, demoteAdmin,
   leaveGroup, deleteGroup, staff, customers, t, moderateGroupMember,
-  startGroupCall, joinGroupCall, activeCall, callState, initialTab
+  startGroupCall, joinGroupCall, activeCall, callState, initialTab, clearMessages
 }) => {
   const avatarColor = roleColor(contact.role);
   const isGroup = contact.type === 'group';
@@ -842,7 +843,7 @@ const PhoneConfirmModal = ({ contact, onClose }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const Messaging = () => {
   const {
-    staff, customers, messages, groups, sendMessage, markMessagesRead,
+    staff, customers, messages, groups, sendMessage, markMessagesRead, vehicles,
     setTypingSignal, typingStatus, userPresence, activeChatContact,
     setActiveChatContact, t, formatDate, formatTime, blockedUsers, blockUser,
     unblockUser, privacySettings, setPrivacySettings, deleteMessage, editMessage,
@@ -850,10 +851,11 @@ const Messaging = () => {
     createGroup, updateGroup, addMembersToGroup, removeMemberFromGroup, promoteMember, demoteAdmin,
     leaveGroup, deleteGroup, pinMessage, unpinMessage, moderateGroupMember,
     startGroupCall, joinGroupCall, leaveGroupCall,
-    isChatOpen, setIsChatOpen, clearMessages
+    isChatOpen, setIsChatOpen, clearMessages, isSyncing, isInitialLoadComplete,
+    repairs, garageUsers
   } = useAppContext();
 
-  const { currentUser, getAccounts } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -1072,54 +1074,94 @@ const Messaging = () => {
   const messageRefs = useRef({});
 
   // ── Contacts ─────────────────────────────────────────────────────────────
+  // O(M) lookup map for last message time per user/group ID to avoid O(N*M) array filter/sort
+  const lastMessageMap = useMemo(() => {
+    const map = {};
+    if (!Array.isArray(messages)) return map;
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      if (!m || !m.time) continue;
+      const t = new Date(m.time).getTime();
+      if (m.recipientId) {
+        map[m.recipientId] = Math.max(map[m.recipientId] || 0, t);
+      }
+      if (m.senderId) {
+        map[m.senderId] = Math.max(map[m.senderId] || 0, t);
+      }
+    }
+    return map;
+  }, [messages]);
+
+  // ── Contacts ─────────────────────────────────────────────────────────────
   const allContacts = useMemo(() => {
-    // 1. All registered accounts for this garage (admin, manager, mechanic, etc.)
-    const accounts = (getAccounts() || []);
-    const sameGarageAccounts = accounts
-      .filter(a => a.ownerId === currentUser?.ownerId && a.id !== currentUser?.id && a.role !== 'coder')
-      .map(a => ({
-        id: a.id,
-        name: a.name || a.username || a.email,
-        role: a.role,
-        phone: a.phone,
-        email: a.email,
-        profilePic: a.profilePic,
-        type: a.role === 'customer' ? 'customer' : 'staff'
+    // 1. Build staff/user list from garageUsers (backend API — cross-device visible)
+    const apiUsers = (garageUsers && garageUsers.length > 0) ? garageUsers : [];
+    const localStaff = (staff || []).filter(s => String(s.id) !== String(currentUser?.id));
+
+    // Merge: prefer API data, fill in any local-only staff not yet in API response
+    const apiIds = new Set(apiUsers.map(u => String(u.id)));
+    const staffFallback = localStaff
+      .filter(s => !apiIds.has(String(s.id)) && s.role !== 'coder')
+      .map(s => ({ ...s, type: 'staff' }));
+
+    const normalizedApiUsers = apiUsers
+      .filter(u => u.role !== 'coder')
+      .map(u => ({
+        ...u,
+        type: u.role === 'customer' ? 'customer' : 'staff'
       }));
 
-    // 2. Customers (from AppContext state — includes customers added via the app)
-    const customerList = (customers || []).map(c => ({ ...c, type: 'customer' }));
+    // 2. Customers from AppContext state
+    const customerIds = new Set(normalizedApiUsers.map(u => String(u.id)));
+    const extraCustomers = (customers || [])
+      .filter(c => !customerIds.has(String(c.id)))
+      .map(c => ({ ...c, type: 'customer' }));
 
     // 3. Groups
     const groupList = (groups || []).map(g => ({ ...g, type: 'group' }));
 
-    // 4. Merge: prefer accounts data over staff state (accounts are authoritative for auth users)
-    const accountIds = new Set(sameGarageAccounts.map(a => String(a.id)));
-    const staffFallback = (staff || [])
-      .filter(s => !accountIds.has(String(s.id)) && String(s.id) !== String(currentUser?.id))
-      .map(s => ({ ...s, type: 'staff' }));
+    // 4. Merge all
+    let merged = [...groupList, ...normalizedApiUsers, ...staffFallback, ...extraCustomers];
 
-    const customerIds = new Set([...sameGarageAccounts, ...staffFallback].map(a => String(a.id)));
-    const extraCustomers = customerList.filter(c => !customerIds.has(String(c.id)));
+    // 5. Role-based filtering for customers:
+    if (currentUser?.role === 'customer') {
+      const allowedRoles = ['admin', 'manager', 'receptionist', 'cashier'];
+      const myRepairs = (repairs || []).filter(r => {
+        const vehicle = (vehicles || []).find(v => String(v.id) === String(r.vehicleId));
+        return vehicle && String(vehicle.customerId) === String(currentUser.id);
+      });
+      const assignedMechanicIds = new Set(
+        myRepairs.map(r => String(r.mechanicId)).filter(Boolean)
+      );
+      merged = merged.filter(c =>
+        c.type === 'group' ||
+        allowedRoles.includes(c.role) ||
+        assignedMechanicIds.has(String(c.id))
+      );
+    }
 
-    const merged = [...groupList, ...sameGarageAccounts, ...staffFallback, ...extraCustomers];
-
-    // 5. Sort by recency (last message time)
-    return merged.map(c => {
-      const lastMsg = messages.filter(m =>
-        c.type === 'group'
-          ? m.recipientId === c.id
-          : (m.senderId === currentUser?.id && m.recipientId === c.id) || (m.senderId === c.id && m.recipientId === currentUser?.id)
-      ).sort((a, b) => new Date(b.time) - new Date(a.time))[0];
-
-      return { ...c, lastMessageTime: lastMsg ? new Date(lastMsg.time).getTime() : 0 };
-    }).sort((a, b) => {
+    // 6. Attach lastMessageTime and sort
+    return merged.map(c => ({
+      ...c,
+      lastMessageTime: lastMessageMap[c.id] || 0
+    })).sort((a, b) => {
       if (b.lastMessageTime !== a.lastMessageTime) return b.lastMessageTime - a.lastMessageTime;
       return (a.name || '').localeCompare(b.name || '');
-    }).filter(c =>
-      (String(c.name || c.username || '')).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [staff, customers, groups, currentUser?.id, currentUser?.ownerId, searchTerm, getAccounts, messages]);
+    }).filter(c => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      if ((c.name || c.username || '').toLowerCase().includes(term)) return true;
+      if (c.phone && c.phone.toLowerCase().includes(term)) return true;
+      if (c.email && c.email.toLowerCase().includes(term)) return true;
+      if (c.type === 'customer') {
+        const plates = (c.vehiclePlates || []);
+        if (plates.some(p => p && p.toLowerCase().includes(term))) return true;
+        const custVehicles = (vehicles || []).filter(v => String(v.customerId) === String(c.id));
+        if (custVehicles.some(v => (v.plateNumber || v.plate || '').toLowerCase().includes(term))) return true;
+      }
+      return false;
+    });
+  }, [garageUsers, staff, customers, groups, repairs, vehicles, currentUser?.id, currentUser?.role, searchTerm, lastMessageMap]);
 
   const filteredContacts = useMemo(() => {
     if (roleFilter === 'all') return allContacts;
@@ -1256,7 +1298,6 @@ const Messaging = () => {
       console.error("Upload failed", err);
       setIsUploading(false);
       setFailedUploads(prev => [...prev, msgId]);
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'failed' } : m));
       alert("Failed to read file. Please try again.");
     }
   };
@@ -1265,7 +1306,6 @@ const Messaging = () => {
     // In a real app we'd need the file object again, but for this simulation we'll just re-trigger
     alert("Please re-select the file to retry.");
     setFailedUploads(prev => prev.filter(id => id !== msgId));
-    setMessages(prev => prev.filter(id => id !== msgId));
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
@@ -1296,6 +1336,10 @@ const Messaging = () => {
   const EMOJIS = ['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '❤️', '🔥', '🎉', '😢', '🙏'];
 
   // ── Render ────────────────────────────────────────────────────────────────
+  if (isSyncing && !isInitialLoadComplete) {
+    return <SkeletonMessaging />;
+  }
+
   return (
     <div className={`messaging-container ${isRecording ? 'is-recording' : ''}`} onClick={() => { setActiveMenuMessage(null); setShowChatMenu(false); setShowEmojiPicker(false); }}>
 

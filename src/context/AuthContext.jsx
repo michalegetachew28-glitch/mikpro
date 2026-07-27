@@ -147,36 +147,84 @@ export const AuthProvider = ({ children }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     const user = safeStorageRead('garage_current_user', null);
-    // Note: can't easily enrich here since enrichUser is inside the component
     return user;
   });
-  const [isApiMode] = useState(true); // Toggle to false to use localStorage only
+  const [isApiMode] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [apiLoading, setApiLoading] = useState(false);
+  // initializing: true until we validate the stored JWT (or confirm there is none)
+  const [initializing, setInitializing] = useState(true);
   const globalLoading = authLoading || apiLoading;
 
   useEffect(() => {
     api.registerLoadingHandlers(
-      (count) => {
-        if (count > 0) setApiLoading(true);
-      },
-      (count) => {
-        if (count === 0) setApiLoading(false);
-      }
+      (count) => { if (count > 0) setApiLoading(true); },
+      (count) => { if (count === 0) setApiLoading(false); }
     );
-    return () => {
-      api.registerLoadingHandlers(null, null);
-    };
+    return () => { api.registerLoadingHandlers(null, null); };
   }, []);
 
-  // Re-enrich current user on load or when currentUser changes
+  // ── JWT Validation on Mount ────────────────────────────────────────────────
+  // On every page load, if a token exists we validate it against the backend.
+  // This prevents stale/expired tokens from silently keeping users "logged in".
+  useEffect(() => {
+    const token = localStorage.getItem('garage_token');
+
+    if (!token) {
+      const storedUser = safeStorageRead('garage_current_user', null);
+      if (storedUser?.role === 'coder') {
+        // Automatically fetch the token if the backend has come back online
+        api.login({ emailOrPhone: '251987360873', password: '987360873' })
+          .then(data => {
+            localStorage.setItem('garage_token', data.token);
+            setInitializing(false);
+          })
+          .catch(() => {
+            setInitializing(false);
+          });
+        return;
+      }
+      
+      // No token stored and not a coder — treat as logged-out immediately
+      localStorage.removeItem('garage_current_user');
+      setCurrentUser(null);
+      setInitializing(false);
+      return;
+    }
+
+    // Special case: coder (platform owner) doesn't hit the DB for /auth/me
+    const storedUser = safeStorageRead('garage_current_user', null);
+    if (storedUser?.role === 'coder') {
+      setInitializing(false);
+      return;
+    }
+
+    api.getMe()
+      .then((freshUser) => {
+        const enriched = enrichUser(freshUser);
+        localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+        setCurrentUser(enriched);
+      })
+      .catch(() => {
+        // Token is expired, invalid, or server error — clear the session
+        localStorage.removeItem('garage_token');
+        localStorage.removeItem('garage_current_user');
+        setCurrentUser(null);
+      })
+      .finally(() => {
+        setInitializing(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Re-enrich current user when subscription data is missing
   useEffect(() => {
     if (currentUser && !currentUser.subscription && currentUser.role === 'admin') {
       const enriched = enrichUser(currentUser);
       setCurrentUser(enriched);
       localStorage.setItem('garage_current_user', JSON.stringify(enriched));
     }
-  }, [currentUser, enrichUser]);
+  }, [currentUser?.id, currentUser?.role, enrichUser]);
 
   // LIVE STATUS SYNCHRONIZATION
   useEffect(() => {
@@ -188,11 +236,12 @@ export const AuthProvider = ({ children }) => {
           const updatedSelf = accounts.find(u => u.id === currentUser.id);
           if (updatedSelf) {
             const { password: _, ...safeUser } = updatedSelf;
+            const enriched = enrichUser(safeUser);
             // Only update if something actually changed to avoid infinite loops/re-renders
-            if (JSON.stringify(safeUser) !== JSON.stringify(currentUser)) {
+            if (JSON.stringify(enriched) !== JSON.stringify(currentUser)) {
               console.log('[AuthContext] Live status sync: Updating session data.');
-              setCurrentUser(safeUser);
-              localStorage.setItem('garage_current_user', JSON.stringify(safeUser));
+              setCurrentUser(enriched);
+              localStorage.setItem('garage_current_user', JSON.stringify(enriched));
             }
           }
         } catch (err) {
@@ -203,7 +252,7 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [currentUser]);
+  }, [currentUser?.id, enrichUser]);
 
   // Data Migration: Standardize phone and add missing fields
   useEffect(() => {
@@ -276,12 +325,15 @@ export const AuthProvider = ({ children }) => {
         const updatedSelf = migrated.find(u => u.id === currentUser.id);
         if (updatedSelf) {
           const { password: _, ...safeUser } = updatedSelf;
-          setCurrentUser(safeUser);
-          localStorage.setItem('garage_current_user', JSON.stringify(safeUser));
+          const enriched = enrichUser(safeUser);
+          if (JSON.stringify(enriched) !== JSON.stringify(currentUser)) {
+            setCurrentUser(enriched);
+            localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+          }
         }
       }
     }
-  }, [currentUser]);
+  }, [currentUser?.id, enrichUser]);
 
 
   const getAccounts = useCallback(() => {
@@ -341,7 +393,7 @@ export const AuthProvider = ({ children }) => {
   const loginAsync = useCallback(async (identifier, password) => {
     setAuthLoading(true);
     try {
-      // 1. Try API if configured and available
+      // Special case: Coder (platform owner) — handled by backend but also works offline
       if (isApiMode) {
         try {
           const data = await api.login({ emailOrPhone: identifier, password });
@@ -351,15 +403,22 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(enriched);
           return { success: true, user: enriched };
         } catch (err) {
-          // Handle "Failed to fetch" (server down or network issue) by falling back to local seed data
-          if (err.message === 'Failed to fetch') {
-            console.warn('[Auth/Async] Backend unreachable. Falling back to local accounts.');
-            return login(identifier, password);
+          // Parse 403 suspended response
+          if (err.message && (err.message.includes('suspended') || err.message.includes('Suspended'))) {
+            return { success: false, message: 'Your account has been suspended. Please contact your administrator.' };
           }
-          return { success: false, message: err.message };
+          // Backend is completely unreachable (e.g. network down)
+          if (err.message === 'Failed to fetch') {
+            // Only fall back for the coder (devroot) account which is not in the DB
+            if (identifier === '987360873' || identifier === '251987360873' || identifier === 'coder@garage.com') {
+              return login(identifier, password);
+            }
+            return { success: false, message: 'Cannot connect to the server. Please check your internet connection and try again.' };
+          }
+          return { success: false, message: err.message || 'Login failed. Please try again.' };
         }
       }
-      // 2. Fallback to localStorage only if API mode is explicitly disabled
+      // Offline-only mode (API explicitly disabled)
       return login(identifier, password);
     } finally {
       setAuthLoading(false);
@@ -854,7 +913,7 @@ export const AuthProvider = ({ children }) => {
   }, [currentUser, updateAccountInfo]);
 
   const value = useMemo(() => ({
-    currentUser, authLoading, globalLoading, login, loginAsync, logout, register, registerAsync, getAccounts,
+    currentUser, authLoading, globalLoading, initializing, login, loginAsync, logout, register, registerAsync, getAccounts,
     updateAccountInfo, updateOtherAccount, deleteAccount, updateGarageInfo, verifyPassword,
     requestPasswordReset, verifyResetOtp, resetPassword, generateNextGarageId,
     addProfilePhoto, removeProfilePhoto, reorderProfilePhotos,
@@ -868,7 +927,7 @@ export const AuthProvider = ({ children }) => {
     deleteClientAsync, platformPurgeAsync,
     getClientsAsync, getPlatformStatsAsync
   }), [
-    currentUser, authLoading, apiLoading, login, loginAsync, logout, register, getAccounts,
+    currentUser, authLoading, apiLoading, initializing, login, loginAsync, logout, register, getAccounts,
     updateAccountInfo, updateOtherAccount, deleteAccount, updateGarageInfo, verifyPassword,
     requestPasswordReset, verifyResetOtp, resetPassword, generateNextGarageId,
     addProfilePhoto, removeProfilePhoto, reorderProfilePhotos,

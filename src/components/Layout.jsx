@@ -75,6 +75,17 @@ const Layout = () => {
     }
   }, [showTooltip]);
 
+  // SPA navigation handler: receives garage:navigate events from AppContext
+  // (used by openChatWith so we can navigate without a full page reload)
+  useEffect(() => {
+    const handleGarageNavigate = (e) => {
+      const path = e.detail?.path;
+      if (path) navigate(path);
+    };
+    window.addEventListener('garage:navigate', handleGarageNavigate);
+    return () => window.removeEventListener('garage:navigate', handleGarageNavigate);
+  }, [navigate]);
+
   // If suspended, force route away from /messaging to /support or dashboard
   useEffect(() => {
     if (isSuspended && location.pathname === '/messaging') {

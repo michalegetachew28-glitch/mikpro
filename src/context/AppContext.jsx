@@ -134,6 +134,8 @@ export const AppProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const [groupCalls, setGroupCalls] = useState({}); // groupId -> { type, participants: [], startTime, activeSpeakers: [] }
   const [callHistory, setCallHistory] = useState([]);
+  // All active users in this garage fetched from backend (cross-device user visibility fix)
+  const [garageUsers, setGarageUsers] = useState([]);
 
   const setInvoices = useCallback(async (valOrFunc) => {
     let next;
@@ -543,7 +545,7 @@ export const AppProvider = ({ children }) => {
 
     // --- Firebase Real-time Messaging ---
     let unsubscribeMessages = null;
-    if (currentUser) {
+    if (currentUser && db) {
       console.log(`${DIAG} Initializing Firestore listeners...`);
       const q = query(
         collection(db, "internalMessages"),
@@ -630,13 +632,29 @@ export const AppProvider = ({ children }) => {
           api.getBonuses().catch(() => [])
         ]);
 
+        // ── Garage Users: fetch all users in this garage for messaging contact list ──
+        try {
+          const contacts = await api.getGarageContacts();
+          if (Array.isArray(contacts)) setGarageUsers(contacts);
+        } catch (err) {
+          console.warn(`${DIAG} garageUsers fetch failed (non-critical)`, err);
+          // Fallback: derive from staff list already fetched
+          setGarageUsers((s || []).map(u => ({ ...u, type: u.role === 'customer' ? 'customer' : 'staff' })));
+        }
+
         setVehicles(v || []);
         setCustomers(c || []);
-        setRepairs((r || []).map(item => ({
+        const newRepairs = (r || []).map(item => ({
           ...item,
           notes: item.description || item.notes || '',
           dateIn: item.entryDate ? item.entryDate.split('T')[0] : item.dateIn
-        })));
+        }));
+        setRepairs(prev => {
+          try {
+            if (prev.length === newRepairs.length && JSON.stringify(prev) === JSON.stringify(newRepairs)) return prev;
+          } catch(e) {}
+          return newRepairs;
+        });
         setInventory((i || []).map(item => ({
           ...item,
           name: item.partName || item.name || '',
@@ -681,6 +699,8 @@ export const AppProvider = ({ children }) => {
       } finally {
         setIsSyncing(false);
         setIsBillingLoading(false);
+        setIsInitialLoadComplete(true);
+        setDataLoaded(true);
       }
     };
 
@@ -688,16 +708,24 @@ export const AppProvider = ({ children }) => {
 
     // ── Silent Polling for Repairs ─────────────────────────────────────────────
     // To solve cross-device sync issues (e.g. mechanic on phone, admin on PC), 
-    // fetch repairs every 15 seconds silently.
+    // fetch repairs every 15 seconds silently, only updating state if data changed.
     const pollInterval = setInterval(async () => {
       try {
         const r = await api.getRepairs().catch(() => null);
-        if (r) {
-          setRepairs(r.map(item => ({
+        if (r && Array.isArray(r)) {
+          const mapped = r.map(item => ({
             ...item,
             notes: item.description || item.notes || '',
             dateIn: item.entryDate ? item.entryDate.split('T')[0] : item.dateIn
-          })));
+          }));
+          setRepairs(prev => {
+            try {
+              if (prev.length === mapped.length && JSON.stringify(prev) === JSON.stringify(mapped)) {
+                return prev; // Return exact same reference if content unchanged
+              }
+            } catch(e) {}
+            return mapped;
+          });
         }
       } catch (e) {}
     }, 15000);
@@ -868,9 +896,15 @@ export const AppProvider = ({ children }) => {
 
 
 
-  const t = useCallback((key) => {
+  const t = useCallback((key, replacements) => {
     const langDict = translations[language] || translations['en'];
-    return langDict[key] || translations['en'][key] || key;
+    let text = langDict[key] || translations['en']?.[key] || key;
+    if (replacements && typeof replacements === 'object') {
+      Object.keys(replacements).forEach(k => {
+        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), replacements[k]);
+      });
+    }
+    return text;
   }, [language]);
 
   const formatDate = useCallback((dateStr) => {
@@ -1517,28 +1551,32 @@ export const AppProvider = ({ children }) => {
               vehicleNumber: newData.vehicleNumber
             });
           } else if (collectionName === 'repairs') {
-            const currentItem = repairs.find(r => String(r.id) === String(id)) || {};
-            response = await api.updateRepair(id, {
-              vehicleId: newData.vehicleId !== undefined ? newData.vehicleId : currentItem.vehicleId,
-              mechanicId: newData.mechanicId !== undefined ? newData.mechanicId : currentItem.mechanicId,
-              description: newData.notes !== undefined ? newData.notes : (newData.description !== undefined ? newData.description : currentItem.notes || currentItem.description || ''),
-              laborCost: newData.laborCost !== undefined ? parseFloat(newData.laborCost || 0) : currentItem.laborCost,
-              mileage: newData.mileage !== undefined ? newData.mileage : currentItem.mileage,
-              status: newData.status !== undefined ? newData.status : currentItem.status,
-              parts: newData.parts !== undefined ? newData.parts : currentItem.parts,
-              assignmentStatus: newData.assignmentStatus !== undefined ? newData.assignmentStatus : currentItem.assignmentStatus,
-              declineReason: newData.declineReason !== undefined ? newData.declineReason : currentItem.declineReason,
-              declineVoice: newData.declineVoice !== undefined ? newData.declineVoice : currentItem.declineVoice,
-              completionNotes: newData.completionNotes !== undefined ? newData.completionNotes : currentItem.completionNotes
-            });
+            const repairPayload = {};
+            if (newData.vehicleId !== undefined) repairPayload.vehicleId = newData.vehicleId;
+            if (newData.mechanicId !== undefined) repairPayload.mechanicId = newData.mechanicId;
+            if (newData.notes !== undefined || newData.description !== undefined) {
+              repairPayload.description = newData.notes !== undefined ? newData.notes : newData.description;
+            }
+            if (newData.laborCost !== undefined) repairPayload.laborCost = parseFloat(newData.laborCost || 0);
+            if (newData.mileage !== undefined) repairPayload.mileage = newData.mileage;
+            if (newData.status !== undefined) repairPayload.status = newData.status;
+            if (newData.parts !== undefined) repairPayload.parts = newData.parts;
+            if (newData.assignmentStatus !== undefined) repairPayload.assignmentStatus = newData.assignmentStatus;
+            if (newData.declineReason !== undefined) repairPayload.declineReason = newData.declineReason;
+            if (newData.declineVoice !== undefined) repairPayload.declineVoice = newData.declineVoice;
+            if (newData.completionNotes !== undefined) repairPayload.completionNotes = newData.completionNotes;
+
+            response = await api.updateRepair(id, repairPayload);
           } else if (collectionName === 'inventory') {
             const currentItem = inventory.find(i => String(i.id) === String(id)) || {};
             response = await api.updateInventoryItem(id, {
-              partName: newData.name !== undefined ? newData.name : currentItem.name,
+              partName: newData.name !== undefined ? newData.name : (currentItem.name || currentItem.partName),
               quantity: newData.quantity !== undefined ? parseInt(newData.quantity) : currentItem.quantity,
               price: newData.price !== undefined ? parseFloat(newData.price) : currentItem.price,
-              minStock: newData.threshold !== undefined ? parseInt(newData.threshold) : currentItem.threshold,
-              category: newData.category !== undefined ? newData.category : currentItem.category
+              minStock: newData.threshold !== undefined ? parseInt(newData.threshold) : (currentItem.threshold !== undefined ? currentItem.threshold : currentItem.minStock),
+              category: newData.category !== undefined ? newData.category : currentItem.category,
+              managerId: newData.managerId !== undefined ? newData.managerId : currentItem.managerId,
+              image: newData.image !== undefined ? newData.image : currentItem.image
             });
           } else if (collectionName === 'materialRequests') {
             const currentItem = materialRequests.find(m => String(m.id) === String(id)) || {};
@@ -1553,6 +1591,8 @@ export const AppProvider = ({ children }) => {
             if (collectionName === 'inventory') {
               response.name = response.partName || response.name;
               response.threshold = response.minStock !== undefined ? response.minStock : response.threshold;
+              if (!response.image && newData.image) response.image = newData.image;
+              if (!response.managerId && newData.managerId) response.managerId = newData.managerId;
             } else if (collectionName === 'materialRequests') {
               response.requestedQty = response.requestedQty || response.quantity;
             }
@@ -1730,11 +1770,13 @@ export const AppProvider = ({ children }) => {
             });
           } else if (collectionName === 'inventory') {
             response = await api.createInventoryItem({
-              partName: item.name,
+              partName: item.name || item.partName,
               quantity: parseInt(item.quantity) || 0,
               price: parseFloat(item.price) || 0,
-              minStock: parseInt(item.threshold) || 5,
-              category: item.category || ''
+              minStock: parseInt(item.threshold !== undefined ? item.threshold : item.minStock) || 5,
+              category: item.category || '',
+              managerId: (item.managerId && item.managerId.trim()) ? item.managerId.trim() : null,
+              image: item.image || null
             });
           } else if (collectionName === 'materialRequests') {
             response = await api.createMaterialRequest({
@@ -1749,6 +1791,8 @@ export const AppProvider = ({ children }) => {
             if (collectionName === 'inventory') {
               response.name = response.partName || response.name;
               response.threshold = response.minStock !== undefined ? response.minStock : response.threshold;
+              response.managerId = response.managerId || item.managerId || '';
+              response.image = response.image || item.image || null;
             } else if (collectionName === 'materialRequests') {
               response.requestedQty = response.requestedQty || response.quantity;
             }
@@ -1984,6 +2028,7 @@ export const AppProvider = ({ children }) => {
     const subtotal = (req.approvedQty || req.requestedQty) * (part?.price || 0);
     const tax = subtotal * (billingSettings.taxRate / 100);
     const total = subtotal + tax;
+    const formatCurrency = (val) => `${billingSettings.currency || 'ETB'} ${Number(val || 0).toLocaleString()}`;
 
     const newInvoice = {
       id: `INV-${Date.now().toString().slice(-6)}`,
@@ -2382,15 +2427,28 @@ export const AppProvider = ({ children }) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, text: newText, edited: true } : m));
   }, []);
 
-  const openChatWith = useCallback((contactId) => {
-    if (contactId == null || contactId === '') return;
-    const merged = [...ensureEntityArray(staff, 'staff'), ...ensureEntityArray(customers, 'customers')];
-    const contact = merged.find(c => c && String(c.id) === String(contactId));
-    if (contact) {
-      setActiveChatContact(contact);
+  // openChatWith: accepts a full contact object OR a contactId string.
+  // Navigate to messaging page with the contact pre-selected.
+  // Uses a custom DOM event so Layout.jsx can call React Router navigate()
+  // without causing a full page reload (which re-triggers the data init).
+  const openChatWith = useCallback((contactOrId) => {
+    if (contactOrId == null || contactOrId === '') return;
+    if (typeof contactOrId === 'object' && contactOrId.id) {
+      // Full contact object passed (e.g., from Repairs card)
+      setActiveChatContact(contactOrId);
     } else {
-      console.warn(`${DIAG} openChatWith: no contact for id`, contactId);
+      // Legacy: contactId string passed
+      const merged = [...ensureEntityArray(staff, 'staff'), ...ensureEntityArray(customers, 'customers')];
+      const contact = merged.find(c => c && String(c.id) === String(contactOrId));
+      if (contact) {
+        setActiveChatContact(contact);
+      } else {
+        console.warn(`${DIAG} openChatWith: no contact for id`, contactOrId);
+      }
     }
+    // Dispatch a custom event that Layout.jsx will intercept and handle via
+    // React Router navigate() — avoids a full page reload.
+    window.dispatchEvent(new CustomEvent('garage:navigate', { detail: { path: '/messaging' } }));
   }, [staff, customers]);
 
   const markMessagesRead = useCallback((senderId) => {
@@ -2800,6 +2858,7 @@ export const AppProvider = ({ children }) => {
   }, [currentUser, activeCall]);
 
 
+
   const blockUser = useCallback((userId) => {
     if (!userId) return;
     setBlockedUsers(prev => [...new Set([...prev, String(userId)])]);
@@ -3001,7 +3060,7 @@ export const AppProvider = ({ children }) => {
     setCustomers, setVehicles, setRepairs, setInventory, setStaff, setAppointments, setNotifications, setMessages, setActiveTrackers, setLanguage, setActiveChatContact, setGroupCalls,
     updateItem, addItem, deleteItem, clearAllData, t, formatDate, formatTime, logActivity, generateInvoice, ensureEntityArray,
     addNotification, sendMessage, deleteMessage, editMessage, clearMessages, markMessagesRead, openChatWith, clearNotifications, markNotifRead, markNotificationsReadForContact, dataLoaded, isInitialLoadComplete,
-    invoices: backendFilteredInvoices, adminPaymentDetails, billingSettings, setInvoices, setAdminPaymentDetails, setBillingSettings, setActivityLogs,
+    invoices, adminPaymentDetails, billingSettings, setInvoices, setAdminPaymentDetails, setBillingSettings, setActivityLogs,
     bonuses, mechanicPaymentDetails, setBonuses, setMechanicPaymentDetails,
     isBillingLoading,
     isSyncing,
@@ -3024,13 +3083,14 @@ export const AppProvider = ({ children }) => {
     privacySettings, setPrivacySettings,
     deferredPrompt, setDeferredPrompt,
     toasts, showToast,
-    wsRef
+    wsRef,
+    garageUsers
   }), [
     customers, vehicles, repairs, inventory, staff, appointments, notifications, messages, activeTrackers, language, activeChatContact,
     callState, activeCall, callSubStatus, activityLogs, groupCalls,
     updateItem, addItem, deleteItem, clearAllData, t, formatDate, formatTime, logActivity, generateInvoice, ensureEntityArray,
     addNotification, sendMessage, deleteMessage, editMessage, markMessagesRead, openChatWith, clearNotifications, markNotifRead, markNotificationsReadForContact, dataLoaded,
-    backendFilteredInvoices, adminPaymentDetails, billingSettings, materialRequests, bonuses, mechanicPaymentDetails, isBillingLoading, isSyncing, refreshBillingData,
+    invoices, adminPaymentDetails, billingSettings, materialRequests, bonuses, mechanicPaymentDetails, isBillingLoading, isSyncing, refreshBillingData,
     darkMode, toggleDarkMode,
     isSidebarOpen,
     showNotifs,
@@ -3043,7 +3103,7 @@ export const AppProvider = ({ children }) => {
     blockedUsers, blockUser, unblockUser, privacySettings,
     toasts, showToast,
     salaries, salaryPayments, isInitialLoadComplete,
-    attendance, internalMessages, sendInternalMessage, markInternalMessagesRead
+    attendance, internalMessages, sendInternalMessage, markInternalMessagesRead, garageUsers
   ]);
 
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
-import { 
-  X, User, MapPin, Phone, Mail, Car, Wrench, 
+import {
+  X, User, MapPin, Phone, Mail, Car, Wrench,
   History, CreditCard, ExternalLink, Calendar, CheckCircle2
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
@@ -56,7 +56,7 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
 
               <section className="vehicle-block">
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                   <Car size={18} /> {t('vehicles')} ({customerVehicles.length})
+                  <Car size={18} /> {t('vehicles')} ({customerVehicles.length})
                 </h4>
                 {customerVehicles.length === 0 ? (
                   <p style={{ opacity: 0.5, fontSize: '0.85rem' }}>No vehicles registered.</p>
@@ -96,7 +96,7 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
                           <span className={`status-badge status-${repair.status}`}>{t(repair.status)}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                           <Calendar size={14} /> {formatDate(repair.dateIn)}
+                          <Calendar size={14} /> {formatDate(repair.dateIn)}
                         </div>
                         <p style={{ margin: '8px 0', fontSize: '0.9rem', color: 'var(--text-primary)' }}>{repair.notes}</p>
                       </div>
@@ -105,7 +105,7 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
                 </div>
 
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '24px 0 16px' }}>
-                   <CreditCard size={18} /> {t('billingHistory')}
+                  <CreditCard size={18} /> {t('billingHistory')}
                 </h4>
                 <div className="billing-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {customerInvoices.length === 0 ? (
@@ -129,11 +129,11 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
 
         <div className="modal-actions" style={{ position: 'sticky', bottom: 0, background: 'var(--bg-card)', borderTop: '1px solid var(--border)', padding: 20 }}>
           <button className="btn-text" onClick={onClose}>{t('close')}</button>
-          <button 
-            className={`btn-primary ${isSubmitting || isBillSent ? 'disabled' : ''}`} 
+          <button
+            className={`btn-primary ${isSubmitting || isBillSent ? 'disabled' : ''}`}
             onClick={onGenerateBill}
             disabled={isSubmitting || isBillSent}
-            style={{ 
+            style={{
               background: isBillSent ? '#64748b' : 'var(--primary)',
               opacity: (isSubmitting || isBillSent) ? 0.8 : 1,
               cursor: (isSubmitting || isBillSent) ? 'not-allowed' : 'pointer'
@@ -161,7 +161,7 @@ const CustomerProfileModal = ({ customer, onClose, onGenerateBill, isSubmitting,
 
 // Generic icon for generate bill
 const FilePlus = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" /></svg>
 );
 
 export default CustomerProfileModal;

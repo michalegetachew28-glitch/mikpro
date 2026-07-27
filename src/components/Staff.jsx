@@ -5,6 +5,8 @@ import { BriefcaseBusiness, Plus, Edit2, Trash2, MessageSquare, Navigation, Shie
 import { useNavigate } from 'react-router-dom';
 import PhoneInput from './PhoneInput';
 import { api } from '../services/api';
+import { SkeletonCardGrid } from './SkeletonLoader';
+import ErrorState from './ErrorState';
 import './Staff.css';
 
 const ALL_PERMISSIONS = [
@@ -19,7 +21,8 @@ const STAFF_SYNC_ROLES = ['admin', 'mechanic', 'receptionist', 'cashier', 'store
 
 const Staff = () => {
   const { 
-    openChatWith, t, language, logActivity, requestConfirmation, customers
+    openChatWith, t, language, logActivity, requestConfirmation, customers,
+    isSyncing, isInitialLoadComplete, addItem, updateItem
   } = useAppContext();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -165,6 +168,7 @@ const Staff = () => {
       try {
         const updated = await api.updateStaff(editingId, updates);
         setStaffList(prev => prev.map(s => s.id === editingId ? { ...s, ...updated } : s));
+        if (updateItem) updateItem('staff', editingId, updated);
         logActivity(`Updated Staff`, `Name: ${formData.name}, Role: ${formData.role}`);
         handleCloseModal();
       } catch (err) {
@@ -188,7 +192,9 @@ const Staff = () => {
           password: formData.password,
           role: formData.role
         });
-        setStaffList(prev => [...prev, { ...newMember, password: undefined }]);
+        const memberToAdd = { ...newMember, password: undefined };
+        setStaffList(prev => [...prev, memberToAdd]);
+        if (addItem) addItem('staff', memberToAdd);
         logActivity(`Added Staff`, `Name: ${formData.name}, Role: ${formData.role}`);
         handleCloseModal();
       } catch (err) {
@@ -201,38 +207,24 @@ const Staff = () => {
     <div className="page-content staff-page">
       <div className="page-header">
         <div className="header-title">
-          {activeTab === 'staff' && <div className="icon-wrapper"><BriefcaseBusiness size={28} /></div>}
+          <div className="icon-wrapper"><BriefcaseBusiness size={28} /></div>
           <div>
-            <h1>{activeTab === 'staff' ? t('staff') : t('customers')}</h1>
+            <h1>{t('staff')}</h1>
             <p className="subtitle">
-              {activeTab === 'staff' 
-                ? t("Manage mechanics, admins, and permissions securely.") 
-                : t("Manage client details and contact information.")}
+              {t("Manage mechanics, admins, and permissions securely.")}
             </p>
           </div>
         </div>
         <button className="btn-primary" onClick={() => handleOpenModal()}>
-          <Plus size={18} /> {activeTab === 'staff' ? t("Add Employee") : t("Add New Customer")}
+          <Plus size={18} /> {t("Add Employee")}
         </button>
       </div>
 
-      <div className="billing-tabs" style={{ marginBottom: '24px' }}>
-        <button
-          className={`billing-tab ${activeTab === 'staff' ? 'active' : ''}`}
-          onClick={() => setActiveTab('staff')}
-        >
-          {t("Employees")}
-        </button>
-        <button
-          className={`billing-tab ${activeTab === 'customers' ? 'active' : ''}`}
-          onClick={() => setActiveTab('customers')}
-        >
-          {t('customers')}
-        </button>
-      </div>
-
-      <div className="staff-grid">
-        {filteredUsers.filter(Boolean).map(person => (
+      {isLoading || (isSyncing && !isInitialLoadComplete) ? (
+        <SkeletonCardGrid count={6} />
+      ) : (
+        <div className="staff-grid">
+          {filteredUsers.filter(Boolean).map(person => (
           <div className={`staff-card ${person.status === 'inactive' ? 'inactive' : ''}`} key={person.id || person.phone}>
             <div className="staff-actions">
               <button
@@ -291,6 +283,7 @@ const Staff = () => {
           </div>
         ))}
       </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay">
@@ -361,7 +354,6 @@ const Staff = () => {
                   <option value="inventoryManager">{t('inventoryManager')}</option>
                   <option value="manager">{t('manager') || 'Manager'}</option>
                   <option value="admin">{t('admin')}</option>
-                  <option value="customer">{t('customer')}</option>
                 </select>
               </div>
 

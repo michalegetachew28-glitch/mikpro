@@ -1,0 +1,44 @@
+﻿Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo          : No 
+   tSpecified: (:String) [], Re  
+  moteException
+    + FullyQualifiedErrorId : Na 
+   tiveCommandError
+ 
+Error: Prisma schema validation 
+- (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mError 
+validating field `garage` in 
+model `Bonus`: The relation 
+field `garage` on model `Bonus` 
+is missing an opposite relation 
+field on the model `Garage`. 
+Either run `prisma format` or 
+add it manually.[0m
+  [1;94m-->[0m  
+[4mprisma\schema.prisma:271[0m
+[1;94m   | [0m
+[1;94m270 | [0m  garageId    
+String
+[1;94m271 | [0m  [1;91mgarage 
+     Garage   @relation(fields: 
+[garageId], references: [id])[0m
+[1;94m272 | [0m  jobId       
+String?
+[1;94m   | [0m
+
+Validation Error Count: 1
+[Context: validate]
+
+Prisma CLI Version : 5.22.0

@@ -166,14 +166,16 @@ model RepairStatusHistory {
 }
 
 model Inventory {
-  id       String @id @default(cuid())
-  garageId String
-  garage   Garage @relation(fields: [garageId], references: [id])
-  partName String
-  category String?
-  quantity Int    @default(0)
-  price    Float  @default(0)
-  minStock Int    @default(5)
+  id        String   @id @default(cuid())
+  garageId  String
+  garage    Garage   @relation(fields: [garageId], references: [id])
+  partName  String
+  category  String?
+  quantity  Int      @default(0)
+  price     Float    @default(0)
+  minStock  Int      @default(5)
+  managerId String?
+  image     String?  @db.Text
 
   materialRequests MaterialRequest[]
 }

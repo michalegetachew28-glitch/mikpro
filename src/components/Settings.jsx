@@ -6,6 +6,7 @@ import { compressImage } from '../utils/imageUtils';
 import { generateBackupPDF } from '../utils/pdfUtils';
 import PhoneInput from './PhoneInput';
 import { api } from '../services/api';
+import { SkeletonPageHeader, SkeletonBlock } from './SkeletonLoader';
 import './Settings.css';
 
 const Settings = () => {
@@ -13,7 +14,7 @@ const Settings = () => {
     language, setLanguage, clearAllData, t, customers, vehicles, repairs, inventory, staff, 
     appointments, notifications, messages, setCustomers, setVehicles, setRepairs, setInventory, 
     setStaff, setAppointments, setNotifications, setMessages, requestConfirmation,
-    mechanicPaymentDetails, addItem, deleteItem
+    mechanicPaymentDetails, addItem, deleteItem, isSyncing, isInitialLoadComplete
   } = useAppContext();
   const { currentUser, updateAccountInfo, updateGarageInfo, verifyPassword } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
@@ -175,6 +176,15 @@ const Settings = () => {
         }
     );
   };
+
+  if (isSyncing && !isInitialLoadComplete) {
+    return (
+      <div className="page-content settings-page">
+        <SkeletonPageHeader />
+        <SkeletonBlock style={{ height: '300px', borderRadius: '16px', marginTop: '20px' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="page-content settings-page">

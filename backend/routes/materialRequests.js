@@ -195,6 +195,9 @@ router.put('/:id', authenticate, async (req, res) => {
         data: extUpdate,
         include: { part: true }
       });
+    }, {
+      maxWait: 15000,
+      timeout: 30000
     });
 
     const mapped = {

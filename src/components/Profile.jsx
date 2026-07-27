@@ -11,7 +11,7 @@ import './Profile.css';
 const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { currentUser, updateAccountInfo, getAccounts, verifyPassword, resetPassword, addProfilePhoto, removeProfilePhoto } = useAuth();
+  const { currentUser, updateAccountInfo, updateOtherAccount, getAccounts, verifyPassword, resetPassword, addProfilePhoto, removeProfilePhoto } = useAuth();
   const { t, formatDate, userPresence, ensureEntityArray, staff, customers, groups, updateGroup } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);

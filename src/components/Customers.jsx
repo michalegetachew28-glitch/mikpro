@@ -4,10 +4,28 @@ import { useAuth } from '../context/AuthContext';
 import { Users, Search, Plus, Edit2, Trash2, Phone, Mail, MapPin, Car, X, Navigation, MessageSquare } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PhoneInput from './PhoneInput';
+import { SkeletonListPage } from './SkeletonLoader';
 import './Customers.css';
 
+const APPROVED_REGIONS = [
+  { name: 'Addis Ababa', abbreviation: 'AA' },
+  { name: 'Oromia', abbreviation: 'OR' },
+  { name: 'Amhara', abbreviation: 'AM' },
+  { name: 'Tigray', abbreviation: 'TG' },
+  { name: 'Sidama', abbreviation: 'SD' },
+  { name: 'South Ethiopia', abbreviation: 'SE' },
+  { name: 'Somali', abbreviation: 'SM' },
+  { name: 'Afar', abbreviation: 'AF' },
+  { name: 'Benishangul-Gumuz', abbreviation: 'BG' },
+  { name: 'Gambela', abbreviation: 'GB' },
+  { name: 'Harari', abbreviation: 'HR' },
+  { name: 'Dire Dawa', abbreviation: 'DR' }
+];
+
+const CODES = [1, 2, 3, 4, 5];
+
 const Customers = () => {
-  const { customers, vehicles, deleteItem, addItem, updateItem, openChatWith, t, language, requestConfirmation } = useAppContext();
+  const { customers, vehicles, deleteItem, addItem, updateItem, openChatWith, t, language, requestConfirmation, addNotification, isSyncing, isInitialLoadComplete } = useAppContext();
   const { register, currentUser, updateOtherAccount } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +39,25 @@ const Customers = () => {
   const [formData, setFormData] = useState({ 
     name: '', phone: '', email: '', address: '', password: '', confirmPassword: '' 
   });
+
+  const handleOpenModal = (customer = null) => {
+    setError('');
+    if (customer) {
+      setFormData({ 
+        name: customer.name, 
+        phone: customer.phone, 
+        email: customer.email || '', 
+        address: customer.address || '',
+        password: '',
+        confirmPassword: ''
+      });
+      setEditingId(customer.id);
+    } else {
+      setFormData({ name: '', phone: '', email: '', address: '', password: '', confirmPassword: '' });
+      setEditingId(null);
+    }
+    setShowModal(true);
+  };
 
   React.useEffect(() => {
     if (location.state?.showAddModal) {
@@ -41,7 +78,8 @@ const Customers = () => {
   // ── Vehicle Registration State ──
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [vehicleFormData, setVehicleFormData] = useState({
-    make: '', model: '', year: new Date().getFullYear(), plate: '', mileage: ''
+    make: '', model: '', year: new Date().getFullYear(), plate: '', mileage: '',
+    regionName: 'Addis Ababa', regionAbbreviation: 'AA', regionCode: 1, amharicLetters: '', vehicleNumber: ''
   });
   const [vError, setVError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,25 +93,6 @@ const Customers = () => {
     (c.phone || '').includes(searchTerm) ||
     (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleOpenModal = (customer = null) => {
-    setError('');
-    if (customer) {
-      setFormData({ 
-        name: customer.name, 
-        phone: customer.phone, 
-        email: customer.email || '', 
-        address: customer.address || '',
-        password: '',
-        confirmPassword: ''
-      });
-      setEditingId(customer.id);
-    } else {
-      setFormData({ name: '', phone: '', email: '', address: '', password: '', confirmPassword: '' });
-      setEditingId(null);
-    }
-    setShowModal(true);
-  };
 
   const handleCloseModal = () => setShowModal(false);
 
@@ -152,7 +171,16 @@ const Customers = () => {
   const handleOpenAddVehicle = (customer) => {
     setSelectedCustomer(customer);
     setVehicleFormData({
-      make: '', model: '', year: new Date().getFullYear(), plate: '', mileage: ''
+      make: '', 
+      model: '', 
+      year: new Date().getFullYear(), 
+      plate: '', 
+      mileage: '',
+      regionName: 'Addis Ababa',
+      regionAbbreviation: 'AA',
+      regionCode: 1,
+      amharicLetters: '',
+      vehicleNumber: ''
     });
     setVError('');
     setShowAddVehicleModal(true);
@@ -161,10 +189,47 @@ const Customers = () => {
   const handleAddVehicleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCustomer) return;
-    
+    setVError('');
+
+    const targetAbbrev = vehicleFormData.regionAbbreviation === 'DD' ? 'DR' : vehicleFormData.regionAbbreviation;
+    const targetRegion = vehicleFormData.regionName === 'Dire Dawa' ? 'Dire Dawa' : vehicleFormData.regionName;
+
+    const codeVal = parseInt(vehicleFormData.regionCode, 10);
+    if (isNaN(codeVal) || codeVal < 1 || codeVal > 5) {
+      setVError('Code must be between 1 and 5.');
+      return;
+    }
+
+    if (!vehicleFormData.vehicleNumber || !/^\d+$/.test(vehicleFormData.vehicleNumber.trim())) {
+      setVError('Vehicle number must consist only of digits.');
+      return;
+    }
+
+    if (!vehicleFormData.amharicLetters || !vehicleFormData.amharicLetters.trim()) {
+      setVError('Amharic letters are required.');
+      return;
+    }
+
+    const constructedPlate = `${targetAbbrev} ${codeVal} ${vehicleFormData.amharicLetters.trim()} ${vehicleFormData.vehicleNumber.trim()}`;
+
+    const duplicate = (vehicles || []).some(
+      v => v.plate.toUpperCase().replace(/\s+/g, '') === constructedPlate.toUpperCase().replace(/\s+/g, '')
+    );
+
+    if (duplicate) {
+      setVError('A vehicle with this plate number already exists.');
+      return;
+    }
+
     const newVehicle = {
       customerId: selectedCustomer.id,
       ...vehicleFormData,
+      regionAbbreviation: targetAbbrev,
+      regionName: targetRegion,
+      regionCode: codeVal,
+      amharicLetters: vehicleFormData.amharicLetters.trim(),
+      vehicleNumber: vehicleFormData.vehicleNumber.trim(),
+      plate: constructedPlate,
       year: parseInt(vehicleFormData.year),
       mileage: parseInt(vehicleFormData.mileage) || 0
     };
@@ -181,6 +246,10 @@ const Customers = () => {
   const initiateRepairOrder = (customer) => {
     navigate('/repairs', { state: { preselectCustomerId: customer.id } });
   };
+
+  if (isSyncing && !isInitialLoadComplete) {
+    return <SkeletonListPage rows={6} cols={4} />;
+  }
 
   return (
     <div className="page-content customers-page">
@@ -451,16 +520,98 @@ const Customers = () => {
                   />
                 </div>
               </div>
-              <div className="form-group">
-                <label>{t('plate')} *</label>
-                <input 
-                  type="text" 
-                  value={vehicleFormData.plate} 
-                  onChange={e => setVehicleFormData({...vehicleFormData, plate: e.target.value.toUpperCase()})} 
-                  required 
-                  placeholder="PLATE-123"
-                  className="uppercase-input"
-                />
+              {vError && <div className="auth-error" style={{ marginBottom: '15px', color: 'var(--danger)', fontSize: '0.85rem' }}>{vError}</div>}
+
+              <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '16px', marginBottom: '16px', background: 'rgba(255, 255, 255, 0.02)' }}>
+                <h3 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>Ethiopian Plate Details</h3>
+                
+                <div className="form-group grid-2-col" style={{ marginBottom: '12px' }}>
+                  <div>
+                    <label>Region *</label>
+                    <select 
+                      value={vehicleFormData.regionAbbreviation} 
+                      onChange={(e) => {
+                        const abbrev = e.target.value;
+                        const match = APPROVED_REGIONS.find(r => r.abbreviation === abbrev);
+                        if (match) {
+                          setVehicleFormData(prev => {
+                            const plate = `${match.abbreviation} ${prev.regionCode} ${prev.amharicLetters} ${prev.vehicleNumber}`;
+                            return { ...prev, regionAbbreviation: match.abbreviation, regionName: match.name, plate };
+                          });
+                        }
+                      }}
+                      required
+                    >
+                      {APPROVED_REGIONS.map(r => (
+                        <option key={r.abbreviation} value={r.abbreviation}>{r.name} ({r.abbreviation})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Code (1-5) *</label>
+                    <select 
+                      value={vehicleFormData.regionCode} 
+                      onChange={(e) => {
+                        const codeVal = parseInt(e.target.value, 10);
+                        setVehicleFormData(prev => {
+                          const plate = `${prev.regionAbbreviation} ${codeVal} ${prev.amharicLetters} ${prev.vehicleNumber}`;
+                          return { ...prev, regionCode: codeVal, plate };
+                        });
+                      }}
+                      required
+                    >
+                      {CODES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group grid-2-col" style={{ marginBottom: '12px' }}>
+                  <div>
+                    <label>Amharic Letters *</label>
+                    <input 
+                      type="text" 
+                      value={vehicleFormData.amharicLetters} 
+                      onChange={(e) => {
+                        const letters = e.target.value;
+                        setVehicleFormData(prev => {
+                          const plate = `${prev.regionAbbreviation} ${prev.regionCode} ${letters} ${prev.vehicleNumber}`;
+                          return { ...prev, amharicLetters: letters, plate };
+                        });
+                      }}
+                      placeholder="e.g. አአ"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label>Vehicle Number *</label>
+                    <input 
+                      type="text" 
+                      value={vehicleFormData.vehicleNumber} 
+                      onChange={(e) => {
+                        const num = e.target.value.replace(/\D/g, ''); // Digits only
+                        setVehicleFormData(prev => {
+                          const plate = `${prev.regionAbbreviation} ${prev.regionCode} ${prev.amharicLetters} ${num}`;
+                          return { ...prev, vehicleNumber: num, plate };
+                        });
+                      }}
+                      placeholder="e.g. 12345"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Live Plate Preview Box */}
+                <div className="plate-preview-container">
+                  <div className="plate-preview-title">{t("Live Plate Preview")}</div>
+                  <div className="ethiopian-plate-preview">
+                    <div className="plate-region">{vehicleFormData.regionAbbreviation || 'AA'}</div>
+                    <div className="plate-code">{vehicleFormData.regionCode || '1'}</div>
+                    <div className="plate-amharic">{vehicleFormData.amharicLetters || '—'}</div>
+                    <div className="plate-number">{vehicleFormData.vehicleNumber || '—————'}</div>
+                  </div>
+                </div>
               </div>
 
               <div className="modal-actions">

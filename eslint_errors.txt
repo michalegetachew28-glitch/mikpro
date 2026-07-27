@@ -1,0 +1,1930 @@
+FILE: \src\components\ActivityLogs.jsx
+   L8:28 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Appointments.jsx
+   L5:10 'toEthiopian' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Attendance.jsx
+   L42:10 'savingCards' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L42:23 'setSavingCards' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L90:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  88 |   useEffect(() => {
+  89 |     if (modalMode === 'bulk' && employees.length > 0) {
+> 90 |       setBulkRecords(employees.map(e => ({ employeeId: e.id, fullName: e.fullName, employeeNumber: e.employeeNumber, attendanceDate: bulkDate, status: 'Present', checkIn: '08:00', checkOut: '17:00', remarks: '' })));
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  91 |     }
+  92 |   }, [modalMode, employees, bulkDate]);
+  93 | (react-hooks/set-state-in-effect)
+   L107:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  105 |       };
+  106 |     });
+> 107 |     setDraftAttendances(newDrafts);
+      |     ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  108 |   }, [employees, attendances, markDate]);
+  109 |
+  110 |   const handleSaveDailyAttendance = async () => { (react-hooks/set-state-in-effect)
+   L739:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  737 |   const [localRemarks, setLocalRemarks] = useState(remarks);
+  738 |
+> 739 |   useEffect(() => { setLocalCheckIn(checkIn || ''); }, [checkIn]);
+      |                     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  740 |   useEffect(() => { setLocalCheckOut(checkOut || ''); }, [checkOut]);
+  741 |   useEffect(() => { setLocalRemarks(remarks || ''); }, [remarks]);
+  742 | (react-hooks/set-state-in-effect)
+   L740:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  738 |
+  739 |   useEffect(() => { setLocalCheckIn(checkIn || ''); }, [checkIn]);
+> 740 |   useEffect(() => { setLocalCheckOut(checkOut || ''); }, [checkOut]);
+      |                     ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  741 |   useEffect(() => { setLocalRemarks(remarks || ''); }, [remarks]);
+  742 |
+  743 |   return ( (react-hooks/set-state-in-effect)
+   L741:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  739 |   useEffect(() => { setLocalCheckIn(checkIn || ''); }, [checkIn]);
+  740 |   useEffect(() => { setLocalCheckOut(checkOut || ''); }, [checkOut]);
+> 741 |   useEffect(() => { setLocalRemarks(remarks || ''); }, [remarks]);
+      |                     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  742 |
+  743 |   return (
+  744 |     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border)', paddingTop: 12 }}> (react-hooks/set-state-in-effect)
+FILE: \src\components\AttendanceHistory.jsx
+   L42:9 Unexpected lexical declaration in case block. (no-case-declarations)
+   L43:9 Unexpected lexical declaration in case block. (no-case-declarations)
+FILE: \src\components\AttendanceLayout.jsx
+   L10:9 'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\AttendanceReports.jsx
+   L19:9 'filteredStaff' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Billing.jsx
+   L1:47 'useCallback' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L13:10 'toEthiopian' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L13:23 'toGregorian' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L13:36 'formatEthiopianDate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L13:75 'getDaysInMonth' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L22:16 'materialRequests' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L51:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  49 |     const hash = location.hash.replace('#', '');
+  50 |     if (['invoices', 'settings', 'reports'].includes(hash)) {
+> 51 |       setActiveTab(hash);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  52 |     }
+  53 |
+  54 |     // Auto-select invoice if ID is in query params (react-hooks/set-state-in-effect)
+   L123:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  121 |   useEffect(() => {
+  122 |     if (visibleInvoices.length > 0 && !selectedInvoice) {
+> 123 |       setSelectedInvoice(visibleInvoices[0]);
+      |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  124 |     }
+  125 |     // eslint-disable-next-line react-hooks/exhaustive-deps
+  126 |   }, [visibleInvoices.length, selectedInvoice]); (react-hooks/set-state-in-effect)
+   L137:9 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  135 |         JSON.stringify(latest.proofDetails) !== JSON.stringify(selectedInvoice.proofDetails)
+  136 |       )) {
+> 137 |         setSelectedInvoice(latest);
+      |         ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  138 |       }
+  139 |     }
+  140 |   }, [invoices, selectedInvoice]); (react-hooks/set-state-in-effect)
+   L142:9 'convertAmount' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1663:38 Unnecessary escape character: \'. (no-useless-escape)
+FILE: \src\components\Bonus.jsx
+   L1:36 'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L43:50 'setMechanicPaymentDetails' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L44:65 'invoices' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L59:35 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser`, but the source dependencies were [bonuses, isAdmin, isMechanic, currentUser?.id, filter]. Inferred less specific property than source.
+
+  57 |
+  58 |   // Filter bonuses based on role and active dashboard filter
+> 59 |   const filteredBonuses = useMemo(() => {
+     |                                   ^^^^^^^
+> 60 |     let base = bonuses;
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 61 |     if (isAdmin) {
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 77 |     return base;
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |   }, [bonuses, isAdmin, isMechanic, currentUser?.id, filter]);
+     | ^^^^ Could not preserve existing manual memoization
+  79 |
+  80 |   // Mechanic's own payment details (Multiple)
+  81 |   const myAccounts = useMemo(() => { (react-hooks/preserve-manual-memoization)
+   L59:35 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser`, but the source dependencies were [bonuses, isAdmin, isMechanic, currentUser?.id, filter]. Inferred less specific property than source.
+
+  57 |
+  58 |   // Filter bonuses based on role and active dashboard filter
+> 59 |   const filteredBonuses = useMemo(() => {
+     |                                   ^^^^^^^
+> 60 |     let base = bonuses;
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 61 |     if (isAdmin) {
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 77 |     return base;
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |   }, [bonuses, isAdmin, isMechanic, currentUser?.id, filter]);
+     | ^^^^ Could not preserve existing manual memoization
+  79 |
+  80 |   // Mechanic's own payment details (Multiple)
+  81 |   const myAccounts = useMemo(() => { (react-hooks/preserve-manual-memoization)
+FILE: \src\components\CallOverlay.jsx
+   L20:24 'setIsFullscreen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L28:10 'participants' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L28:24 'setParticipants' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L108:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  106 |
+  107 |   useEffect(() => {
+> 108 |     resetControlsTimer();
+      |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  109 |     return () => {
+  110 |       if (controlsTimer.current) clearTimeout(controlsTimer.current);
+  111 |     }; (react-hooks/set-state-in-effect)
+   L158:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  156 |       }, 1000);
+  157 |     } else {
+> 158 |       setDuration(0);
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  159 |     }
+  160 |     return () => clearInterval(interval);
+  161 |   }, [callState]); (react-hooks/set-state-in-effect)
+FILE: \src\components\CustomerProfileModal.jsx
+   L9:40 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\CustomerRepairs.jsx
+   L258:11 'currentUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L259:28 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L277:17 'e' is defined but never used. (no-unused-vars)
+   L277:20 Empty block statement. (no-empty)
+   L290:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  288 |
+  289 |   // Initial load
+> 290 |   useEffect(() => { fetchRepairs(); }, [fetchRepairs]);
+      |                     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  291 |
+  292 |   // Real-time polling every 30 seconds
+  293 |   useEffect(() => { (react-hooks/set-state-in-effect)
+FILE: \src\components\Customers.jsx
+   L28:82 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L29:11 'register' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L29:34 'updateOtherAccount' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L45:7 Error: Cannot access variable before it is declared
+
+`handleOpenModal` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  43 |   React.useEffect(() => {
+  44 |     if (location.state?.showAddModal) {
+> 45 |       handleOpenModal();
+     |       ^^^^^^^^^^^^^^^ `handleOpenModal` accessed before it is declared
+  46 |       // Clear state
+  47 |       window.history.replaceState({}, document.title);
+  48 |     }
+
+  76 |   );
+  77 |
+> 78 |   const handleOpenModal = (customer = null) => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |     setError('');
+     | ^^^^^^^^^^^^^^^^^
+> 80 |     if (customer) {
+     …
+     | ^^^^^^^^^^^^^^^^^
+> 94 |     setShowModal(true);
+     | ^^^^^^^^^^^^^^^^^
+> 95 |   };
+     | ^^^^^ `handleOpenModal` is declared here
+  96 |
+  97 |   const handleCloseModal = () => setShowModal(false);
+  98 | (react-hooks/immutability)
+FILE: \src\components\Dashboard.jsx
+   L16:55 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L18:9 'lowStockItems' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L24:23 'salaries' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L157:44 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L157:54 'formatDate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L313:48 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L313:61 'formatDate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L464:22 'vehicles' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L464:58 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L529:48 'user' is defined but never used. (no-unused-vars)
+   L530:23 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L606:25 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L723:34 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\EthiopianSelector.jsx
+   L19:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |     const synched = toEthiopian(parseLocalISO(value));
+  18 |     if (synched.year !== localEC.year || synched.month !== localEC.month || synched.day !== localEC.day) {
+> 19 |       setLocalEC(synched);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |     }
+  21 |   }, [value, parseLocalISO, localEC.year, localEC.month, localEC.day]);
+  22 | (react-hooks/set-state-in-effect)
+FILE: \src\components\GroupCallBanner.jsx
+   L8:38 'leaveGroupCall' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L9:11 'currentUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\GroupCallOverlay.jsx
+   L9:51 'callState' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Header.jsx
+   L11:56 'requestConfirmation' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\InstallPWA.jsx
+   L17:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  16 |     if (isStandalone) {
+> 17 |       setIsVisible(false);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |       return;
+  19 |     }
+  20 | (react-hooks/set-state-in-effect)
+FILE: \src\components\InternalMessaging.jsx
+   L1:46 'useCallback' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L14:44 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L77:14 'err' is defined but never used. (no-unused-vars)
+FILE: \src\components\Inventory.jsx
+   L10:65 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L481:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  479 |   React.useEffect(() => {
+  480 |     if (!mediaId) {
+> 481 |       setLoading(false);
+      |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  482 |       return;
+  483 |     }
+  484 |     let isMounted = true; (react-hooks/set-state-in-effect)
+   L530:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  528 |     if (source instanceof File) {
+  529 |       const u = URL.createObjectURL(source);
+> 530 |       setUrl(u);
+      |       ^^^^^^ Avoid calling setState() directly within an effect
+  531 |       return () => URL.revokeObjectURL(u);
+  532 |     } else if (typeof source === 'string' && (source.startsWith('http') || source.startsWith('data:') || source.startsWith('blob:'))) {
+  533 |       setUrl(source); (react-hooks/set-state-in-effect)
+FILE: \src\components\InvoiceForm.jsx
+   L8:44 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L8:83 'requestConfirmation' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L8:104 'addNotification' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L9:11 'currentUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L16:19 'setTaxRate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L37:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  35 |     const d = new Date();
+  36 |     d.setDate(d.getDate() + 7);
+> 37 |     setDueDate(d.toISOString().split('T')[0]);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  38 |   }, []);
+  39 |
+  40 |   // When repair changes, auto-fill labor (react-hooks/set-state-in-effect)
+   L87:11 'total' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\LandingPage.jsx
+   L19:9 'handleLangChange' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\LoadingOverlay.jsx
+   L36:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  34 |       // Show immediately
+  35 |       clearTimeout(hideTimerRef.current);
+> 36 |       setShouldShow(true);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |       // Mark start time so we can enforce minimum
+  38 |       showTimerRef.current = Date.now();
+  39 |     } else { (react-hooks/set-state-in-effect)
+   L62:9 'isTimeout' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Login.jsx
+   L15:14 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L33:10 'accountMap' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L50:10 'phone' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L50:17 'setPhone' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L60:49 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  58 |     const savedId = localStorage.getItem('garage_remembered_id');
+  59 |     const savedMethod = localStorage.getItem('garage_remembered_method') || 'email';
+> 60 |     if (savedMethod === 'email') { if (savedId) setLoginEmail(savedId); }
+     |                                                 ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  61 |     else { if (savedId) setLoginPhone(savedId); }
+  62 |   }, []);
+  63 | (react-hooks/set-state-in-effect)
+   L66:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  64 |   useEffect(() => {
+  65 |     const accounts = getAccounts();
+> 66 |     setAccountMap(accounts.map(a => ({ email: a.email, phone: a.phone, ownerId: a.ownerId, garageName: a.garageName })));
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  67 |   }, [getAccounts]);
+  68 |
+  69 |   useEffect(() => { (react-hooks/set-state-in-effect)
+   L79:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  77 |   useEffect(() => {
+  78 |     if (signupStep === SIGNUP_STEP.GARAGE && signupRole !== 'admin') {
+> 79 |       setGaragesLoading(true);
+     |       ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  80 |       setGaragesError('');
+  81 |       api.getActiveGarages()
+  82 |         .then(data => setGarages(Array.isArray(data) ? data : [])) (react-hooks/set-state-in-effect)
+   L213:9 'stepCount' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\MapTracker.jsx
+   L40:7 'garageIcon' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L73:46 'addItem' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L79:10 'viewMode' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L82:10 'searchQuery' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L82:23 'setSearchQuery' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L103:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  101 |     }
+  102 |
+> 103 |     setIsLocating(true);
+      |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  104 |     setPinningLocation(null);
+  105 |     setGpsAccuracy(null);
+  106 | (react-hooks/set-state-in-effect)
+   L148:9 'geocodeAddress' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L161:30 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser.role`, but the source dependencies were [activeTrackers, currentUser?.role, currentUser?.id]. Inferred different dependency than source.
+
+  159 |
+  160 |   // Filter trackers based on role - Memoized to prevent effect re-runs
+> 161 |   const myTrackers = useMemo(() => {
+      |                              ^^^^^^^
+> 162 |     console.log("[DEBUG Live Tracking] Computing myTrackers. Total activeTrackers:", activeTrackers?.length || 0);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 163 |     console.log("[DEBUG Live Tracking] Current User:", currentUser?.id, "Role:", currentUser?.role);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 177 |     });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 178 |   }, [activeTrackers, currentUser?.role, currentUser?.id]);
+      | ^^^^ Could not preserve existing manual memoization
+  179 |
+  180 |   const selectedTracker = useMemo(() => {
+  181 |     return myTrackers.find(t => t.id === selectedTrackerId) || myTrackers[0]; (react-hooks/preserve-manual-memoization)
+   L161:30 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser.id`, but the source dependencies were [activeTrackers, currentUser?.role, currentUser?.id]. Inferred different dependency than source.
+
+  159 |
+  160 |   // Filter trackers based on role - Memoized to prevent effect re-runs
+> 161 |   const myTrackers = useMemo(() => {
+      |                              ^^^^^^^
+> 162 |     console.log("[DEBUG Live Tracking] Computing myTrackers. Total activeTrackers:", activeTrackers?.length || 0);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 163 |     console.log("[DEBUG Live Tracking] Current User:", currentUser?.id, "Role:", currentUser?.role);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 177 |     });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 178 |   }, [activeTrackers, currentUser?.role, currentUser?.id]);
+      | ^^^^ Could not preserve existing manual memoization
+  179 |
+  180 |   const selectedTracker = useMemo(() => {
+  181 |     return myTrackers.find(t => t.id === selectedTrackerId) || myTrackers[0]; (react-hooks/preserve-manual-memoization)
+   L161:30 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser.role`, but the source dependencies were [activeTrackers, currentUser?.role, currentUser?.id]. Inferred different dependency than source.
+
+  159 |
+  160 |   // Filter trackers based on role - Memoized to prevent effect re-runs
+> 161 |   const myTrackers = useMemo(() => {
+      |                              ^^^^^^^
+> 162 |     console.log("[DEBUG Live Tracking] Computing myTrackers. Total activeTrackers:", activeTrackers?.length || 0);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 163 |     console.log("[DEBUG Live Tracking] Current User:", currentUser?.id, "Role:", currentUser?.role);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 177 |     });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 178 |   }, [activeTrackers, currentUser?.role, currentUser?.id]);
+      | ^^^^ Could not preserve existing manual memoization
+  179 |
+  180 |   const selectedTracker = useMemo(() => {
+  181 |     return myTrackers.find(t => t.id === selectedTrackerId) || myTrackers[0]; (react-hooks/preserve-manual-memoization)
+   L161:30 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser.id`, but the source dependencies were [activeTrackers, currentUser?.role, currentUser?.id]. Inferred different dependency than source.
+
+  159 |
+  160 |   // Filter trackers based on role - Memoized to prevent effect re-runs
+> 161 |   const myTrackers = useMemo(() => {
+      |                              ^^^^^^^
+> 162 |     console.log("[DEBUG Live Tracking] Computing myTrackers. Total activeTrackers:", activeTrackers?.length || 0);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 163 |     console.log("[DEBUG Live Tracking] Current User:", currentUser?.id, "Role:", currentUser?.role);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 177 |     });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 178 |   }, [activeTrackers, currentUser?.role, currentUser?.id]);
+      | ^^^^ Could not preserve existing manual memoization
+  179 |
+  180 |   const selectedTracker = useMemo(() => {
+  181 |     return myTrackers.find(t => t.id === selectedTrackerId) || myTrackers[0]; (react-hooks/preserve-manual-memoization)
+   L378:23 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  376 |     const activeJobs = activeTrackers.filter(t => t.mechanicId === currentUser.id && t.status === 'started');
+  377 |     if (activeJobs.length === 0) {
+> 378 |       if (simulating) setSimulating(false);
+      |                       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  379 |       return;
+  380 |     }
+  381 | (react-hooks/set-state-in-effect)
+FILE: \src\components\MaterialRequests.jsx
+   L17:30 'formatTime' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L252:9 'handleIssueMaterial' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Messaging.jsx
+   L48:43 'formatTime' is defined but never used. (no-unused-vars)
+   L53:94 Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  51 |   const [currentTime, setCurrentTime] = useState(0);
+  52 |   const [audioDuration, setAudioDuration] = useState(msg.duration || 0);
+> 53 |   const waveform = useMemo(() => msg.waveform || Array.from({ length: 40 }, () => Math.floor(Math.random() * 15 + 5)), [msg.waveform]);
+     |                                                                                              ^^^^^^^^^^^^^ Cannot call impure function
+  54 |
+  55 |   const togglePlay = (e) => {
+  56 |     e?.stopPropagation(); (react-hooks/purity)
+   L138:53 'formatDate' is defined but never used. (no-unused-vars)
+   L217:21 'messages' is defined but never used. (no-unused-vars)
+   L217:44 'formatTime' is defined but never used. (no-unused-vars)
+   L217:56 'formatDate' is defined but never used. (no-unused-vars)
+   L219:46 't' is defined but never used. (no-unused-vars)
+   L220:19 'joinGroupCall' is defined but never used. (no-unused-vars)
+   L220:34 'activeCall' is defined but never used. (no-unused-vars)
+   L220:46 'callState' is defined but never used. (no-unused-vars)
+   L225:20 'setEditName' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L226:20 'setEditDesc' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L237:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  235 |   useEffect(() => {
+  236 |     if (initialTab) {
+> 237 |       setActiveTab(initialTab);
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  238 |     }
+  239 |   }, [initialTab]);
+  240 | (react-hooks/set-state-in-effect)
+   L246:9 'handleSaveInfo' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L259:9 'getUserRoleTag' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L556:96 'clearMessages' is not defined. (no-undef)
+   L849:70 'editMessage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L850:35 'acceptCall' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L850:47 'endCall' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L852:30 'pinMessage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L853:36 'leaveGroupCall' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L854:5 'isChatOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L864:10 'isMobileListOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L887:10 'vData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L887:17 'setVData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1096:31 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser`, but the source dependencies were [garageUsers, staff, customers, groups, repairs, vehicles, currentUser?.id, currentUser?.role, searchTerm, lastMessageMap]. Inferred less specific property than source.
+
+  1094 |
+  1095 |   // ── Contacts ─────────────────────────────────────────────────────────────
+> 1096 |   const allContacts = useMemo(() => {
+       |                               ^^^^^^^
+> 1097 |     // 1. Build staff/user list from garageUsers (backend API — cross-device visible)
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1098 |     const apiUsers = (garageUsers && garageUsers.length > 0) ? garageUsers : [];
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1163 |     });
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1164 |   }, [garageUsers, staff, customers, groups, repairs, vehicles, currentUser?.id, currentUser?.role, searchTerm, lastMessageMap]);
+       | ^^^^ Could not preserve existing manual memoization
+  1165 |
+  1166 |   const filteredContacts = useMemo(() => {
+  1167 |     if (roleFilter === 'all') return allContacts; (react-hooks/preserve-manual-memoization)
+   L1253:10 'failedUploads' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1301:7 'setMessages' is not defined. (no-undef)
+   L1310:5 'setMessages' is not defined. (no-undef)
+   L1583:40 Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  1581 |                     <p>Messages are end-to-end encrypted</p>
+  1582 |                   </div>
+> 1583 |                 ) : activeMessages.map((msg, idx) => {
+       |                                        ^^^^^^^^^^^^^^^
+> 1584 |                   const isOwn = msg.senderId === currentUser?.id;
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1585 |                   const prevMsg = activeMessages[idx - 1];
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1826 |                   );
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1827 |                 })}
+       | ^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  1828 |               </div>
+  1829 |             </div>
+  1830 | (react-hooks/refs)
+   L1855:29 Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  1853 |                   onCancel={cancelRecording}
+  1854 |                   onLock={() => setIsLocked(true)}
+> 1855 |                   analyser={analyserRef.current}
+       |                             ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  1856 |                   onStop={stopRecording}
+  1857 |                 />
+  1858 |               ) : voicePreview ? ( (react-hooks/refs)
+   L1863:29 Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  1861 |                     msg={{
+  1862 |                       fileData: voicePreview.url,
+> 1863 |                       time: Date.now(),
+       |                             ^^^^^^^^^^ Cannot call impure function
+  1864 |                       duration: voicePreview.duration,
+  1865 |                       waveform: voicePreview.waveform,
+  1866 |                       type: 'audio' (react-hooks/purity)
+FILE: \src\components\OfflineBanner.jsx
+   L1:46 'useCallback' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L25:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  23 |     if (!isOnline) {
+  24 |       wasOffline.current = true;
+> 25 |       setShowSuccess(false);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  26 |       setIsHiding(false);
+  27 |     }
+  28 |   }, [isOnline]); (react-hooks/set-state-in-effect)
+FILE: \src\components\PhoneInput.jsx
+   L9:10 'countryCode' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L9:23 'setCountryCode' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L19:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |     
+  18 |     if (value === undefined || value === null || value === '') {
+> 19 |       setLocalNumber('');
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |       return;
+  21 |     }
+  22 |      (react-hooks/set-state-in-effect)
+FILE: \src\components\Profile.jsx
+   L14:87 'addProfilePhoto' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L14:104 'removeProfilePhoto' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L34:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  32 |   useEffect(() => {
+  33 |     if (isOwnProfile) {
+> 34 |       setTargetUser(currentUser);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  35 |       setEditData({
+  36 |         name: currentUser?.name || '',
+  37 |         username: currentUser?.username || '', (react-hooks/set-state-in-effect)
+   L92:7 'updateOtherAccount' is not defined. (no-undef)
+   L142:13 'updateOtherAccount' is not defined. (no-undef)
+   L151:9 'removeProfilePic' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L157:9 'updateOtherAccount' is not defined. (no-undef)
+FILE: \src\components\Repairs.jsx
+   L7:10 'toEthiopian' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L43:10 'selectedShopId' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L79:9 Error: Cannot access variable before it is declared
+
+`handleOpenModal` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  77 |       const customer = customers.find(c => String(c.id) === String(location.state.preselectCustomerId));
+  78 |       if (customer) {
+> 79 |         handleOpenModal();
+     |         ^^^^^^^^^^^^^^^ `handleOpenModal` accessed before it is declared
+  80 |         setCustSearch(customer.name);
+  81 |         setShowVehResults(true);
+  82 |       }
+
+  180 |   });
+  181 |
+> 182 |   const handleOpenModal = (repair = null) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 183 |     if (repair) {
+      | ^^^^^^^^^^^^^^^^^
+> 184 |       setFormData({
+      …
+      | ^^^^^^^^^^^^^^^^^
+> 200 |     setShowModal(true);
+      | ^^^^^^^^^^^^^^^^^
+> 201 |   };
+      | ^^^^^ `handleOpenModal` is declared here
+  202 |
+  203 |   const handleCloseModal = () => setShowModal(false);
+  204 | (react-hooks/immutability)
+   L80:9 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  78 |       if (customer) {
+  79 |         handleOpenModal();
+> 80 |         setCustSearch(customer.name);
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  81 |         setShowVehResults(true);
+  82 |       }
+  83 |     } else if (location.state?.showAddModal) { (react-hooks/set-state-in-effect)
+   L341:16 'err' is defined but never used. (no-unused-vars)
+   L370:14 'err' is defined but never used. (no-unused-vars)
+   L452:14 'err' is defined but never used. (no-unused-vars)
+   L503:25 'vehicle' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1534:74 'language' is defined but never used. (no-unused-vars)
+   L1540:9 'isReadOnly' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1991:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  1989 |   useEffect(() => {
+  1990 |     if (!mediaId) {
+> 1991 |       setLoading(false);
+       |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  1992 |       return;
+  1993 |     }
+  1994 | (react-hooks/set-state-in-effect)
+FILE: \src\components\Revenue.jsx
+   L178:37 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L179:33 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L180:41 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L181:37 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L182:39 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L183:33 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L184:29 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L187:39 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L188:37 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L189:35 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L190:31 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L193:31 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L194:31 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L195:37 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L196:27 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L199:41 React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L202:23 React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L217:24 React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L231:21 React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L246:26 React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L259:3 React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L259:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  257 |   }, []);
+  258 |
+> 259 |   useEffect(() => { fetchSummary(); }, [fetchSummary]);
+      |                     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  260 |   useEffect(() => { fetchList(); }, [fetchList]);
+  261 |   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+  262 | (react-hooks/set-state-in-effect)
+   L260:3 React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L260:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  258 |
+  259 |   useEffect(() => { fetchSummary(); }, [fetchSummary]);
+> 260 |   useEffect(() => { fetchList(); }, [fetchList]);
+      |                     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  261 |   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+  262 |
+  263 |   // Reset page when filters change (react-hooks/set-state-in-effect)
+   L261:3 React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L261:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  259 |   useEffect(() => { fetchSummary(); }, [fetchSummary]);
+  260 |   useEffect(() => { fetchList(); }, [fetchList]);
+> 261 |   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+      |                     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  262 |
+  263 |   // Reset page when filters change
+  264 |   useEffect(() => { setPage(1); }, [search, dateFilter, exactDate, fromDate, toDate]); (react-hooks/set-state-in-effect)
+   L264:3 React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+   L264:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  262 |
+  263 |   // Reset page when filters change
+> 264 |   useEffect(() => { setPage(1); }, [search, dateFilter, exactDate, fromDate, toDate]);
+      |                     ^^^^^^^ Avoid calling setState() directly within an effect
+  265 |
+  266 |   // ── Sort Handler ──────────────────────────────────────────
+  267 |   const handleSort = (field) => { (react-hooks/set-state-in-effect)
+   L366:21 React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. (react-hooks/rules-of-hooks)
+FILE: \src\components\Salary.jsx
+   L193:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  191 |   useEffect(() => {
+  192 |     if (isEmployee) {
+> 193 |       loadPersonalDashboard();
+      |       ^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  194 |     } else {
+  195 |       load();
+  196 |     } (react-hooks/set-state-in-effect)
+   L200:22 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  198 |
+  199 |   useEffect(() => {
+> 200 |     if (!isEmployee) loadCalcs();
+      |                      ^^^^^^^^^ Avoid calling setState() directly within an effect
+  201 |   }, [filterPeriod, loadCalcs, isEmployee]);
+  202 |
+  203 |   useEffect(() => { (react-hooks/set-state-in-effect)
+   L204:56 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  202 |
+  203 |   useEffect(() => {
+> 204 |     if (!isEmployee && activeTab === 'salary-payment') loadPaymentEmployees();
+      |                                                        ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  205 |   }, [activeTab, loadPaymentEmployees, isEmployee]);
+  206 |
+  207 |   const handleGeneratePayroll = async () => { (react-hooks/set-state-in-effect)
+   L448:9 'hasAnyAccount' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L470:61 'lastPayment' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L470:74 'nextPayment' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\SearchSelect.jsx
+   L38:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  36 |   useEffect(() => {
+  37 |     if (selectedOption) {
+> 38 |       setSearchTerm(selectedOption[labelKey] || '');
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |     } else {
+  40 |       setSearchTerm('');
+  41 |     } (react-hooks/set-state-in-effect)
+FILE: \src\components\Settings.jsx
+   L19:43 'updateGarageInfo' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L121:20 'err' is defined but never used. (no-unused-vars)
+   L612:24 'e' is defined but never used. (no-unused-vars)
+   L663:36 'valid' is defined but never used. (no-unused-vars)
+FILE: \src\components\Sidebar.jsx
+   L35:9 'isAdmin' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\Staff.jsx
+   L24:22 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L35:21 'setActiveTab' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L59:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  57 |
+  58 |   useEffect(() => {
+> 59 |     loadStaff();
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  60 |   }, [loadStaff]);
+  61 |
+  62 |   const filteredUsers = useMemo(() => { (react-hooks/set-state-in-effect)
+FILE: \src\components\SubscriptionHeaderAlert.jsx
+   L1:17 'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\components\SubscriptionPage.jsx
+   L14:34 'updateAccountInfo' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L113:62 Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  111 |       status: 'active',
+  112 |       startDate: currentUser.createdAt || new Date().toISOString(),
+> 113 |       expiryDate: new Date(new Date(currentUser.createdAt || Date.now()).getTime() + trialDays * 86400000).toISOString()
+      |                                                              ^^^^^^^^^^ Cannot call impure function
+  114 |    };
+  115 |
+  116 |    const parseDate = (d) => { (react-hooks/purity)
+FILE: \src\components\SubscriptionRequired.jsx
+   L35:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  33 |        navigate('/dashboard');
+  34 |     }
+> 35 |     setSettings(getPlatformSettings());
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |   }, [currentUser, getPlatformSettings, navigate]);
+  37 |
+  38 |   const handleFileChange = (e) => { (react-hooks/set-state-in-effect)
+FILE: \src\components\SuperAdminPortal.jsx
+   L23:121 Empty block statement. (no-empty)
+   L168:25 'accounts' is defined but never used. (no-unused-vars)
+   L168:86 'requests' is defined but never used. (no-unused-vars)
+   L174:11 'addNotification' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L469:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L780:24 'onRefresh' is defined but never used. (no-unused-vars)
+   L781:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L798:13 Empty block statement. (no-empty)
+   L803:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  801 |   }, []);
+  802 |
+> 803 |   useEffect(() => { loadData(); }, [loadData]);
+      |                     ^^^^^^^^ Avoid calling setState() directly within an effect
+  804 |
+  805 |   const clearLogs = () => { localStorage.removeItem('garage_debug_logs'); loadData(); };
+  806 | (react-hooks/set-state-in-effect)
+   L949:31 'accounts' is defined but never used. (no-unused-vars)
+   L950:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L951:11 'updateOtherAccount' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1127:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1150:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  1148 |   }, [getPlatformSettingsAsync]);
+  1149 |
+> 1150 |   useEffect(() => { loadData(); }, [loadData]);
+       |                     ^^^^^^^^ Avoid calling setState() directly within an effect
+  1151 |
+  1152 |   const saveSettings = async (newSettings) => {
+  1153 |     const s = newSettings || settings; (react-hooks/set-state-in-effect)
+   L1739:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1828:50 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1828:53 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L1876:5 'setApprovingId' is not defined. (no-undef)
+   L1879:7 'setApprovingId' is not defined. (no-undef)
+   L1892:7 'mediaRecorderRef' is not defined. (no-undef)
+   L1893:7 'audioChunksRef' is not defined. (no-undef)
+   L1896:30 'audioChunksRef' is not defined. (no-undef)
+   L1900:36 'audioChunksRef' is not defined. (no-undef)
+   L1911:7 'setIsRecording' is not defined. (no-undef)
+   L1912:7 'setRecordingTime' is not defined. (no-undef)
+   L1913:7 'timerRef' is not defined. (no-undef)
+   L1914:9 'setRecordingTime' is not defined. (no-undef)
+   L1922:9 'mediaRecorderRef' is not defined. (no-undef)
+   L1922:37 'isRecording' is not defined. (no-undef)
+   L1923:7 'mediaRecorderRef' is not defined. (no-undef)
+   L1924:7 'setIsRecording' is not defined. (no-undef)
+   L1925:21 'timerRef' is not defined. (no-undef)
+   L1926:11 'mediaRecorderRef' is not defined. (no-undef)
+   L1927:9 'mediaRecorderRef' is not defined. (no-undef)
+   L2133:57 'isRecording' is not defined. (no-undef)
+   L2136:23 'isRecording' is not defined. (no-undef)
+   L2148:18 'isRecording' is not defined. (no-undef)
+   L2151:56 'recordingTime' is not defined. (no-undef)
+   L2153:27 'mediaRecorderRef' is not defined. (no-undef)
+   L2153:53 'mediaRecorderRef' is not defined. (no-undef)
+   L2154:23 'setIsRecording' is not defined. (no-undef)
+   L2155:37 'timerRef' is not defined. (no-undef)
+   L2156:23 'audioChunksRef' is not defined. (no-undef)
+   L2182:19 'approvingId' is not defined. (no-undef)
+   L2224:11 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2227:24 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  2225 |
+  2226 |   useEffect(() => {
+> 2227 |     if (initialStatus) setStatusFilter(initialStatus);
+       |                        ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  2228 |     if (initialTime) setTimeFilter(initialTime);
+  2229 |   }, [initialStatus, initialTime]);
+  2230 | (react-hooks/set-state-in-effect)
+   L2603:41 'reinstateUserAsync' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2603:61 'registerAsync' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2607:40 'sendInternalMessage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2607:61 't' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2637:10 'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2660:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  2658 |
+  2659 |   useEffect(() => {
+> 2660 |     loadInitialData();
+       |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  2661 |   }, [loadInitialData]);
+  2662 |
+  2663 |   const handleApprove = async (req) => { (react-hooks/set-state-in-effect)
+   L2708:21 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  2706 |   const refresh = loadInitialData;
+  2707 |
+> 2708 |   useEffect(() => { refresh(); }, [refresh]);
+       |                     ^^^^^^^ Avoid calling setState() directly within an effect
+  2709 |
+  2710 |   if (currentUser?.role !== 'coder') {
+  2711 |     return ( (react-hooks/set-state-in-effect)
+FILE: \src\components\UserProfileModal.jsx
+   L20:9 'canvasRef' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L27:9 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |     if (isOpen) {
+  26 |       if (isOwnProfile) {
+> 27 |         setTargetUser(currentUser);
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |         setEditData({
+  29 |           name: currentUser?.name || '',
+  30 |           username: currentUser?.username || '', (react-hooks/set-state-in-effect)
+FILE: \src\components\Vehicles.jsx
+   L27:77 'language' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L43:7 Error: Cannot access variable before it is declared
+
+`handleOpenModal` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  41 |   React.useEffect(() => {
+  42 |     if (location.state?.showAddModal) {
+> 43 |       handleOpenModal();
+     |       ^^^^^^^^^^^^^^^ `handleOpenModal` accessed before it is declared
+  44 |       window.history.replaceState({}, document.title);
+  45 |     }
+  46 |
+
+   81 |   });
+   82 |
+>  83 |   const handleOpenModal = (vehicle = null) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  84 |     setErrorMsg('');
+      | ^^^^^^^^^^^^^^^^^^^^
+>  85 |     if (vehicle) {
+      …
+      | ^^^^^^^^^^^^^^^^^^^^
+> 119 |     setShowModal(true);
+      | ^^^^^^^^^^^^^^^^^^^^
+> 120 |   };
+      | ^^^^^ `handleOpenModal` is declared here
+  121 |
+  122 |   const handleCloseModal = () => setShowModal(false);
+  123 | (react-hooks/immutability)
+FILE: \src\context\AppContext.jsx
+   L9:48 'update' is defined but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L16:14 Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components. (react-refresh/only-export-components)
+   L136:10 'callHistory' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L136:23 'setCallHistory' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L348:19 'fileData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L398:14 'e' is defined but never used. (no-unused-vars)
+   L406:18 'be' is defined but never used. (no-unused-vars)
+   L416:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  414 |   // Load data whenever user changes
+  415 |   useEffect(() => {
+> 416 |     setIsInitialLoadComplete(false);
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  417 |     setDataLoaded(false);
+  418 |
+  419 |     if (!currentUser) { (react-hooks/set-state-in-effect)
+   L467:11 'loadedBlocked' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L468:11 'loadedTrackers' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L655:19 'e' is defined but never used. (no-unused-vars)
+   L655:22 Empty block statement. (no-empty)
+   L726:21 'e' is defined but never used. (no-unused-vars)
+   L726:24 Empty block statement. (no-empty)
+   L730:16 'e' is defined but never used. (no-unused-vars)
+   L730:19 Empty block statement. (no-empty)
+   L831:13 Error: Cannot access variable before it is declared
+
+`addNotification` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  829 |             });
+  830 |             // Show notification to admin/manager
+> 831 |             addNotification(`🚨 New roadside assistance request!`, 'danger');
+      |             ^^^^^^^^^^^^^^^ `addNotification` accessed before it is declared
+  832 |           }
+  833 |         } catch (e) {
+  834 |           console.warn('[WS Client] Failed to parse message', e);
+
+  1407 |   }, [currentUser]);
+  1408 |
+> 1409 |   const addNotification = useCallback((message, type = 'info', recipientId = null, link = null, senderId = null) => {
+       |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1410 |     setNotifications(prev => {
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1411 |       // Deduplication: Don't add if same message to same recipient was added in last 5 seconds
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1443 |     });
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1444 |   }, [showToast]);
+       | ^^^^^^^^^^^^^^^^^^^ `addNotification` is declared here
+  1445 |
+  1446 |   const handleRepairStatusChange = useCallback((repair, newStatus, mId) => {
+  1447 |     if (!repair || typeof repair !== 'object') { (react-hooks/immutability)
+   L921:14 'e' is defined but never used. (no-unused-vars)
+   L932:14 'e' is defined but never used. (no-unused-vars)
+   L989:22 'err' is defined but never used. (no-unused-vars)
+   L1004:18 'err' is defined but never used. (no-unused-vars)
+   L1004:23 Empty block statement. (no-empty)
+   L1163:15 Error: Cannot access variable before it is declared
+
+`leaveGroupCall` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  1161 |             if (signal.action === 'KICK') {
+  1162 |               showToast("You have been removed from the call", "danger");
+> 1163 |               leaveGroupCall(signal.groupId);
+       |               ^^^^^^^^^^^^^^ `leaveGroupCall` accessed before it is declared
+  1164 |             }
+  1165 |           }
+  1166 |
+
+  2547 |   }, [currentUser, broadcastData]);
+  2548 |
+> 2549 |   const leaveGroupCall = useCallback((groupId) => {
+       |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2550 |     if (!currentUser || !groupId) return;
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2551 |     
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2576 |     setActiveCall(null);
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2577 |   }, [currentUser]);
+       | ^^^^^^^^^^^^^^^^^^^^^ `leaveGroupCall` is declared here
+  2578 |
+  2579 |   const joinGroupCall = useCallback((groupId) => {
+  2580 |     if (!currentUser || !groupId) return; (react-hooks/immutability)
+   L1167:18 'err' is defined but never used. (no-unused-vars)
+   L1167:23 Empty block statement. (no-empty)
+   L1381:5 Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+  1379 |     };
+  1380 |
+> 1381 |     syncChannel.onmessage = handleBroadcast;
+       |     ^^^^^^^^^^^ `syncChannel` cannot be modified
+  1382 |   }, [syncChannel, currentUser?.ownerId, userPrefix, getSetterMap]);
+  1383 |
+  1384 |   useEffect(() => { localStorage.setItem('garage_language', language); }, [language]); (react-hooks/immutability)
+   L1993:9 'backendFilteredInvoices' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2065:48 'formatCurrency' is not defined. (no-undef)
+   L2549:38 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.
+
+  2547 |   }, [currentUser, broadcastData]);
+  2548 |
+> 2549 |   const leaveGroupCall = useCallback((groupId) => {
+       |                                      ^^^^^^^^^^^^^^
+> 2550 |     if (!currentUser || !groupId) return;
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2551 |     
+       …
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2576 |     setActiveCall(null);
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 2577 |   }, [currentUser]);
+       | ^^^^ Could not preserve existing memoization
+  2578 |
+  2579 |   const joinGroupCall = useCallback((groupId) => {
+  2580 |     if (!currentUser || !groupId) return; (react-hooks/preserve-manual-memoization)
+   L2686:16 'e' is defined but never used. (no-unused-vars)
+   L2694:16 'e' is defined but never used. (no-unused-vars)
+   L2694:19 Empty block statement. (no-empty)
+   L2789:14 'e' is defined but never used. (no-unused-vars)
+   L2789:17 Empty block statement. (no-empty)
+   L2814:5 Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+  2812 |     
+  2813 |     // Use the ref to ensure we can clear this if call is answered/ended early
+> 2814 |     callTimeoutRef.current = setTimeout(() => {
+       |     ^^^^^^^^^^^^^^ `callTimeoutRef` cannot be modified
+  2815 |       endCall('timeout');
+  2816 |       callTimeoutRef.current = null;
+  2817 |     }, 60 * 1000); (react-hooks/immutability)
+   L2824:14 'e' is defined but never used. (no-unused-vars)
+   L2824:17 Empty block statement. (no-empty)
+   L2833:7 Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+  2831 |     if (ringingTimerRef.current) {
+  2832 |       clearTimeout(ringingTimerRef.current);
+> 2833 |       ringingTimerRef.current = null;
+       |       ^^^^^^^^^^^^^^^ `ringingTimerRef` cannot be modified
+  2834 |     }
+  2835 |     if (callTimeoutRef.current) {
+  2836 |       clearTimeout(callTimeoutRef.current); (react-hooks/immutability)
+   L2837:7 Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+  2835 |     if (callTimeoutRef.current) {
+  2836 |       clearTimeout(callTimeoutRef.current);
+> 2837 |       callTimeoutRef.current = null;
+       |       ^^^^^^^^^^^^^^ `callTimeoutRef` cannot be modified
+  2838 |     }
+  2839 |
+  2840 |     setCallState('connected'); (react-hooks/immutability)
+   L2856:14 'e' is defined but never used. (no-unused-vars)
+   L2856:17 Empty block statement. (no-empty)
+   L2884:9 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  2882 |         (latest.type === 'group' && latest.members?.length !== activeChatContact.members?.length);
+  2883 |       if (hasChanged) {
+> 2884 |         setActiveChatContact(prev => ({ ...prev, ...latest }));
+       |         ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  2885 |       }
+  2886 |     }
+  2887 |   }, [staff, customers, groups, activeChatContact?.id]); (react-hooks/set-state-in-effect)
+   L2889:9 'processedCallSignals' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+   L2896:14 'e' is defined but never used. (no-unused-vars)
+   L2902:14 'e' is defined but never used. (no-unused-vars)
+   L2902:17 Empty block statement. (no-empty)
+   L2965:18 'e' is defined but never used. (no-unused-vars)
+   L2965:21 Empty block statement. (no-empty)
+   L2982:20 'e' is defined but never used. (no-unused-vars)
+   L2982:23 Empty block statement. (no-empty)
+   L3021:16 'e' is defined but never used. (no-unused-vars)
+   L3021:19 Empty block statement. (no-empty)
+   L3043:16 'e' is defined but never used. (no-unused-vars)
+   L3043:19 Empty block statement. (no-empty)
+FILE: \src\context\AuthContext.jsx
+   L7:14 Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components. (react-refresh/only-export-components)
+   L29:14 Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components. (react-refresh/only-export-components)
+   L41:52 'e' is defined but never used. (no-unused-vars)
+   L41:55 Empty block statement. (no-empty)
+   L190:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  188 |       // No token stored and not a coder — treat as logged-out immediately
+  189 |       localStorage.removeItem('garage_current_user');
+> 190 |       setCurrentUser(null);
+      |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  191 |       setInitializing(false);
+  192 |       return;
+  193 |     } (react-hooks/set-state-in-effect)
+   L224:7 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  222 |     if (currentUser && !currentUser.subscription && currentUser.role === 'admin') {
+  223 |       const enriched = enrichUser(currentUser);
+> 224 |       setCurrentUser(enriched);
+      |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  225 |       localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+  226 |     }
+  227 |   }, [currentUser?.id, currentUser?.role, enrichUser]); (react-hooks/set-state-in-effect)
+   L330:13 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  328 |           const enriched = enrichUser(safeUser);
+  329 |           if (JSON.stringify(enriched) !== JSON.stringify(currentUser)) {
+> 330 |             setCurrentUser(enriched);
+      |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  331 |             localStorage.setItem('garage_current_user', JSON.stringify(enriched));
+  332 |           }
+  333 |         } (react-hooks/set-state-in-effect)
+   L500:14 'err' is defined but never used. (no-unused-vars)
+FILE: \src\context\OfflineContext.jsx
+   L30:14 Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components. (react-refresh/only-export-components)
+   L83:5 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  81 |
+  82 |     // Initial count poll
+> 83 |     refreshCount();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  84 |
+  85 |     // Poll count every 30 s so badge stays accurate across tabs
+  86 |     const interval = setInterval(refreshCount, 30_000); (react-hooks/set-state-in-effect)
+FILE: \src\data\translations.js
+   L120:5 Duplicate key 'late'. (no-dupe-keys)
+   L224:5 Duplicate key 'date'. (no-dupe-keys)
+   L225:5 Duplicate key 'status'. (no-dupe-keys)
+   L244:5 Duplicate key 'year'. (no-dupe-keys)
+   L246:5 Duplicate key 'notes'. (no-dupe-keys)
+   L249:5 Duplicate key 'total'. (no-dupe-keys)
+   L259:5 Duplicate key 'today'. (no-dupe-keys)
+   L260:5 Duplicate key 'yesterday'. (no-dupe-keys)
+   L261:5 Duplicate key 'week'. (no-dupe-keys)
+   L262:5 Duplicate key 'month'. (no-dupe-keys)
+   L263:5 Duplicate key 'year'. (no-dupe-keys)
+   L264:5 Duplicate key 'custom'. (no-dupe-keys)
+   L265:5 Duplicate key 'date'. (no-dupe-keys)
+   L266:5 Duplicate key 'specificDate'. (no-dupe-keys)
+   L267:5 Duplicate key 'start'. (no-dupe-keys)
+   L268:5 Duplicate key 'end'. (no-dupe-keys)
+   L269:5 Duplicate key 'noActivityFound'. (no-dupe-keys)
+   L283:5 Duplicate key 'pending'. (no-dupe-keys)
+   L309:5 Duplicate key 'paymentMethod'. (no-dupe-keys)
+   L311:5 Duplicate key 'bankTransfer'. (no-dupe-keys)
+   L312:5 Duplicate key 'mobileBanking'. (no-dupe-keys)
+   L358:5 Duplicate key 'employee'. (no-dupe-keys)
+   L360:5 Duplicate key 'role'. (no-dupe-keys)
+   L646:5 Duplicate key 'Today'. (no-dupe-keys)
+   L808:5 Duplicate key 'Request Roadside Assistance'. (no-dupe-keys)
+   L816:5 Duplicate key 'Active'. (no-dupe-keys)
+   L820:5 Duplicate key 'In Progress'. (no-dupe-keys)
+   L822:5 Duplicate key 'Estimated Arrival'. (no-dupe-keys)
+   L823:5 Duplicate key 'Live Tracking'. (no-dupe-keys)
+   L843:5 Duplicate key 'Role'. (no-dupe-keys)
+   L853:5 Duplicate key 'History'. (no-dupe-keys)
+   L859:5 Duplicate key 'present'. (no-dupe-keys)
+   L860:5 Duplicate key 'absent'. (no-dupe-keys)
+   L861:5 Duplicate key 'late'. (no-dupe-keys)
+   L862:5 Duplicate key 'excused'. (no-dupe-keys)
+   L863:5 Duplicate key 'attendanceSavedSuccessfully'. (no-dupe-keys)
+   L864:5 Duplicate key 'changesPending'. (no-dupe-keys)
+   L865:5 Duplicate key 'Save Attendance'. (no-dupe-keys)
+   L866:5 Duplicate key 'salaryManagement'. (no-dupe-keys)
+   L867:5 Duplicate key 'payrollSubtitleAdmin'. (no-dupe-keys)
+   L868:5 Duplicate key 'payrollSubtitleEmployee'. (no-dupe-keys)
+   L869:5 Duplicate key 'overview'. (no-dupe-keys)
+   L870:5 Duplicate key 'paymentLogs'. (no-dupe-keys)
+   L871:5 Duplicate key 'systemPaymentHistory'. (no-dupe-keys)
+   L872:5 Duplicate key 'processedBy'. (no-dupe-keys)
+   L873:5 Duplicate key 'manageSalary'. (no-dupe-keys)
+   L874:5 Duplicate key 'originalSalary'. (no-dupe-keys)
+   L875:5 Duplicate key 'nextDate'. (no-dupe-keys)
+   L876:5 Duplicate key 'totalLiability'. (no-dupe-keys)
+   L877:5 Duplicate key 'netLiability'. (no-dupe-keys)
+   L878:5 Duplicate key 'totalDeductions'. (no-dupe-keys)
+   L879:5 Duplicate key 'paidThisMonth'. (no-dupe-keys)
+   L880:5 Duplicate key 'salaryConfigUpdated'. (no-dupe-keys)
+   L881:5 Duplicate key 'salaryConfigCreated'. (no-dupe-keys)
+   L882:5 Duplicate key 'salaryManaged'. (no-dupe-keys)
+   L883:5 Duplicate key 'amountToPay'. (no-dupe-keys)
+   L884:5 Duplicate key 'paymentMethod'. (no-dupe-keys)
+   L885:5 Duplicate key 'bankTransfer'. (no-dupe-keys)
+   L886:5 Duplicate key 'mobileBanking'. (no-dupe-keys)
+   L887:5 Duplicate key 'cashPayment'. (no-dupe-keys)
+   L888:5 Duplicate key 'confirmPayment'. (no-dupe-keys)
+   L889:5 Duplicate key 'salaryProcessedFor'. (no-dupe-keys)
+   L890:5 Duplicate key 'yourSalaryProcessed'. (no-dupe-keys)
+   L891:5 Duplicate key 'cashSalaryConfirmed'. (no-dupe-keys)
+   L892:5 Duplicate key 'salaryConfirmation'. (no-dupe-keys)
+   L893:5 Duplicate key 'accountInfoUpdated'. (no-dupe-keys)
+   L894:5 Duplicate key 'deductions'. (no-dupe-keys)
+   L895:5 Duplicate key 'contactCashier'. (no-dupe-keys)
+   L896:5 Duplicate key 'processPay'. (no-dupe-keys)
+   L897:5 Duplicate key 'salaryProcessed'. (no-dupe-keys)
+   L898:5 Duplicate key 'nextAvailableIn'. (no-dupe-keys)
+   L899:5 Duplicate key 'due'. (no-dupe-keys)
+   L900:5 Duplicate key 'payable'. (no-dupe-keys)
+   L901:5 Duplicate key 'welcomeName'. (no-dupe-keys)
+   L902:5 Duplicate key 'salaryInfoSubtitle'. (no-dupe-keys)
+   L903:5 Duplicate key 'remainingSalary'. (no-dupe-keys)
+   L904:5 Duplicate key 'base'. (no-dupe-keys)
+   L905:5 Duplicate key 'abs'. (no-dupe-keys)
+   L906:5 Duplicate key 'late'. (no-dupe-keys)
+   L907:5 Duplicate key 'nextPaymentIn'. (no-dupe-keys)
+   L908:5 Duplicate key 'dueNow'. (no-dupe-keys)
+   L909:5 Duplicate key 'paymentAccount'. (no-dupe-keys)
+   L910:5 Duplicate key 'addBankAccount'. (no-dupe-keys)
+   L911:5 Duplicate key 'addMobileBanking'. (no-dupe-keys)
+   L912:5 Duplicate key 'editInformation'. (no-dupe-keys)
+   L913:5 Duplicate key 'payoutProfileTip'. (no-dupe-keys)
+   L914:5 Duplicate key 'bankAccount'. (no-dupe-keys)
+   L915:5 Duplicate key 'payoutTipDesc'. (no-dupe-keys)
+   L916:5 Duplicate key 'noPaymentHistory'. (no-dupe-keys)
+   L917:5 Duplicate key 'viewReceipt'. (no-dupe-keys)
+   L918:5 Duplicate key 'pendingCashPayments'. (no-dupe-keys)
+   L919:5 Duplicate key 'cashierHeaderDesc'. (no-dupe-keys)
+   L920:5 Duplicate key 'confirmDelivery'. (no-dupe-keys)
+   L921:5 Duplicate key 'employeeAccountAccess'. (no-dupe-keys)
+   L922:5 Duplicate key 'cashierEmpGridDesc'. (no-dupe-keys)
+   L923:5 Duplicate key 'processSalary'. (no-dupe-keys)
+   L924:5 Duplicate key 'noAccountInfo'. (no-dupe-keys)
+   L925:5 Duplicate key 'enterFullName'. (no-dupe-keys)
+   L926:5 Duplicate key 'updateInfo'. (no-dupe-keys)
+   L927:5 Duplicate key 'downloadScreenshot'. (no-dupe-keys)
+   L928:5 Duplicate key 'salaryAmount'. (no-dupe-keys)
+   L929:5 Duplicate key 'salaryType'. (no-dupe-keys)
+   L930:5 Duplicate key 'weekly'. (no-dupe-keys)
+   L931:5 Duplicate key 'monthly'. (no-dupe-keys)
+   L932:5 Duplicate key 'absentDeduction'. (no-dupe-keys)
+   L933:5 Duplicate key 'lateDeduction'. (no-dupe-keys)
+   L934:5 Duplicate key 'enableAutoDeductions'. (no-dupe-keys)
+   L935:5 Duplicate key 'saveConfig'. (no-dupe-keys)
+   L936:5 Duplicate key 'recipientBankDetails'. (no-dupe-keys)
+   L937:5 Duplicate key 'recipientMobileWallet'. (no-dupe-keys)
+   L938:5 Duplicate key 'uploadReceipt'. (no-dupe-keys)
+   L939:5 Duplicate key 'changeScreenshot'. (no-dupe-keys)
+   L940:5 Duplicate key 'selectScreenshot'. (no-dupe-keys)
+   L942:5 Duplicate key 'Global Billing Preferences'. (no-dupe-keys)
+   L944:5 Duplicate key 'unmarked'. (no-dupe-keys)
+   L945:5 Duplicate key 'Mark All Present'. (no-dupe-keys)
+   L946:5 Duplicate key 'Card View'. (no-dupe-keys)
+   L947:5 Duplicate key 'Table View'. (no-dupe-keys)
+   L948:5 Duplicate key 'Reason for Excusal'. (no-dupe-keys)
+   L949:5 Duplicate key 'Type the reason for excusal here...'. (no-dupe-keys)
+   L950:5 Duplicate key 'Mark for Save'. (no-dupe-keys)
+   L952:5 Duplicate key 'GENERAL'. (no-dupe-keys)
+   L953:5 Duplicate key 'OPERATIONS'. (no-dupe-keys)
+   L954:5 Duplicate key 'INVENTORY'. (no-dupe-keys)
+   L955:5 Duplicate key 'BILLING'. (no-dupe-keys)
+   L956:5 Duplicate key 'PAYMENTS'. (no-dupe-keys)
+   L957:5 Duplicate key 'SYSTEM'. (no-dupe-keys)
+   L958:5 Duplicate key 'SETTINGS'. (no-dupe-keys)
+   L959:5 Duplicate key 'Attendance Saved'. (no-dupe-keys)
+   L960:5 Duplicate key 'User saved attendance for'. (no-dupe-keys)
+   L961:5 Duplicate key 'employees'. (no-dupe-keys)
+   L962:5 Duplicate key 'on'. (no-dupe-keys)
+   L973:5 Duplicate key 'appReqNotify'. (no-dupe-keys)
+   L982:5 Duplicate key 'Toyota, Honda, etc.'. (no-dupe-keys)
+   L983:5 Duplicate key 'Camry, Civic, etc.'. (no-dupe-keys)
+   L992:5 Duplicate key 'Mechanic's Current Load'. (no-dupe-keys)
+   L993:5 Duplicate key 'Describe the issue...'. (no-dupe-keys)
+   L994:5 Duplicate key 'Multi-Shop Material Browser'. (no-dupe-keys)
+   L999:5 Duplicate key 'Search materials across all shops...'. (no-dupe-keys)
+   L1001:5 Duplicate key 'Request Basket'. (no-dupe-keys)
+   L1002:5 Duplicate key 'Select materials from shops on the left'. (no-dupe-keys)
+   L1004:5 Duplicate key 'Decline Job'. (no-dupe-keys)
+   L1005:5 Duplicate key 'Please provide a reason for declining this job.'. (no-dupe-keys)
+   L1007:5 Duplicate key 'Type your reason...'. (no-dupe-keys)
+   L1012:5 Duplicate key 'Work Status: '. (no-dupe-keys)
+   L1013:5 Duplicate key 'Labor'. (no-dupe-keys)
+   L1072:5 Duplicate key 'customer'. (no-dupe-keys)
+   L1116:5 Duplicate key 'year'. (no-dupe-keys)
+   L1118:5 Duplicate key 'date'. (no-dupe-keys)
+   L1222:5 Duplicate key 'manager'. (no-dupe-keys)
+   L1223:5 Duplicate key 'inventoryManager'. (no-dupe-keys)
+   L1734:5 Duplicate key 'Request Roadside Assistance'. (no-dupe-keys)
+   L1742:5 Duplicate key 'Global Billing Preferences'. (no-dupe-keys)
+   L1754:5 Duplicate key 'employees'. (no-dupe-keys)
+   L1768:5 Duplicate key 'Active'. (no-dupe-keys)
+   L1772:5 Duplicate key 'In Progress'. (no-dupe-keys)
+   L1774:5 Duplicate key 'Estimated Arrival'. (no-dupe-keys)
+   L1775:5 Duplicate key 'Live Tracking'. (no-dupe-keys)
+   L1801:5 Duplicate key 'paymentMethod'. (no-dupe-keys)
+   L1802:5 Duplicate key 'bankTransfer'. (no-dupe-keys)
+   L1803:5 Duplicate key 'mobileBanking'. (no-dupe-keys)
+   L1823:5 Duplicate key 'late'. (no-dupe-keys)
+   L1867:5 Duplicate key 'Toyota, Honda, etc.'. (no-dupe-keys)
+   L1868:5 Duplicate key 'Camry, Civic, etc.'. (no-dupe-keys)
+   L1877:5 Duplicate key 'paymentSettings'. (no-dupe-keys)
+   L1878:5 Duplicate key 'financialReports'. (no-dupe-keys)
+   L1879:5 Duplicate key 'Search Invoice ID, Name...'. (no-dupe-keys)
+   L1881:5 Duplicate key 'Paid (Cash)'. (no-dupe-keys)
+   L1883:5 Duplicate key 'Payment Verification'. (no-dupe-keys)
+   L1884:5 Duplicate key 'Payment Screenshot (Click to View)'. (no-dupe-keys)
+   L1885:5 Duplicate key 'No screenshot uploaded!'. (no-dupe-keys)
+   L1886:5 Duplicate key 'Verify'. (no-dupe-keys)
+   L1887:5 Duplicate key 'Reject'. (no-dupe-keys)
+   L1888:5 Duplicate key 'Direct Cash Payment'. (no-dupe-keys)
+   L1889:5 Duplicate key 'Mark this invoice as paid immediately via cash. No screenshot required.'. (no-dupe-keys)
+   L1890:5 Duplicate key 'Confirm cash payment?'. (no-dupe-keys)
+   L1891:5 Duplicate key 'Global Billing Preferences'. (no-dupe-keys)
+   L1892:5 Duplicate key 'bankTransfer'. (no-dupe-keys)
+   L1893:5 Duplicate key 'phonePayment'. (no-dupe-keys)
+   L1894:5 Duplicate key 'Edit Account'. (no-dupe-keys)
+   L1895:5 Duplicate key 'bankName'. (no-dupe-keys)
+   L1896:5 Duplicate key 'appType'. (no-dupe-keys)
+   L1897:5 Duplicate key 'accountHolder'. (no-dupe-keys)
+   L1898:5 Duplicate key 'receiverName'. (no-dupe-keys)
+   L1899:5 Duplicate key 'branch'. (no-dupe-keys)
+   L1900:5 Duplicate key 'Opt.'. (no-dupe-keys)
+   L1904:5 Duplicate key 'Manage invoices and multi-currency payments.'. (no-dupe-keys)
+   L1905:5 Duplicate key 'Download Full Image'. (no-dupe-keys)
+   L1906:5 Duplicate key 'Payment Proof Submitted'. (no-dupe-keys)
+   L1908:5 Duplicate key 'Pay to: Inventory Manager'. (no-dupe-keys)
+   L1909:5 Duplicate key 'Pay to: Admin'. (no-dupe-keys)
+   L1910:5 Duplicate key 'Please add payment accounts in settings.'. (no-dupe-keys)
+   L1913:5 Duplicate key 'Ready to Send'. (no-dupe-keys)
+   L1915:5 Duplicate key 'Mechanic has not added payment details yet.'. (no-dupe-keys)
+   L1917:5 Duplicate key 'Issued By'. (no-dupe-keys)
+   L1918:5 Duplicate key 'Assigned Mechanic'. (no-dupe-keys)
+   L1919:5 Duplicate key 'Item Description'. (no-dupe-keys)
+   L1920:5 Duplicate key 'Cost'. (no-dupe-keys)
+   L1928:5 Duplicate key 'Work Status: '. (no-dupe-keys)
+   L1929:5 Duplicate key 'Reason:'. (no-dupe-keys)
+   L1931:5 Duplicate key 'accepted'. (no-dupe-keys)
+   L1933:5 Duplicate key 'assignmentStatusMsg'. (no-dupe-keys)
+   L1934:5 Duplicate key 'PAID (CASH)'. (no-dupe-keys)
+   L1935:5 Duplicate key 'By:'. (no-dupe-keys)
+   L1936:5 Duplicate key 'Attached Photo:'. (no-dupe-keys)
+   L1937:5 Duplicate key 'Upload Payment Screenshot'. (no-dupe-keys)
+   L1938:5 Duplicate key 'Bonus already sent for this job'. (no-dupe-keys)
+   L1939:5 Duplicate key 'Give Mechanic Bonus (Optional)'. (no-dupe-keys)
+   L1940:5 Duplicate key 'Payment submitted. Awaiting verification.'. (no-dupe-keys)
+   L1941:5 Duplicate key 'Mechanic Not Found'. (no-dupe-keys)
+   L1943:5 Duplicate key '← Back to Invoice'. (no-dupe-keys)
+   L1944:5 Duplicate key 'BANK'. (no-dupe-keys)
+   L1945:5 Duplicate key 'MOBILE'. (no-dupe-keys)
+   L1946:5 Duplicate key 'Account number copied!'. (no-dupe-keys)
+   L1947:5 Duplicate key 'COPY'. (no-dupe-keys)
+   L1948:5 Duplicate key 'Send Bonus'. (no-dupe-keys)
+   L1950:5 Duplicate key 'Remove'. (no-dupe-keys)
+   L1952:5 Duplicate key 'Tap to upload proof of transfer'. (no-dupe-keys)
+   L1953:5 Duplicate key 'Pay to Mechanic'. (no-dupe-keys)
+   L1954:5 Duplicate key 'Assigned Mechanic'. (no-dupe-keys)
+   L1957:5 Duplicate key 'Please contact us for payment details.'. (no-dupe-keys)
+   L1958:5 Duplicate key 'Verified on'. (no-dupe-keys)
+   L1959:5 Duplicate key 'Book service appointments and manage the daily schedule.'. (no-dupe-keys)
+   L1960:5 Duplicate key 'There are no bookings scheduled for this date.'. (no-dupe-keys)
+   L1961:5 Duplicate key 'Unknown Customer'. (no-dupe-keys)
+   L1962:5 Duplicate key 'No Vehicle Selected'. (no-dupe-keys)
+   L1963:5 Duplicate key 'Type customer name'. (no-dupe-keys)
+   L1964:5 Duplicate key 'e.g. Oil change and tire rotation'. (no-dupe-keys)
+   L1965:5 Duplicate key 'Manage mechanics, admins, and permissions securely.'. (no-dupe-keys)
+   L1966:5 Duplicate key 'Add Employee'. (no-dupe-keys)
+   L1967:5 Duplicate key 'Employees'. (no-dupe-keys)
+   L1969:5 Duplicate key 'chat'. (no-dupe-keys)
+   L1970:5 Duplicate key 'New Account'. (no-dupe-keys)
+   L1971:5 Duplicate key 'Flat/Street/Area'. (no-dupe-keys)
+   L1972:5 Duplicate key 'New Password'. (no-dupe-keys)
+   L1973:5 Duplicate key 'Role'. (no-dupe-keys)
+   L1977:5 Duplicate key 'Vehicle Arrived: Service is starting!'. (no-dupe-keys)
+   L1978:5 Duplicate key 'appReqNotify'. (no-dupe-keys)
+   L1979:5 Duplicate key 'appointmentApproved'. (no-dupe-keys)
+   L1980:5 Duplicate key 'appointmentRejected'. (no-dupe-keys)
+   L1981:5 Duplicate key 'appointmentRescheduled'. (no-dupe-keys)
+   L1982:5 Duplicate key 'appCancelNotify'. (no-dupe-keys)
+   L2023:5 Duplicate key 'Sign Out'. (no-dupe-keys)
+FILE: \src\hooks\useGroupWebRTC.js
+   L24:34 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser`, but the source dependencies were [currentUser?.id, groupId]. Inferred less specific property than source.
+
+  22 |   const processedSignals = useRef(new Set());
+  23 |
+> 24 |   const sendSignal = useCallback((toId, payload) => {
+     |                                  ^^^^^^^^^^^^^^^^^^^^
+> 25 |     if (!currentUser?.id || !toId) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 26 |
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 43 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 44 |   }, [currentUser?.id, groupId]);
+     | ^^^^ Could not preserve existing manual memoization
+  45 |
+  46 |   const createPC = useCallback((targetId, isOffer) => {
+  47 |     if (pcsRef.current[targetId]) { (react-hooks/preserve-manual-memoization)
+   L46:43 'isOffer' is defined but never used. (no-unused-vars)
+   L172:18 'e' is defined but never used. (no-unused-vars)
+   L172:21 Empty block statement. (no-empty)
+FILE: \src\hooks\usePageLoader.js
+   L46:7 Error: Cannot access variable before it is declared
+
+`_cleanup` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  44 |     return () => {
+  45 |       mountedRef.current = false;
+> 46 |       _cleanup();
+     |       ^^^^^^^^ `_cleanup` accessed before it is declared
+  47 |     };
+  48 |   }, []);
+  49 |
+
+  48 |   }, []);
+  49 |
+> 50 |   const _cleanup = () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^
+> 51 |     if (abortRef.current) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 52 |       abortRef.current.abort();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 53 |       abortRef.current = null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 54 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 55 |     if (timeoutRef.current) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |       clearTimeout(timeoutRef.current);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |       timeoutRef.current = null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 58 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 59 |   };
+     | ^^^^^ `_cleanup` is declared here
+  60 |
+  61 |   const _safeSet = (setFn, value) => {
+  62 |     if (mountedRef.current) setFn(value); (react-hooks/immutability)
+FILE: \src\hooks\useWebRTC.js
+   L39:52 Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  37 |   const pendingCandidates = useRef([]);             // ICE candidates queued before remote SDP set
+  38 |   const remoteStreamRef = useRef(new MediaStream()); // Persistent stable stream object
+> 39 |   const [remoteStream, setRemoteStream] = useState(remoteStreamRef.current);
+     |                                                    ^^^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  40 |   const [videoState, setVideoState] = useState('idle'); // idle | connecting | waiting | live | camera-off
+  41 |   const [connectionQuality, setConnectionQuality] = useState('good'); // good | fair | poor
+  42 |   const [isReconnecting, setIsReconnecting] = useState(false); (react-hooks/refs)
+   L54:34 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `currentUser`, but the source dependencies were [currentUser?.id, activeCall?.contact?.id]. Inferred less specific property than source.
+
+  52 |
+  53 |   // ── Helper: send a signal via localStorage Signal Queue ───────────────────
+> 54 |   const sendSignal = useCallback((payload) => {
+     |                                  ^^^^^^^^^^^^^^
+> 55 |     if (!currentUser?.id || !activeCall?.contact?.id) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 77 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |   }, [currentUser?.id, activeCall?.contact?.id]);
+     | ^^^^ Could not preserve existing manual memoization
+  79 |
+  80 |   // Perfect Negotiation State
+  81 |   const makingOffer = useRef(false); (react-hooks/preserve-manual-memoization)
+   L54:34 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `activeCall`, but the source dependencies were [currentUser?.id, activeCall?.contact?.id]. Inferred less specific property than source.
+
+  52 |
+  53 |   // ── Helper: send a signal via localStorage Signal Queue ───────────────────
+> 54 |   const sendSignal = useCallback((payload) => {
+     |                                  ^^^^^^^^^^^^^^
+> 55 |     if (!currentUser?.id || !activeCall?.contact?.id) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 77 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |   }, [currentUser?.id, activeCall?.contact?.id]);
+     | ^^^^ Could not preserve existing manual memoization
+  79 |
+  80 |   // Perfect Negotiation State
+  81 |   const makingOffer = useRef(false); (react-hooks/preserve-manual-memoization)
+   L141:7 Error: Cannot access variable before it is declared
+
+`negotiate` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  139 |     pc.onnegotiationneeded = () => {
+  140 |       console.log('[WebRTC] Negotiation needed triggered');
+> 141 |       negotiate();
+      |       ^^^^^^^^^ `negotiate` accessed before it is declared
+  142 |     };
+  143 |
+  144 |     pc.onconnectionstatechange = () => {
+
+  185 |
+  186 |   // ── Create and send an offer (used for initial call and mid-call negotiation)
+> 187 |   const negotiate = useCallback(async () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 188 |     const pc = pcRef.current || createPC();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 189 |     if (pc.signalingState !== 'stable') return;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 206 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 207 |   }, [createPC, sendSignal]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `negotiate` is declared here
+  208 |
+  209 |   const startCall = negotiate;
+  210 | (react-hooks/immutability)
+   L155:9 Error: Cannot access variable before it is declared
+
+`startStatsMonitor` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  153 |         const hasVideo = receivers.some(r => r.track?.kind === 'video' && !r.track.muted);
+  154 |         setVideoState(hasVideo ? 'live' : 'waiting');
+> 155 |         startStatsMonitor(pc);
+      |         ^^^^^^^^^^^^^^^^^ `startStatsMonitor` accessed before it is declared
+  156 |       }
+  157 |
+  158 |       if (state === 'failed' || state === 'disconnected') {
+
+  290 |
+  291 |   // ── Connection Helpers ───────────────────────────────────────────────────
+> 292 |   const startStatsMonitor = (pc) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 293 |     if (statsInterval.current) clearInterval(statsInterval.current);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 294 |     statsInterval.current = setInterval(async () => {
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 307 |     }, 5000);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 308 |   };
+      | ^^^^^ `startStatsMonitor` is declared here
+  309 |
+  310 |   const handleConnectionFailure = useCallback(() => {
+  311 |     if (retryCount.current < MAX_RETRIES) { (react-hooks/immutability)
+   L164:20 'e' is defined but never used. (no-unused-vars)
+   L165:13 Error: Cannot access variable before it is declared
+
+`handleConnectionFailure` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  163 |             // restartIce will trigger onnegotiationneeded
+  164 |           } catch (e) { 
+> 165 |             handleConnectionFailure(); 
+      |             ^^^^^^^^^^^^^^^^^^^^^^^ `handleConnectionFailure` accessed before it is declared
+  166 |           }
+  167 |         } else {
+  168 |           handleConnectionFailure();
+
+  308 |   };
+  309 |
+> 310 |   const handleConnectionFailure = useCallback(() => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 311 |     if (retryCount.current < MAX_RETRIES) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 312 |       retryCount.current += 1;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 323 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 324 |   }, [activeCall, callState, startCall]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `handleConnectionFailure` is declared here
+  325 |
+  326 |   // ── Cleanup ────────────────────────────────────────────────────────────────
+  327 |   const cleanup = useCallback(() => { (react-hooks/immutability)
+   L187:33 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.
+
+  185 |
+  186 |   // ── Create and send an offer (used for initial call and mid-call negotiation)
+> 187 |   const negotiate = useCallback(async () => {
+      |                                 ^^^^^^^^^^^^^
+> 188 |     const pc = pcRef.current || createPC();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 189 |     if (pc.signalingState !== 'stable') return;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 206 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 207 |   }, [createPC, sendSignal]);
+      | ^^^^ Could not preserve existing memoization
+  208 |
+  209 |   const startCall = negotiate;
+  210 | (react-hooks/preserve-manual-memoization)
+   L229:64 'e' is defined but never used. (no-unused-vars)
+   L258:64 'e' is defined but never used. (no-unused-vars)
+   L273:72 'e' is defined but never used. (no-unused-vars)
+   L306:16 'e' is defined but never used. (no-unused-vars)
+   L306:19 Empty block statement. (no-empty)
+   L411:16 'e' is defined but never used. (no-unused-vars)
+   L411:19 Empty block statement. (no-empty)
+   L449:9 'changed' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)
+FILE: \src\services\supabase.js
+   L14:13 'data' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u. (no-unused-vars)

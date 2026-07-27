@@ -7,6 +7,7 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyA3yoT_uCgSbagz4KZiCagJJNB5RNfvx0g",
   authDomain: "mechpro-e98c3.firebaseapp.com",
+  databaseURL: "https://mechpro-e98c3-default-rtdb.firebaseio.com",
   projectId: "mechpro-e98c3",
   storageBucket: "mechpro-e98c3.firebasestorage.app",
   messagingSenderId: "1027862213699",

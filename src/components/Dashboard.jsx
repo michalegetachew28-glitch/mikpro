@@ -287,7 +287,7 @@ const MechanicDashboard = ({ navigate, context, user }) => {
                               style={{ padding: '4px 12px', fontSize: '0.75rem' }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                context.updateItem('repairs', repair.id, { status: 'in-progress' });
+                                context.updateItem('repairs', repair.id, { assignmentStatus: 'accepted', status: 'in-progress' });
                               }}
                             >
                               {t('acceptJob')}
@@ -856,9 +856,10 @@ const Dashboard = () => {
 
   if (!currentUser) return null;
 
-  // While the AppContext is syncing data from the backend, show a
+  // While the AppContext is syncing data from the backend during INITIAL load, show a
   // full‑page skeleton — never render real cards/tables/buttons mid‑load.
-  if (context.isSyncing) {
+  // Background syncs after initial load should not replace the dashboard DOM with skeletons.
+  if (context.isSyncing && !context.isInitialLoadComplete) {
     const cardCountByRole = {
       admin: 6, mechanic: 6, customer: 3, receptionist: 3,
       cashier: 2, storekeeper: 3, inventoryManager: 3, manager: 4, coder: 6

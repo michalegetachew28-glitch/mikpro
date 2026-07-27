@@ -1,0 +1,79 @@
+[
+  {
+    "id": "cmrrvessd0002kre3dkqxco1b",
+    "ownerId": "getachewmichale4@gmail.com",
+    "name": "hhh",
+    "email": "251988888800@mechpro.tmp",
+    "phone": "251988888800",
+    "password": "$2b$10$.NCCchbHi94.uWnXxn7XYeVJMcGqkFUoktCHJkCQiwbPGHUxVDd4O",
+    "role": "customer",
+    "garageName": "kopoii",
+    "address": null,
+    "status": "active",
+    "permissions": [
+      "my_data_view"
+    ],
+    "createdAt": "2026-07-19T14:07:58.521Z",
+    "updatedAt": "2026-07-19T14:07:58.521Z",
+    "expiryDate": null,
+    "garageId": "cmrkpsj4k0000gc8alhyybhl3"
+  },
+  {
+    "id": "cmrtq044g0002g3eujkgy85gm",
+    "ownerId": "getachewmichale4@gmail.com",
+    "name": "erkljgjke",
+    "email": "251963636366@mechpro.staff",
+    "phone": "251963636366",
+    "password": "$2b$10$KigCHJk3B3WuCvjDdJDQEu42ggtOV4wZ4LqYnYYK/PA48j37SzImS",
+    "role": "inventoryManager",
+    "garageName": "kopoii",
+    "address": null,
+    "status": "active",
+    "permissions": [
+      "inventory_manage",
+      "repairs_view"
+    ],
+    "createdAt": "2026-07-20T21:12:07.646Z",
+    "updatedAt": "2026-07-20T21:12:07.646Z",
+    "expiryDate": null,
+    "garageId": "cmrkpsj4k0000gc8alhyybhl3"
+  },
+  {
+    "id": "cmrkpskj10003gc8azcwh20k0",
+    "ownerId": "getachewmichale4@gmail.com",
+    "name": "Michale Getachew",
+    "email": "getachewmichale4@gmail.com",
+    "phone": "251956565656",
+    "password": "$2b$10$NMpV8n4Ar4hqAXqxNs26beZAzajxU7KeJoYD4O5dTeC87wmajYP8S",
+    "role": "admin",
+    "garageName": "kopoii",
+    "address": "diredawa",
+    "status": "active",
+    "permissions": [
+      "all"
+    ],
+    "createdAt": "2026-07-14T13:56:20.076Z",
+    "updatedAt": "2026-07-22T20:21:05.491Z",
+    "expiryDate": "2026-08-21T20:21:05.484Z",
+    "garageId": "cmrkpsj4k0000gc8alhyybhl3"
+  },
+  {
+    "id": "cmrkqhvr5000213f511grxyie",
+    "ownerId": "getachewmichale4@gmail.com",
+    "name": "lop",
+    "email": "251986868585@mechpro.staff",
+    "phone": "251986868585",
+    "password": "$2b$10$wwT8WXD2K5sZhjgG0zJxW.Ud0oM10q9gCvIjXYp5vKGTr4.sjpkEO",
+    "role": "mechanic",
+    "garageName": "kopoii",
+    "address": null,
+    "status": "active",
+    "permissions": [
+      "repairs_view"
+    ],
+    "createdAt": "2026-07-14T14:16:01.019Z",
+    "updatedAt": "2026-07-23T15:45:49.030Z",
+    "expiryDate": null,
+    "garageId": "cmrkpsj4k0000gc8alhyybhl3"
+  }
+]

@@ -1,107 +1,65 @@
 [
   {
-    "id": "cmqqrq53700026s83uend1l6q",
-    "name": "Demo Admin",
+    "id": "cmrf2f9em0002q57q8g1rdxqr",
+    "name": "Miky Owner",
     "email": "demoadmin@garage.com",
     "phone": "251912345678",
     "role": "admin"
   },
   {
-    "id": "cmqqtivrb0002lhleuk3er3ju",
-    "name": "Mich",
-    "email": "getachewmichale46@gmail.com",
-    "phone": "251911223333",
-    "role": "admin"
+    "id": "cmrf2fak60004q57qnxf9to3n",
+    "name": "Telahun Manager",
+    "email": "manager@garage.com",
+    "phone": "251986666666",
+    "role": "manager"
   },
   {
-    "id": "cmqtxsfet0002u2a4ohv30ito",
-    "name": "Michale Getachew",
-    "email": "yechale1216@gmail.com",
-    "phone": "251987360877",
-    "role": "admin"
+    "id": "cmrf2fcbb0008q57qokvhlgx4",
+    "name": "Hirut Cashier",
+    "email": "cashier@garage.com",
+    "phone": "251987888888",
+    "role": "cashier"
   },
   {
-    "id": "cmqu9lwda0002rhpdp2g7vtvp",
-    "name": "Michale Getachew",
-    "email": "yechale126@gmail.com",
-    "phone": "251987368877",
-    "role": "admin"
+    "id": "cmrf2fe19000cq57qj3ejokdo",
+    "name": "Samuel Mechanic",
+    "email": "mechanic@garage.com",
+    "phone": "251984444444",
+    "role": "mechanic"
   },
   {
-    "id": "cmquxzi2m0002aj21096pefk5",
-    "name": "Michale Getachew",
-    "email": "yechale1217@gmail.com",
-    "phone": "251987360870",
-    "role": "admin"
+    "id": "cmrf2ffn5000gq57q9i9jx8le",
+    "name": "Tadesse InvMgr",
+    "email": "inventory@garage.com",
+    "phone": "251985555555",
+    "role": "inventoryManager"
   },
   {
-    "id": "cmquyixgx0002ahg1gwzm6chi",
-    "name": "cdnvfmgb ,",
-    "email": "yechale1210@gmail.com",
-    "phone": "251987360879",
-    "role": "admin"
+    "id": "cmrf2fh1o000kq57qhek21wk6",
+    "name": "Almaz Receptionist",
+    "email": "receptionist@garage.com",
+    "phone": "251944556677",
+    "role": "receptionist"
   },
   {
-    "id": "cmquys2lx0004ahg1wtcs4gs2",
-    "name": "ddd",
-    "email": "yechale16@gmail.com",
-    "phone": "251963636363",
-    "role": "customer"
+    "id": "cmrf2fig2000oq57qw9b5cd6o",
+    "name": "Storekeeper Tadesse",
+    "email": "storekeeper@garage.com",
+    "phone": "251966778899",
+    "role": "storekeeper"
   },
   {
-    "id": "cmr0mz5pv0001ujexvjueb3ye",
-    "name": "miko",
+    "id": "cmrf2fk2y000sq57qk55jlddx",
+    "name": "Dawit Customer",
     "email": "yechale20@gmail.com",
     "phone": "251966666611",
     "role": "customer"
   },
   {
-    "id": "cmr0no0vu0002h0tf3nradnpp",
-    "name": "miko",
-    "email": "251987888888@mechpro.staff",
-    "phone": "251987888888",
-    "role": "cashier"
-  },
-  {
-    "id": "cmr0noo430007h0tffc5f6c2x",
-    "name": "yedg",
-    "email": "251984444444@mechpro.staff",
-    "phone": "251984444444",
-    "role": "mechanic"
-  },
-  {
-    "id": "cmr0npf8g000ch0tfgk04it1t",
-    "name": "nn",
-    "email": "251986666666@mechpro.staff",
-    "phone": "251986666666",
-    "role": "manager"
-  },
-  {
-    "id": "cmr0nw0ps000kh0tf6hmn6jv0",
-    "name": "miko",
-    "email": "251985555555@mechpro.staff",
-    "phone": "251985555555",
-    "role": "inventoryManager"
-  },
-  {
-    "id": "cmr0ym3hd0003sp6bv1jmiq6c",
-    "name": "ccc",
-    "email": "cc@gmail.com",
-    "phone": "251987365252",
-    "role": "admin"
-  },
-  {
-    "id": "cmr0zuvfu0003ovbf2l2l1s17",
-    "name": "Makbel Solomon",
-    "email": "yechale99@gmail.com",
-    "phone": "251987360811",
-    "role": "admin"
-  },
-  {
-    "id": "cmr0zvckf0007ovbfs764pibd",
-    "name": "Test Garage Owner",
-    "email": "testowner_1782844981233@test.com",
-    "phone": "251979391147",
-    "role": "admin"
+    "id": "cmrf2ok490002hmqxvuool97p",
+    "name": "Test Customer AI",
+    "email": "testai_unique@gmail.com",
+    "phone": "251911000099",
+    "role": "customer"
   }
 ]

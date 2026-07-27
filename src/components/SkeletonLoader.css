@@ -172,3 +172,67 @@
 .skeleton-bubble.received {
   width: 65%;
 }
+
+/* -- Composite layout skeletons ------------------------------------- */
+
+.skeleton-dashboard {
+  padding: 0 0 40px;
+  width: 100%;
+}
+
+.skeleton-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 1100px) {
+  .skeleton-content-grid { grid-template-columns: 1fr; }
+}
+
+.skeleton-content-card {
+  background: var(--bg-card, #fff);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] .skeleton-content-card,
+.dark-mode .skeleton-content-card {
+  background: var(--bg-card, #131929);
+}
+
+.skeleton-chart-area {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.skeleton-chart-card {
+  background: var(--bg-card, #fff);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] .skeleton-chart-card,
+.dark-mode .skeleton-chart-card {
+  background: var(--bg-card, #131929);
+}
+
+.skeleton-list-page { padding: 0 0 40px; width: 100%; }
+
+.skeleton-filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.skeleton-search-bar {
+  height: 40px;
+  flex: 1;
+  min-width: 180px;
+  border-radius: 10px;
+}

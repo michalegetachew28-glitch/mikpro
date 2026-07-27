@@ -270,13 +270,19 @@ const CustomerRepairs = () => {
     if (!silent) setLoading(true);
     try {
       const data = await api.getCustomerRepairs();
-      setRepairs(Array.isArray(data) ? data : []);
+      const fresh = Array.isArray(data) ? data : [];
+      setRepairs(prev => {
+        try {
+          if (prev.length === fresh.length && JSON.stringify(prev) === JSON.stringify(fresh)) return prev;
+        } catch(e) {}
+        return fresh;
+      });
       setLastUpdated(new Date());
     } catch (err) {
       if (!silent) addNotification('Failed to load your repair orders.', 'error');
       console.error('CustomerRepairs fetch error:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [addNotification]);
 

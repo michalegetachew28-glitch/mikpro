@@ -3,23 +3,26 @@ import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { 
   ClipboardList, Search, Filter, CheckCircle2, XCircle, Clock, 
-  Package, User, Car, Wrench, AlertCircle, ArrowRight,
+  Package, User, Car, Wrench, AlertCircle, ArrowRight, Plus, ShoppingCart,
   Check, Edit3, Trash2, MoreVertical, Eye, Truck, AlertTriangle, X, FileText, Smartphone, ChevronRight, DollarSign, Store
 } from 'lucide-react';
 import CustomerProfileModal from './CustomerProfileModal';
+import { SkeletonPageHeader, SkeletonCardGrid } from './SkeletonLoader';
 import './MaterialRequests.css';
 
 const MaterialRequests = () => {
   const { 
     materialRequests, inventory, repairs, vehicles, customers, staff, invoices,
     updateItem, deleteItem, addItem, addNotification, logActivity,
-    t, language, formatDate, formatTime, requestConfirmation, generateInvoice
+    t, language, formatDate, formatTime, requestConfirmation, generateInvoice,
+    isSyncing, isInitialLoadComplete
   } = useAppContext();
   const { currentUser } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [mechanicFilter, setMechanicFilter] = useState('all');
+  const [partFilter, setPartFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
@@ -32,9 +35,152 @@ const MaterialRequests = () => {
   });
   const [generatingId, setGeneratingId] = useState(null);
 
+  // New Material Request Creation Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedRepairId, setSelectedRepairId] = useState('');
+  const [partSearchTerm, setPartSearchTerm] = useState('');
+  const [partCategoryFilter, setPartCategoryFilter] = useState('all');
+  const [partAvailabilityFilter, setPartAvailabilityFilter] = useState('in-stock');
+  const [requestBasket, setRequestBasket] = useState([]);
+  const [requestNotes, setRequestNotes] = useState('');
+  const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+
   const userRole = currentUser?.role?.toLowerCase() || '';
   const isStorekeeper = ['storekeeper', 'inventorymanager', 'inventory manager', 'manager', 'admin', 'coder'].includes(userRole);
   const isMechanic = userRole === 'mechanic';
+
+  // Derived categories from inventory
+  const inventoryCategories = useMemo(() => {
+    const cats = new Set((inventory || []).map(i => i.category).filter(Boolean));
+    return Array.from(cats);
+  }, [inventory]);
+
+  // Derived available inventory matching search & filters
+  const filteredInventory = useMemo(() => {
+    return (inventory || []).filter(item => {
+      const partName = (item.name || item.partName || '').toLowerCase();
+      const catName = (item.category || '').toLowerCase();
+      const sTerm = partSearchTerm.toLowerCase();
+      
+      const searchMatch = !partSearchTerm || partName.includes(sTerm) || catName.includes(sTerm);
+      const catMatch = partCategoryFilter === 'all' || item.category === partCategoryFilter;
+
+      const qty = parseInt(item.quantity || 0, 10);
+      const minStock = parseInt(item.minStock || item.threshold || 5, 10);
+
+      let availMatch = true;
+      if (partAvailabilityFilter === 'in-stock') {
+        availMatch = qty > 0;
+      } else if (partAvailabilityFilter === 'low-stock') {
+        availMatch = qty > 0 && qty <= minStock;
+      }
+
+      return searchMatch && catMatch && availMatch;
+    });
+  }, [inventory, partSearchTerm, partCategoryFilter, partAvailabilityFilter]);
+
+  // Mechanic's active repair orders
+  const mechanicRepairs = useMemo(() => {
+    return (repairs || []).filter(r => {
+      if (isMechanic) {
+        return String(r.mechanicId) === String(currentUser?.id) && r.status !== 'completed' && r.status !== 'delivered' && r.status !== 'cancelled';
+      }
+      return r.status !== 'completed' && r.status !== 'delivered' && r.status !== 'cancelled';
+    });
+  }, [repairs, isMechanic, currentUser]);
+
+  const handleAddToBasket = (part, qty = 1) => {
+    const stock = parseInt(part.quantity || 0, 10);
+    if (stock <= 0) {
+      alert(t("This part is out of stock."));
+      return;
+    }
+
+    setRequestBasket(prev => {
+      const existing = prev.find(item => String(item.partId) === String(part.id));
+      if (existing) {
+        const newQty = Math.min(existing.requestedQty + qty, stock);
+        return prev.map(item => String(item.partId) === String(part.id) ? { ...item, requestedQty: newQty } : item);
+      }
+      return [...prev, {
+        partId: part.id,
+        partName: part.name || part.partName || 'Part',
+        category: part.category || 'General',
+        price: parseFloat(part.price || 0),
+        availableStock: stock,
+        requestedQty: Math.min(qty, stock)
+      }];
+    });
+  };
+
+  const handleUpdateBasketQty = (partId, qty) => {
+    setRequestBasket(prev => prev.map(item => {
+      if (String(item.partId) === String(partId)) {
+        const parsed = parseInt(qty, 10);
+        const validQty = isNaN(parsed) ? 1 : Math.max(1, Math.min(parsed, item.availableStock));
+        return { ...item, requestedQty: validQty };
+      }
+      return item;
+    }));
+  };
+
+  const handleRemoveFromBasket = (partId) => {
+    setRequestBasket(prev => prev.filter(item => String(item.partId) !== String(partId)));
+  };
+
+  const handleSubmitBatchRequest = async (e) => {
+    e.preventDefault();
+    if (!selectedRepairId) {
+      alert(t("Please select a Repair Order for this material request."));
+      return;
+    }
+    if (requestBasket.length === 0) {
+      alert(t("Please select at least one available part to request."));
+      return;
+    }
+
+    setIsSubmittingBatch(true);
+    try {
+      for (const item of requestBasket) {
+        await addItem('materialRequests', {
+          partId: item.partId,
+          repairId: selectedRepairId,
+          requestedQty: item.requestedQty,
+          notes: requestNotes.trim()
+        });
+      }
+
+      addNotification(
+        `📦 ${t("Submitted")} ${requestBasket.length} ${t("material requests for Repair")} #${selectedRepairId}`,
+        'success',
+        null,
+        '/material-requests'
+      );
+
+      // Notify Storekeepers / Managers
+      const managers = (staff || []).filter(s => ['storekeeper', 'inventorymanager', 'inventory manager', 'manager', 'admin'].includes(s.role?.toLowerCase()));
+      managers.forEach(mgr => {
+        addNotification(
+          `🔔 ${currentUser?.name || 'Mechanic'} submitted ${requestBasket.length} new material request(s) for Repair #${selectedRepairId}`,
+          'info',
+          mgr.id,
+          '/material-requests'
+        );
+      });
+
+      logActivity('Material Requests Created', `${currentUser?.name} requested ${requestBasket.length} parts for Repair #${selectedRepairId}`);
+
+      // Reset modal state
+      setRequestBasket([]);
+      setRequestNotes('');
+      setShowCreateModal(false);
+    } catch (err) {
+      console.error("Failed to submit batch material request", err);
+      alert(t("Failed to submit material request. Please try again."));
+    } finally {
+      setIsSubmittingBatch(false);
+    }
+  };
   
   const getStatusConfig = (status) => {
     const s = status?.toLowerCase();
@@ -71,9 +217,12 @@ const MaterialRequests = () => {
       const repair = (repairs || []).find(r => r.id === req.repairId);
       const vehicle = repair ? (vehicles || []).find(v => v.id === repair.vehicleId) : null;
       const vehicleName = vehicle ? `${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.plate || vehicle.plateNumber || ''}`.toLowerCase() : '';
+      const mechanic = (staff || []).find(s => s.id === req.mechanicId);
+      const mechanicName = mechanic ? mechanic.name.toLowerCase() : '';
       
       const searchMatch = partName.includes(searchTerm.toLowerCase()) || 
                           vehicleName.includes(searchTerm.toLowerCase()) ||
+                          mechanicName.includes(searchTerm.toLowerCase()) ||
                           (req.repairId || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       // Status filter
@@ -81,10 +230,13 @@ const MaterialRequests = () => {
       
       // Mechanic filter
       const mechMatch = mechanicFilter === 'all' || String(req.mechanicId) === String(mechanicFilter);
+
+      // Part filter
+      const partMatch = partFilter === 'all' || String(req.partId) === String(partFilter);
       
-      return searchMatch && statusMatch && mechMatch;
+      return searchMatch && statusMatch && mechMatch && partMatch;
     }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [materialRequests, inventory, repairs, vehicles, searchTerm, statusFilter, mechanicFilter, currentUser, isMechanic]);
+  }, [materialRequests, inventory, repairs, vehicles, staff, searchTerm, statusFilter, mechanicFilter, partFilter, currentUser, isMechanic, isStorekeeper, userRole]);
 
   const handleReview = (req) => {
     setSelectedRequest(req);
@@ -312,6 +464,130 @@ const MaterialRequests = () => {
     );
   };
 
+  // Skeleton guard — only show skeleton on very first load
+  if (isSyncing && !isInitialLoadComplete) {
+    return (
+      <div className="page-content material-requests-page">
+        <SkeletonPageHeader />
+        <div style={{ marginTop: 16 }}>
+          <SkeletonCardGrid count={4} />
+        </div>
+      </div>
+    );
+  }
+
+  // Mechanic guard — mechanics cannot manage requests here, they submit via Repair Orders
+  if (isMechanic) {
+    return (
+      <div className="page-content material-requests-page">
+        <div className="page-header">
+          <div className="header-title">
+            <div className="icon-wrapper"><ClipboardList size={28} /></div>
+            <div>
+              <h1>{t('materialRequests')}</h1>
+              <p className="subtitle">{t('Your submitted material requests.')}</p>
+            </div>
+          </div>
+        </div>
+        <div style={{ background: 'rgba(67,97,238,0.06)', border: '1px solid rgba(67,97,238,0.2)', borderRadius: 14, padding: '18px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Package size={24} color="var(--primary)" />
+          <div>
+            <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: 4 }}>
+              {t('To request materials, go to your Repair Order card and tap "Request Materials".')}
+            </strong>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              {t('Below are your submitted requests and their current status.')}
+            </span>
+          </div>
+        </div>
+        <div className="requests-grid">
+          {filteredRequests.length === 0 ? (
+            <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+              <Package size={48} />
+              <p>{t('No material requests found.')}</p>
+            </div>
+          ) : (
+            filteredRequests.map(req => {
+              const part = (inventory || []).find(i => String(i.id) === String(req.partId));
+              const repair = (repairs || []).find(r => String(r.id) === String(req.repairId));
+              const vehicle = repair ? (vehicles || []).find(v => String(v.id) === String(repair.vehicleId)) : null;
+              return (
+                <div className={`request-card status-border-${getStatusConfig(req.status).color}`} key={req.id}>
+                  <div className="card-header" style={{ paddingBottom: 0 }}>
+                    <div className="part-info">
+                      <h3 style={{ fontSize: '0.95rem', margin: 0 }}>{part?.name || 'Unknown Part'}</h3>
+                      <span className="req-id">#{req.id.slice(-6).toUpperCase()}</span>
+                    </div>
+                    {getStatusBadge(req.status)}
+                  </div>
+                  <div className="card-body">
+                    <div className="info-grid">
+                      <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                        <Car size={13} />
+                        <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                          {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle'}
+                          {vehicle?.plate && (
+                            <span style={{ marginLeft: 6, color: 'var(--primary)', background: 'rgba(67,97,238,0.1)', padding: '1px 5px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+                              {vehicle.plate}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <Clock size={13} />
+                        <span style={{ fontSize: '0.78rem' }}>{formatDate(req.timestamp)}</span>
+                      </div>
+                      <div className="info-item">
+                        <Package size={13} />
+                        <span style={{ fontSize: '0.78rem' }}>{t('Qty')}: {req.requestedQty}</span>
+                      </div>
+                    </div>
+                    <div className="qty-tracking">
+                      <div className="qty-item">
+                        <span className="label">{t('Requested')}</span>
+                        <span className="value">{req.requestedQty}</span>
+                      </div>
+                      <div className="qty-item highlight">
+                        <span className="label">{t('approvedQty')}</span>
+                        <span className="value">{req.approvedQty || 0}</span>
+                      </div>
+                      <div className="qty-item success">
+                        <span className="label">{t('Total Cost')}</span>
+                        <span className="value">${(req.approvedQty || 0) * (part?.price || 0)}</span>
+                      </div>
+                    </div>
+                    {req.notes && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: 4 }}>
+                        {req.notes}
+                      </div>
+                    )}
+                  </div>
+                  {req.status === 'pending' && (
+                    <div className="card-footer">
+                      <button className="btn-outline-danger" style={{ fontSize: '0.8rem', padding: '7px 14px' }} onClick={() => requestConfirmation(t('areYouSure'), () => deleteItem('materialRequests', req.id))}>
+                        <Trash2 size={14} /> {t('cancel')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Unique parts for filter dropdown
+  const partOptions = Array.from(
+    new Map(
+      (materialRequests || []).map(r => {
+        const p = (inventory || []).find(i => i.id === r.partId);
+        return [r.partId, p?.name || r.partId];
+      })
+    ).entries()
+  );
+
   return (
     <div className="page-content material-requests-page">
       <div className="page-header">
@@ -365,6 +641,16 @@ const MaterialRequests = () => {
               </select>
             </div>
           )}
+
+          <div className="filter-item">
+            <Package size={16} />
+            <select value={partFilter} onChange={(e) => setPartFilter(e.target.value)}>
+              <option value="all">{t('All Parts')}</option>
+              {partOptions.map(([id, name]) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -376,17 +662,17 @@ const MaterialRequests = () => {
           </div>
         ) : (
           filteredRequests.map(req => {
-            const part = (inventory || []).find(i => i.id === req.partId);
-            const repair = (repairs || []).find(r => r.id === req.repairId);
-            const vehicle = repair ? (vehicles || []).find(v => v.id === repair.vehicleId) : null;
-            const mechanic = (staff || []).find(s => s.id === req.mechanicId);
-            const customer = vehicle ? (customers || []).find(c => c.id === vehicle.customerId) : null;
+            const part = (inventory || []).find(i => String(i.id) === String(req.partId));
+            const repair = (repairs || []).find(r => String(r.id) === String(req.repairId));
+            const vehicle = repair ? (vehicles || []).find(v => String(v.id) === String(repair.vehicleId)) : null;
+            const mechanic = (staff || []).find(s => String(s.id) === String(req.mechanicId));
+            const customer = vehicle ? (customers || []).find(c => String(c.id) === String(vehicle.customerId)) : null;
 
             return (
               <div className={`request-card status-border-${getStatusConfig(req.status).color}`} key={req.id}>
-                <div className="card-header">
+                <div className="card-header" style={{ paddingBottom: 0 }}>
                   <div className="part-info">
-                    <h3>{part?.name || 'Unknown Part'}</h3>
+                    <h3 style={{ fontSize: '0.95rem', margin: 0 }}>{part?.name || 'Unknown Part'}</h3>
                     <span className="req-id">#{req.id.slice(-6).toUpperCase()}</span>
                   </div>
                   {getStatusBadge(req.status)}
@@ -394,69 +680,74 @@ const MaterialRequests = () => {
 
                 <div className="card-body">
                   <div className="info-grid">
-                    <div className="info-item">
-                      <Wrench size={14} />
-                      <span>{t('repair')}: #{req.repairId}</span>
-                    </div>
-                    <div className="info-item" title={vehicle ? `${vehicle.plate} - ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle'}>
-                      <Car size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden', width: '100%' }}>
-                        {vehicle ? (
-                          <>
-                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                              {vehicle.make} {vehicle.model}
+                    <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                      <Car size={13} style={{ flexShrink: 0 }} />
+                      {vehicle ? (
+                        <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                          {vehicle.make} {vehicle.model}
+                          {vehicle.plate && (
+                            <span style={{ marginLeft: 6, color: 'var(--primary)', background: 'rgba(67,97,238,0.1)', padding: '1px 5px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+                              {vehicle.plate || vehicle.plateNumber}
                             </span>
-                            <span style={{ color: 'var(--primary)', fontWeight: 800, background: 'rgba(67, 97, 238, 0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', width: 'fit-content' }}>
-                              {vehicle.plate}
-                            </span>
-                          </>
-                        ) : <span>Unknown Vehicle</span>}
-                      </div>
+                          )}
+                        </span>
+                      ) : <span>Unknown Vehicle</span>}
                     </div>
                     <div className="info-item">
-                      <User size={14} />
-                      <span>{mechanic?.name || 'Unknown Mechanic'}</span>
+                      <User size={13} />
+                      <span style={{ fontSize: '0.78rem' }}>{mechanic?.name || '—'}</span>
                     </div>
                     <div className="info-item">
-                      <Clock size={14} />
-                      <span>{formatDate(req.timestamp)} {formatTime(req.timestamp)}</span>
+                      <Clock size={13} />
+                      <span style={{ fontSize: '0.78rem' }}>{formatDate(req.timestamp)}</span>
+                    </div>
+                    <div className="info-item" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                      <Store size={13} />
+                      <span style={{ fontSize: '0.78rem' }}>{staff.find(s => String(s.id) === String(req.managerId))?.name || t('Unassigned Shop')}</span>
                     </div>
                     {req.status === 'picked-up' && (
                       <div className="info-item">
-                        <DollarSign size={14} />
-                        <span className={`payment-status ${req.paymentStatus || 'unpaid'}`}>
+                        <DollarSign size={13} />
+                        <span className={`payment-status ${req.paymentStatus || 'unpaid'}`} style={{ fontSize: '0.78rem' }}>
                           {t(req.paymentStatus === 'paid' ? 'paymentPaid' : req.paymentStatus === 'partial' ? 'paymentPartiallyPaid' : 'paymentUnpaid')}
                         </span>
                       </div>
                     )}
-                    <div className="info-item" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                      <Store size={14} />
-                      <span>{staff.find(s => String(s.id) === String(req.managerId))?.name || (t("Unassigned Shop"))}</span>
-                    </div>
                   </div>
 
                   <div className="qty-tracking">
                     <div className="qty-item">
-                      <span className="label">{t("Unit Price")}</span>
-                      <span className="value">${part?.price || 0}</span>
+                      <span className="label">{t('Unit Price')}</span>
+                      <span className="value" style={{ fontSize: '0.95rem' }}>${part?.price || 0}</span>
                     </div>
                     <div className="qty-item highlight">
                       <span className="label">{t('approvedQty')}</span>
-                      <span className="value">{req.approvedQty || 0}</span>
+                      <span className="value" style={{ fontSize: '0.95rem' }}>{req.approvedQty || 0}</span>
                     </div>
                     <div className="qty-item success">
-                      <span className="label">{t("Total Cost")}</span>
-                      <span className="value">${(req.approvedQty || 0) * (part?.price || 0)}</span>
+                      <span className="label">{t('Total Cost')}</span>
+                      <span className="value" style={{ fontSize: '0.95rem' }}>${(req.approvedQty || 0) * (part?.price || 0)}</span>
                     </div>
                   </div>
 
-                  <div className="customer-link" onClick={() => handleOpenCustomer(req)}>
+                  {/* Customer clickable button — shows name + vehicle plate */}
+                  <div
+                    className="customer-link"
+                    onClick={() => handleOpenCustomer(req)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <span className="label">{t('customer')}:</span>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                       <span className="name">
-                         <User size={14} /> {customer?.name || 'Walk-in'}
-                       </span>
-                       <ChevronRight size={14} color="var(--primary)" />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                      <span className="name" style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 700, fontSize: '0.88rem' }}>
+                        <User size={13} />
+                        {customer?.name || 'Walk-in'}
+                        {vehicle && (
+                          <span style={{ marginLeft: 4, color: 'var(--primary)', background: 'rgba(67,97,238,0.1)', padding: '1px 5px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+                            {vehicle.plate || vehicle.plateNumber}
+                          </span>
+                        )}
+                      </span>
+                      <ChevronRight size={13} color="var(--primary)" />
                     </div>
                   </div>
                 </div>
@@ -606,6 +897,209 @@ const MaterialRequests = () => {
           isSubmitting={generatingId === selectedRequest?.id}
           isBillSent={invoices.some(inv => String(inv.materialRequestId) === String(selectedRequest?.id))}
         />
+      )}
+
+      {/* CREATE MATERIAL REQUEST MODAL FOR MECHANICS / STOREKEEPERS */}
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content create-material-modal">
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Package size={22} color="var(--primary)" />
+                {t('Request Materials')}
+              </h2>
+              <button className="close-btn" onClick={() => setShowCreateModal(false)}>&times;</button>
+            </div>
+
+            <form onSubmit={handleSubmitBatchRequest} className="modal-form create-material-form">
+              {/* Repair Order Selector */}
+              <div className="form-group highlight-form-group">
+                <label className="section-label" style={{ fontWeight: 700 }}>
+                  <Wrench size={16} /> {t('Select Repair Order')} <span className="required">*</span>
+                </label>
+                <select 
+                  value={selectedRepairId} 
+                  onChange={(e) => setSelectedRepairId(e.target.value)}
+                  required
+                  className="custom-select"
+                >
+                  <option value="">-- {t('Choose Active Repair Order')} --</option>
+                  {mechanicRepairs.map(r => {
+                    const vehicle = (vehicles || []).find(v => String(v.id) === String(r.vehicleId));
+                    return (
+                      <option key={r.id} value={r.id}>
+                        #{r.id.slice(-6).toUpperCase()} — {vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.plate || vehicle.plateNumber})` : `Repair #${r.id}`}
+                      </option>
+                    );
+                  })}
+                </select>
+                {mechanicRepairs.length === 0 && (
+                  <small className="help-text text-warning">
+                    ⚠️ {t("No active assigned repairs found. You must be assigned to an active repair order to request materials.")}
+                  </small>
+                )}
+              </div>
+
+              {/* Parts Browser Filters */}
+              <div className="parts-browser-section">
+                <div className="section-header">
+                  <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Search size={16} /> {t("Browse In-Stock Parts")}
+                  </h4>
+                </div>
+
+                <div className="parts-filter-bar">
+                  <div className="search-box mini-search">
+                    <Search size={15} />
+                    <input 
+                      type="text" 
+                      placeholder={t("Search part name or category...")} 
+                      value={partSearchTerm}
+                      onChange={(e) => setPartSearchTerm(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="filter-item mini-filter">
+                    <Filter size={14} />
+                    <select value={partCategoryFilter} onChange={(e) => setPartCategoryFilter(e.target.value)}>
+                      <option value="all">{t("All Categories")}</option>
+                      {inventoryCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="filter-item mini-filter">
+                    <Package size={14} />
+                    <select value={partAvailabilityFilter} onChange={(e) => setPartAvailabilityFilter(e.target.value)}>
+                      <option value="in-stock">{t("In Stock Only")}</option>
+                      <option value="low-stock">{t("Low Stock Only")}</option>
+                      <option value="all">{t("All Parts (Incl. Out of Stock)")}</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Available Inventory Grid */}
+                <div className="available-parts-list">
+                  {filteredInventory.length === 0 ? (
+                    <div className="empty-parts-state">
+                      <AlertCircle size={24} />
+                      <p>{t("No matching available inventory parts found.")}</p>
+                    </div>
+                  ) : (
+                    filteredInventory.map(part => {
+                      const stock = parseInt(part.quantity || 0, 10);
+                      const inBasket = requestBasket.find(b => String(b.partId) === String(part.id));
+                      const isOutOfStock = stock <= 0;
+
+                      return (
+                        <div key={part.id} className={`part-browser-card ${isOutOfStock ? 'out-of-stock-card' : ''}`}>
+                          <div className="part-card-main">
+                            <div className="part-title-area">
+                              <span className="part-name-text">{part.name || part.partName}</span>
+                              <span className="part-category-tag">{part.category || 'General'}</span>
+                            </div>
+                            <div className="part-meta-area">
+                              <span className="part-price-tag">${parseFloat(part.price || 0).toFixed(2)}</span>
+                              <span className={`stock-badge ${isOutOfStock ? 'badge-out' : stock <= 5 ? 'badge-low' : 'badge-in'}`}>
+                                {isOutOfStock ? t("Out of Stock") : `${stock} ${t("in stock")}`}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="part-action-area">
+                            {isOutOfStock ? (
+                              <span className="unavailable-text">{t("Not Selectable")}</span>
+                            ) : (
+                              <button 
+                                type="button" 
+                                className={`btn-add-part ${inBasket ? 'in-basket' : ''}`}
+                                onClick={() => handleAddToBasket(part, 1)}
+                              >
+                                {inBasket ? <Check size={14} /> : <Plus size={14} />}
+                                {inBasket ? `${t("In Cart")} (${inBasket.requestedQty})` : t("Add to Request")}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Request Basket Summary */}
+              {requestBasket.length > 0 && (
+                <div className="request-basket-summary">
+                  <div className="basket-header">
+                    <span className="basket-title">
+                      <ShoppingCart size={16} /> {t("Selected Parts Basket")} ({requestBasket.length})
+                    </span>
+                    <span className="basket-total">
+                      {t("Total Cost")}: ${requestBasket.reduce((sum, item) => sum + (item.price * item.requestedQty), 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="basket-items-list">
+                    {requestBasket.map(item => (
+                      <div key={item.partId} className="basket-item-row">
+                        <div className="basket-part-info">
+                          <span className="basket-part-name">{item.partName}</span>
+                          <span className="basket-part-sub">${item.price} / unit — Max: {item.availableStock}</span>
+                        </div>
+                        <div className="basket-qty-controls">
+                          <input 
+                            type="number" 
+                            min="1" 
+                            max={item.availableStock}
+                            value={item.requestedQty}
+                            onChange={(e) => handleUpdateBasketQty(item.partId, e.target.value)}
+                            className="basket-qty-input"
+                          />
+                          <button 
+                            type="button" 
+                            className="basket-remove-btn"
+                            onClick={() => handleRemoveFromBasket(item.partId)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Notes */}
+              <div className="form-group">
+                <label>{t("Request Notes / Reason")}</label>
+                <textarea 
+                  value={requestNotes}
+                  onChange={(e) => setRequestNotes(e.target.value)}
+                  placeholder={t("Enter any notes for the Inventory Manager (e.g. urgent, specific brand)...")}
+                  rows={2}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-text" onClick={() => setShowCreateModal(false)}>
+                  {t('cancel')}
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary" 
+                  disabled={isSubmittingBatch || requestBasket.length === 0 || !selectedRepairId}
+                >
+                  {isSubmittingBatch ? (
+                    <><div className="spinner-small" style={{ marginRight: 8 }} /> {t("Submitting...")}</>
+                  ) : (
+                    <><Plus size={16} style={{ marginRight: 6 }} /> {t("Submit Material Request")}</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

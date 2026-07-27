@@ -1,32 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Wrench, Search, Plus, Edit2, Trash2, Calendar as CalendarIcon, DollarSign, Clock, CheckCircle2, MessageSquare, Package, Check, X, Mic, Square, Play, Store, ShoppingCart, ChevronDown, ChevronUp, Filter, Car, AlertCircle as AlertCircleIcon, Navigation, MapPin, History, Layout, List } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Wrench, Search, Plus, Edit2, Trash2, Calendar as CalendarIcon, DollarSign, Clock, CheckCircle2, MessageSquare, Package, Check, X, Mic, Square, Play, Store, ShoppingCart, ChevronDown, ChevronUp, Filter, Car, AlertCircle as AlertCircleIcon, Navigation, MapPin, History, Layout, List, FileText, Eye, UserCheck } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { storeMedia, getMedia } from '../utils/idbStorage';
 import { toEthiopian, formatEthiopianDate } from '../utils/ethiopianDate';
+import EthiopianSelector from './EthiopianSelector';
+import { SkeletonListPage } from './SkeletonLoader';
+import ErrorState from './ErrorState';
 import './Repairs.css';
 
 const Repairs = () => {
-  const { 
+  const {
     repairs, vehicles, customers, staff, inventory,
     deleteItem, addItem, updateItem, addNotification,
     t, language, formatDate, handleRepairStatusChange,
-    requestConfirmation, openChatWith, logActivity
+    requestConfirmation, openChatWith, logActivity,
+    isSyncing, isInitialLoadComplete
   } = useAppContext();
   const { currentUser } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Register Vehicle Modal State
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerTarget, setRegisterTarget] = useState(null); // repair obj
+  const [regForm, setRegForm] = useState({ make: '', model: '', year: '', color: '', plateNumber: '', vin: '' });
+  const [regSubmitting, setRegSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ 
+  const [formData, setFormData] = useState({
     vehicleId: '', mechanicId: '', dateIn: new Date().toISOString().split('T')[0], status: 'pending', notes: '', laborCost: 0,
     isRoadside: false, location: null
   });
-  
+
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestTarget, setRequestTarget] = useState(null); // The repair job
-  
+
   // Multi-Shop Request State
   const [shopSearchTerm, setShopSearchTerm] = useState('');
   const [selectedShopId, setSelectedShopId] = useState('all'); // 'all' or specific managerId
@@ -46,11 +57,16 @@ const Repairs = () => {
   const audioChunksRef = useRef([]);
   const recordingStreamRef = useRef(null);
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Completion notes modal
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [completeTarget, setCompleteTarget] = useState(null);
+  const [completeNotes, setCompleteNotes] = useState('');
   const [viewMode, setViewMode] = useState('history'); // 'kanban' or 'history'
   const [dateFilter, setDateFilter] = useState('today'); // 'today', 'week', 'month', 'year', 'custom'
-  const [customRange, setCustomRange] = useState({ 
-    start: new Date().toISOString().split('T')[0], 
-    end: new Date().toISOString().split('T')[0] 
+  const [customRange, setCustomRange] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
   });
   const [custSearch, setCustSearch] = useState('');
   const [showVehResults, setShowVehResults] = useState(false);
@@ -67,7 +83,7 @@ const Repairs = () => {
     } else if (location.state?.showAddModal) {
       handleOpenModal();
     }
-    
+
     // Listen for sidebar actions
     const handleSidebarAction = (e) => {
       if (e.detail?.type === 'new-repair') {
@@ -78,7 +94,7 @@ const Repairs = () => {
 
     // Clear state to avoid re-opening on refresh
     window.history.replaceState({}, document.title);
-    
+
     return () => window.removeEventListener('sidebar-action', handleSidebarAction);
   }, [location.state, customers]);
 
@@ -94,7 +110,7 @@ const Repairs = () => {
       const vehicle = (vehicles || []).find(v => v.id === r.vehicleId);
       return vehicle && String(vehicle.customerId) === String(currentUser?.id);
     }
-    
+
     // Admin, Receptionist, Cashier see all in their garage
     return true;
   }).filter(r => {
@@ -165,15 +181,15 @@ const Repairs = () => {
 
   const handleOpenModal = (repair = null) => {
     if (repair) {
-      setFormData({ 
-        vehicleId: repair.vehicleId, mechanicId: repair.mechanicId, dateIn: repair.dateIn, 
+      setFormData({
+        vehicleId: repair.vehicleId, mechanicId: repair.mechanicId, dateIn: repair.dateIn,
         status: repair.status, notes: repair.notes, laborCost: repair.laborCost,
         ownerId: repair.ownerId, isRoadside: repair.isRoadside || false, location: repair.location || null
       });
       setEditingId(repair.id);
     } else {
-      setFormData({ 
-        vehicleId: '', mechanicId: staff.find(s => s.role === 'mechanic' || s.role === 'manager')?.id || '', 
+      setFormData({
+        vehicleId: '', mechanicId: staff.find(s => s.role === 'mechanic' || s.role === 'manager')?.id || '',
         dateIn: new Date().toISOString().split('T')[0], status: 'pending', notes: '', laborCost: 0,
         ownerId: currentUser?.ownerId, isRoadside: false, location: null
       });
@@ -253,7 +269,7 @@ const Repairs = () => {
   };
 
   const updateBasketQty = (partId, qtyStr) => {
-    setRequestBasket(requestBasket.map(item => 
+    setRequestBasket(requestBasket.map(item =>
       item.partId === partId ? { ...item, qty: qtyStr === '' ? '' : parseInt(qtyStr) || 0 } : item
     ));
   };
@@ -276,7 +292,7 @@ const Repairs = () => {
           id: `mr${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
           repairId: requestTarget.id,
           mechanicId: currentUser.id,
-          managerId: mId === 'warehouse' ? null : mId, 
+          managerId: mId === 'warehouse' ? null : mId,
           partId: item.partId,
           requestedQty: item.qty,
           status: 'pending',
@@ -410,12 +426,117 @@ const Repairs = () => {
     }
   };
 
+  // Mechanic completes a job with notes
+  const handleMarkCompleted = async (repair, notes) => {
+    try {
+      await updateItem('repairs', repair.id, {
+        status: 'completed',
+        completionNotes: notes,
+      });
+      // Notify customer and admin
+      const vehicle = (vehicles || []).find(v => String(v.id) === String(repair.vehicleId));
+      const owner = vehicle ? (customers || []).find(c => String(c.id) === String(vehicle.customerId)) : null;
+      if (owner) {
+        addNotification(`Your vehicle (${vehicle?.make} ${vehicle?.model}) repair has been completed!`, 'success', owner.id, '/repairs');
+      }
+      const admins = (staff || []).filter(s => s.role === 'admin' || s.role === 'manager');
+      admins.forEach(a => addNotification(`Repair #${repair.id} marked as completed by ${currentUser?.name}`, 'success', a.id, '/repairs'));
+      logActivity('Repair Completed', `${currentUser.name} marked Repair #${repair.id} as completed. Notes: ${notes || 'None'}`);
+
+      // Auto redirect to Billing for invoice creation if user has permissions
+      if (['admin', 'manager', 'cashier'].includes(currentUser?.role)) {
+        navigate('/billing', { state: { repairId: repair.id, prefillCustomer: owner?.id } });
+      } else {
+        addNotification(t('Job completed and sent to billing'), 'success');
+      }
+    } catch (err) {
+      addNotification('Failed to mark repair as completed.', 'error');
+    }
+  };
+
+  // Navigate to billing with pre-filled repair data
+  const handleCreateInvoice = (repair) => {
+    const vehicle = (vehicles || []).find(v => v.id === repair.vehicleId);
+    const customer = vehicle ? (customers || []).find(c => String(c.id) === String(vehicle?.customerId)) : null;
+    const mechanic = (staff || []).find(s => String(s.id) === String(repair.mechanicId));
+
+    navigate('/billing', {
+      state: {
+        prefillInvoice: {
+          repairId: repair.id,
+          customerId: customer?.id || '',
+          customerName: customer?.name || '',
+          customerPhone: customer?.phone || '',
+          customerAddress: customer?.address || '',
+          vehicleId: vehicle?.id || '',
+          vehicleInfo: vehicle ? `${vehicle.year || ''} ${vehicle.make || ''} ${vehicle.model || ''}`.trim() : '',
+          vehiclePlate: vehicle?.plateNumber || vehicle?.plate || '',
+          laborCost: repair.laborCost || 0,
+          mechanicId: mechanic?.id || repair.mechanicId || '',
+          mechanicName: mechanic?.name || '',
+        }
+      }
+    });
+  };
+
+  const handleOpenRegisterVehicle = (repair) => {
+    const vehicle = (vehicles || []).find(v => v.id === repair.vehicleId);
+    const customer = vehicle ? (customers || []).find(c => String(c.id) === String(vehicle?.customerId)) : null;
+    setRegisterTarget({ repair, vehicle, customer });
+    setRegForm({
+      make: vehicle?.make || '',
+      model: vehicle?.model || '',
+      year: vehicle?.year || '',
+      color: vehicle?.color || '',
+      plateNumber: vehicle?.plateNumber || vehicle?.plate || '',
+      vin: vehicle?.vin || ''
+    });
+    setShowRegisterModal(true);
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (!registerTarget || regSubmitting) return;
+    setRegSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const { customer, vehicle } = registerTarget;
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          customerId: customer?.id,
+          make: regForm.make,
+          model: regForm.model,
+          year: regForm.year,
+          color: regForm.color,
+          plateNumber: regForm.plateNumber,
+          vin: regForm.vin
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to register vehicle');
+      addNotification(`Vehicle ${regForm.plateNumber} registered successfully!`, 'success');
+      setShowRegisterModal(false);
+      setRegisterTarget(null);
+    } catch (err) {
+      addNotification(err.message || 'Failed to register vehicle', 'error');
+    } finally {
+      setRegSubmitting(false);
+    }
+  };
+
   // Permission checks for UI
   const p = currentUser?.permissions || [];
+  const isReadOnly = currentUser?.role === 'customer' || currentUser?.role === 'cashier';
   const canCreate = (p.includes('all') || p.includes('repairs_manage')) && currentUser?.role !== 'mechanic';
   const canEditCost = p.includes('all') || p.includes('billing_manage');
   const canDelete = p.includes('all');
   const canAssign = p.includes('all') || p.includes('repairs_manage');
+
+  if (isSyncing && !isInitialLoadComplete) {
+    return <SkeletonListPage rows={7} cols={5} />;
+  }
 
   return (
     <div className="page-content repairs-page">
@@ -424,7 +545,11 @@ const Repairs = () => {
           <div className="icon-wrapper"><Wrench size={28} /></div>
           <div>
             <h1>{t('repairs')}</h1>
-            <p className="subtitle">{t("Manage repair orders, track status, and assign mechanics.")}</p>
+            <p className="subtitle">
+              {isReadOnly
+                ? t("View your vehicle repair history and current status.")
+                : t("Manage repair orders, track status, and assign mechanics.")}
+            </p>
           </div>
         </div>
         {canCreate && (
@@ -432,15 +557,20 @@ const Repairs = () => {
             <Plus size={18} /> {t('newRepairOrder')}
           </button>
         )}
+        {isReadOnly && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'rgba(67,97,238,0.08)', borderRadius: 12, border: '1px solid rgba(67,97,238,0.2)', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
+            <AlertCircleIcon size={16} /> {t("Read-only view — you can view repair history and status only.")}
+          </div>
+        )}
         <div className="header-actions">
           <div className="view-mode-tabs" style={{ marginBottom: 12 }}>
-            <button 
+            <button
               className={`status-tab ${viewMode === 'history' ? 'active' : ''}`}
               onClick={() => setViewMode('history')}
             >
               <History size={16} /> {t("Daily Activity")}
             </button>
-            <button 
+            <button
               className={`status-tab ${viewMode === 'kanban' ? 'active' : ''}`}
               onClick={() => setViewMode('kanban')}
             >
@@ -450,18 +580,18 @@ const Repairs = () => {
 
           <div className="status-tabs">
             {['all', 'pending', 'in-progress', 'completed'].map(status => (
-              <button 
+              <button
                 key={status}
                 className={`status-tab ${statusFilter === status ? 'active' : ''}`}
                 onClick={() => setStatusFilter(status)}
               >
-                {status === 'all' ? (t("All Jobs")) : 
-                 status === 'pending' ? t('pending') : 
-                 status === 'in-progress' ? t('inProgress') : 
-                 t('completed')}
+                {status === 'all' ? (t("All Jobs")) :
+                  status === 'pending' ? t('pending') :
+                    status === 'in-progress' ? t('inProgress') :
+                      t('completed')}
                 <span className="count-badge">
-                  {status === 'all' 
-                    ? (repairs || []).filter(r => currentUser?.role === 'mechanic' ? String(r.mechanicId) === String(currentUser?.id) : true).length 
+                  {status === 'all'
+                    ? (repairs || []).filter(r => currentUser?.role === 'mechanic' ? String(r.mechanicId) === String(currentUser?.id) : true).length
                     : (repairs || []).filter(r => (currentUser?.role === 'mechanic' ? String(r.mechanicId) === String(currentUser?.id) : true) && r.status === status).length
                   }
                 </span>
@@ -475,9 +605,9 @@ const Repairs = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div className="search-box" style={{ flex: 1, minWidth: '300px' }}>
             <Search size={18} className="search-icon" />
-            <input 
-              type="text" 
-              placeholder={t("Search by vehicle, plate, or status...")} 
+            <input
+              type="text"
+              placeholder={t("Search by vehicle, plate, or status...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -492,9 +622,9 @@ const Repairs = () => {
                     key={f}
                     className={`chip-mini ${dateFilter === f ? 'active' : ''}`}
                     onClick={() => setDateFilter(f)}
-                    style={{ 
-                      padding: '8px 16px', 
-                      borderRadius: '20px', 
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '20px',
                       border: '1px solid var(--border)',
                       background: dateFilter === f ? 'var(--primary)' : 'var(--bg-card)',
                       color: dateFilter === f ? 'white' : 'var(--text-secondary)',
@@ -515,12 +645,21 @@ const Repairs = () => {
           <div className="custom-date-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)', width: 'fit-content' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <CalendarIcon size={16} />
-              <input 
-                type="date" 
-                value={specificDate}
-                onChange={(e) => setSpecificDate(e.target.value)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 600, color: 'var(--text-primary)' }}
-              />
+              {language === 'am' ? (
+                <EthiopianSelector
+                  value={specificDate}
+                  onChange={(val) => setSpecificDate(val)}
+                  size="small"
+                  language="am"
+                />
+              ) : (
+                <input
+                  type="date"
+                  value={specificDate}
+                  onChange={(e) => setSpecificDate(e.target.value)}
+                  style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 600, color: 'var(--text-primary)' }}
+                />
+              )}
             </div>
           </div>
         )}
@@ -528,22 +667,40 @@ const Repairs = () => {
         {viewMode === 'history' && dateFilter === 'custom' && (
           <div className="custom-date-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)', width: 'fit-content' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('From')}:</label>
-              <input 
-                type="date" 
-                value={customRange.start} 
-                onChange={(e) => setCustomRange({...customRange, start: e.target.value})}
-                style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--border)' }}
-              />
+              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('start')}:</label>
+              {language === 'am' ? (
+                <EthiopianSelector
+                  value={customRange.start}
+                  onChange={(val) => setCustomRange({ ...customRange, start: val })}
+                  size="small"
+                  language="am"
+                />
+              ) : (
+                <input
+                  type="date"
+                  value={customRange.start}
+                  onChange={(e) => setCustomRange({ ...customRange, start: e.target.value })}
+                  style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--border)' }}
+                />
+              )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('To')}:</label>
-              <input 
-                type="date" 
-                value={customRange.end} 
-                onChange={(e) => setCustomRange({...customRange, end: e.target.value})}
-                style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--border)' }}
-              />
+              <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('end')}:</label>
+              {language === 'am' ? (
+                <EthiopianSelector
+                  value={customRange.end}
+                  onChange={(val) => setCustomRange({ ...customRange, end: val })}
+                  size="small"
+                  language="am"
+                />
+              ) : (
+                <input
+                  type="date"
+                  value={customRange.end}
+                  onChange={(e) => setCustomRange({ ...customRange, end: e.target.value })}
+                  style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--border)' }}
+                />
+              )}
             </div>
           </div>
         )}
@@ -559,7 +716,7 @@ const Repairs = () => {
               </div>
               <div className="kanban-body">
                 {filteredRepairs.filter(r => r.status === statusType).map(repair => (
-                  <RepairHistoryCard 
+                  <RepairHistoryCard
                     key={repair.id}
                     repair={repair}
                     vehicles={vehicles}
@@ -571,12 +728,15 @@ const Repairs = () => {
                     handleOpenModal={handleOpenModal}
                     handleOpenRequestModal={handleOpenRequestModal}
                     handleAssignmentAction={handleAssignmentAction}
+                    onMarkCompleted={(repair) => { setCompleteTarget(repair); setCompleteNotes(''); setShowCompleteModal(true); }}
                     canDelete={canDelete}
                     canEditCost={canEditCost}
                     requestConfirmation={requestConfirmation}
                     deleteItem={deleteItem}
                     openChatWith={openChatWith}
                     language={language}
+                    onCreateInvoice={handleCreateInvoice}
+                    onRegisterVehicle={handleOpenRegisterVehicle}
                   />
                 ))}
               </div>
@@ -596,7 +756,7 @@ const Repairs = () => {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
               {filteredRepairs.map(repair => (
-                <RepairHistoryCard 
+                <RepairHistoryCard
                   key={repair.id}
                   repair={repair}
                   vehicles={vehicles}
@@ -608,12 +768,15 @@ const Repairs = () => {
                   handleOpenModal={handleOpenModal}
                   handleOpenRequestModal={handleOpenRequestModal}
                   handleAssignmentAction={handleAssignmentAction}
+                  onMarkCompleted={(repair) => { setCompleteTarget(repair); setCompleteNotes(''); setShowCompleteModal(true); }}
                   canDelete={canDelete}
                   canEditCost={canEditCost}
                   requestConfirmation={requestConfirmation}
                   deleteItem={deleteItem}
                   openChatWith={openChatWith}
                   language={language}
+                  onCreateInvoice={handleCreateInvoice}
+                  onRegisterVehicle={handleOpenRegisterVehicle}
                 />
               ))}
             </div>
@@ -635,12 +798,12 @@ const Repairs = () => {
                   <div className="custom-picker" style={{ position: 'relative' }}>
                     {/* Selected Vehicle "Bar" */}
                     {!formData.vehicleId ? (
-                      <div 
+                      <div
                         onClick={() => setShowVehResults(!showVehResults)}
-                        style={{ 
-                          padding: '14px 18px', 
-                          background: 'var(--bg-main)', 
-                          border: '1px solid var(--border)', 
+                        style={{
+                          padding: '14px 18px',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border)',
                           borderRadius: '12px',
                           cursor: 'pointer',
                           display: 'flex',
@@ -663,15 +826,15 @@ const Repairs = () => {
                       const selectedVeh = vehicles.find(v => v.id === formData.vehicleId);
                       const selectedCust = customers.find(c => String(c.id) === String(selectedVeh?.customerId));
                       return (
-                        <div 
+                        <div
                           onClick={() => {
-                            setFormData({...formData, vehicleId: ''});
+                            setFormData({ ...formData, vehicleId: '' });
                             setShowVehResults(true);
                           }}
-                          style={{ 
-                            padding: '12px 16px', 
-                            background: 'rgba(67, 97, 238, 0.08)', 
-                            border: '1px solid var(--primary)', 
+                          style={{
+                            padding: '12px 16px',
+                            background: 'rgba(67, 97, 238, 0.08)',
+                            border: '1px solid var(--primary)',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -690,25 +853,25 @@ const Repairs = () => {
 
                     {/* Search & Results Dropdown */}
                     {showVehResults && (
-                      <div style={{ 
-                        position: 'absolute', 
-                        top: '100%', 
-                        left: 0, 
-                        right: 0, 
-                        background: 'var(--bg-card)', 
-                        border: '1px solid var(--primary)', 
-                        borderRadius: '12px', 
-                        marginTop: '8px', 
-                        zIndex: 100, 
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--primary)',
+                        borderRadius: '12px',
+                        marginTop: '8px',
+                        zIndex: 100,
                         boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
                         overflow: 'hidden'
                       }}>
                         <div style={{ padding: '12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-main)' }}>
                           <div style={{ position: 'relative' }}>
                             <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
-                            <input 
+                            <input
                               autoFocus
-                              type="text" 
+                              type="text"
                               placeholder={t("Type plate or customer name...")}
                               value={custSearch}
                               onChange={(e) => setCustSearch(e.target.value)}
@@ -721,32 +884,41 @@ const Repairs = () => {
                             .filter(v => {
                               const c = customers.find(cust => String(cust.id) === String(v.customerId));
                               const search = custSearch.toLowerCase();
-                              return (v.plate || v.plateNumber || '').toLowerCase().includes(search) || 
-                                     (c?.name || '').toLowerCase().includes(search) || 
-                                     (v.model || '').toLowerCase().includes(search);
+                              return (v.plate || v.plateNumber || '').toLowerCase().includes(search) ||
+                                (c?.name || '').toLowerCase().includes(search) ||
+                                (v.model || '').toLowerCase().includes(search);
                             })
                             .map(v => {
                               const c = customers.find(cust => String(cust.id) === String(v.customerId));
+                              const activeRep = (repairs || []).find(r => r.vehicleId === v.id && ['pending', 'accepted', 'in-progress', 'waiting-for-parts'].includes(r.status));
                               return (
-                                <div 
+                                <div
                                   key={v.id}
                                   onClick={() => {
-                                    setFormData({...formData, vehicleId: v.id});
+                                    setFormData({ ...formData, vehicleId: v.id });
                                     setShowVehResults(false);
                                     setCustSearch('');
                                   }}
-                                  style={{ 
-                                    padding: '12px 16px', 
+                                  style={{
+                                    padding: '12px 16px',
                                     cursor: 'pointer',
                                     borderBottom: '1px solid var(--border)',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s',
+                                    opacity: activeRep ? 0.8 : 1
                                   }}
                                   onMouseOver={e => e.currentTarget.style.background = 'rgba(67, 97, 238, 0.05)'}
                                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                                 >
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{c?.name || t('Walk-in')}</div>
-                                    <div className="plate-badge-small" style={{ margin: 0 }}>{v.plate}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                      {activeRep && (
+                                        <span style={{ fontSize: '0.7rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.08)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                          ACTIVE #{activeRep.id.toUpperCase().slice(-8)}
+                                        </span>
+                                      )}
+                                      <div className="plate-badge-small" style={{ margin: 0 }}>{v.plate}</div>
+                                    </div>
                                   </div>
                                   <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: 4 }}>{v.year} {v.make} {v.model}</div>
                                 </div>
@@ -757,23 +929,70 @@ const Repairs = () => {
                             const search = custSearch.toLowerCase();
                             return (v.plate || v.plateNumber || '').toLowerCase().includes(search) || (c?.name || '').toLowerCase().includes(search) || (v.model || '').toLowerCase().includes(search);
                           }).length === 0 && (
-                            <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>
-                              {t("No vehicles found")}
-                            </div>
-                          )}
+                              <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>
+                                {t("No vehicles found")}
+                              </div>
+                            )}
                         </div>
                       </div>
                     )}
                   </div>
+                  {(() => {
+                    const activeRep = !editingId && formData.vehicleId && (repairs || []).find(r => r.vehicleId === formData.vehicleId && ['pending', 'accepted', 'in-progress', 'waiting-for-parts'].includes(r.status));
+                    if (activeRep) {
+                      return (
+                        <div style={{
+                          marginTop: '8px',
+                          padding: '10px 14px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          borderRadius: '10px',
+                          color: '#dc2626',
+                          fontSize: '0.78rem',
+                          fontWeight: '600',
+                          lineHeight: '1.4'
+                        }}>
+                          ⚠️ An active repair order (#{activeRep.id.toUpperCase().slice(-8)}) already exists for this vehicle. Complete or cancel it before creating a new one.
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
                 <div>
                   <label>{t("Assigned Mechanic")}</label>
-                  <select name="mechanicId" value={formData.mechanicId} onChange={handleChange} disabled={!canAssign}>
-                    <option value="">{t("— Unassigned —")}</option>
-                    {staff.filter(s => s.role === 'mechanic' || s.role === 'manager').map(m => (
-                      <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
-                    ))}
-                  </select>
+                  {(() => {
+                    const activeMechanics = (staff || []).filter(s =>
+                      s.role !== 'customer' &&
+                      s.status !== 'inactive' &&
+                      (s.id || s.userId) &&
+                      s.name
+                    );
+
+                    // Also try to find mechanics specifically for the dropdown
+                    const mechanicsOnly = activeMechanics.filter(s =>
+                      s.role === 'mechanic' || s.role === 'technician'
+                    );
+
+                    // Prefer mechanic-only list, fallback to all active non-customer staff
+                    const displayList = mechanicsOnly.length > 0 ? mechanicsOnly : activeMechanics;
+
+                    if (displayList.length === 0) {
+                      return (
+                        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '10px', color: '#dc2626', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                          <AlertCircleIcon size={16} /> {t("No mechanics found")} — {isSyncing ? t("Loading...") : t("Please check Staff configuration")}
+                        </div>
+                      );
+                    }
+                    return (
+                      <select name="mechanicId" value={formData.mechanicId} onChange={handleChange} disabled={!canAssign} className="auth-input">
+                        <option value="">{t("— Unassigned —")}</option>
+                        {displayList.map(m => (
+                          <option key={m.id || m.userId} value={m.id || m.userId}>{m.name} ({m.role})</option>
+                        ))}
+                      </select>
+                    );
+                  })()}
 
                   <div className="roadside-toggle-group" style={{ marginTop: '15px', padding: '12px', background: 'rgba(67, 97, 238, 0.05)', borderRadius: '10px', border: '1px solid rgba(67, 97, 238, 0.1)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -782,18 +1001,18 @@ const Repairs = () => {
                         <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t("Roadside Assistance")}</span>
                       </div>
                       <label className="switch">
-                        <input 
-                          type="checkbox" 
-                          name="isRoadside" 
-                          checked={formData.isRoadside} 
-                          onChange={(e) => setFormData({ ...formData, isRoadside: e.target.checked })} 
+                        <input
+                          type="checkbox"
+                          name="isRoadside"
+                          checked={formData.isRoadside}
+                          onChange={(e) => setFormData({ ...formData, isRoadside: e.target.checked })}
                         />
                         <span className="slider round"></span>
                       </label>
                     </div>
                     {formData.isRoadside && (
                       <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed rgba(67, 97, 238, 0.2)' }}>
-                        <button 
+                        <button
                           type="button"
                           className="btn-outline w-100"
                           onClick={() => {
@@ -823,10 +1042,10 @@ const Repairs = () => {
                       completed: mechRepairs.filter(r => r.status === 'completed').length
                     };
                     return (
-                      <div className="mechanic-stats-preview" style={{ 
-                        marginTop: '10px', 
-                        padding: '12px', 
-                        background: 'var(--bg-main)', 
+                      <div className="mechanic-stats-preview" style={{
+                        marginTop: '10px',
+                        padding: '12px',
+                        background: 'var(--bg-main)',
                         borderRadius: '10px',
                         border: '1px solid var(--border)',
                         display: 'flex',
@@ -895,10 +1114,18 @@ const Repairs = () => {
                 <label>{t("Estimated / Actual Labor Cost")} ($)</label>
                 <input type="number" name="laborCost" value={formData.laborCost || ''} onChange={handleChange} min="0" step="1" disabled={!canEditCost} />
               </div>
-              
+
               <div className="modal-actions">
                 <button type="button" className="btn-text" onClick={handleCloseModal} disabled={submitting}>{t('cancel')}</button>
-                <button type="submit" className="btn-primary" disabled={submitting} style={{ opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={submitting || (!editingId && formData.vehicleId && (repairs || []).some(r => r.vehicleId === formData.vehicleId && ['pending', 'accepted', 'in-progress', 'waiting-for-parts'].includes(r.status)))}
+                  style={{
+                    opacity: (submitting || (!editingId && formData.vehicleId && (repairs || []).some(r => r.vehicleId === formData.vehicleId && ['pending', 'accepted', 'in-progress', 'waiting-for-parts'].includes(r.status)))) ? 0.7 : 1,
+                    cursor: (submitting || (!editingId && formData.vehicleId && (repairs || []).some(r => r.vehicleId === formData.vehicleId && ['pending', 'accepted', 'in-progress', 'waiting-for-parts'].includes(r.status)))) ? 'not-allowed' : 'pointer'
+                  }}
+                >
                   {submitting ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div className="spinner-small" /> {t('saving')}...
@@ -922,95 +1149,141 @@ const Repairs = () => {
               </h2>
               <button className="close-btn" onClick={() => setShowRequestModal(false)}>&times;</button>
             </div>
-            
+
             <div className="material-browser-grid">
               <div className="shop-selection-column">
                 <div className="search-box" style={{ marginBottom: '10px', position: 'sticky', top: 0, zIndex: 5, background: 'var(--bg-card)' }}>
                   <Search size={18} className="search-icon" />
-                  <input 
-                    type="text" 
-                    placeholder={t("Search materials across all shops...")} 
+                  <input
+                    type="text"
+                    placeholder={t("Search materials across all shops...")}
                     value={shopSearchTerm}
                     onChange={(e) => setShopSearchTerm(e.target.value)}
                   />
                 </div>
 
-                {[...new Set(inventory.filter(p => p.managerId).map(p => String(p.managerId)))].map(mId => {
-                  const manager = staff.find(s => String(s.id) === mId);
-                  const shopName = manager ? manager.name : `Shop ${mId}`;
-                  
-                  const shopParts = inventory.filter(p => {
-                    return String(p.managerId) === mId && p.name.toLowerCase().includes(shopSearchTerm.toLowerCase());
+                {(() => {
+                  const sTerm = (shopSearchTerm || '').toLowerCase().trim();
+
+                  // Group all inventory items into shop buckets (including unassigned)
+                  const groups = {};
+                  (inventory || []).forEach(p => {
+                    const mId = p.managerId ? String(p.managerId) : '__unassigned__';
+                    if (!groups[mId]) groups[mId] = [];
+                    groups[mId].push(p);
                   });
-                  
-                  if (shopParts.length === 0) return null;
 
-                  return (
-                    <div key={mId} className="shop-section" style={{ border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', background: 'var(--bg-card)', marginBottom: '15px' }}>
-                      <div 
-                        onClick={() => setExpandedShop(expandedShop === mId ? null : mId)}
-                        style={{ padding: '12px 15px', background: 'rgba(67, 97, 238, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <Package size={18} color="var(--primary)" />
-                          <strong style={{ fontSize: '1rem' }}>{shopName}</strong>
-                          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({shopParts.length} {t('items')})</span>
-                        </div>
-                        {expandedShop === mId ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  const groupKeys = Object.keys(groups);
+
+                  if (inventory.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+                        <Package size={44} style={{ marginBottom: 12, opacity: 0.4 }} />
+                        <h4>{t("No inventory parts available")}</h4>
+                        <p style={{ fontSize: '0.85rem' }}>{t("Add parts in the Inventory page first to make them available here.")}</p>
                       </div>
+                    );
+                  }
 
-                      {(expandedShop === mId || shopSearchTerm) && (
-                        <div style={{ padding: '10px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-                            {shopParts.map(part => {
-                              const isInBasket = requestBasket.find(b => b.partId === part.id);
-                              return (
-                                <div 
-                                  key={part.id} 
-                                  onClick={() => toggleBasketItem(part, mId)}
-                                  className="material-item-card"
-                                  style={{ 
-                                    padding: '10px', 
-                                    borderRadius: '12px', 
-                                    border: `2px solid ${isInBasket ? 'var(--primary)' : 'var(--border)'}`,
-                                    background: isInBasket ? 'rgba(67, 97, 238, 0.08)' : 'var(--bg-main)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    position: 'relative',
-                                    display: 'flex',
-                                    gap: '12px',
-                                    alignItems: 'center'
-                                  }}
-                                >
-                                  {part.image && (
-                                    <div className="material-thumb-wrapper">
-                                      <ItemImage mediaId={part.image} onFullscreen={setFullscreenImage} />
-                                    </div>
-                                  )}
-                                  {!part.image && (
-                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', flexShrink: 0 }}>
-                                      <Package size={24} opacity={0.3} />
-                                    </div>
-                                  )}
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{part.name}</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      <div style={{ fontWeight: 700, color: 'var(--success)', fontSize: '1rem' }}>${part.price}</div>
-                                      <div style={{ fontSize: '0.75rem', color: part.quantity <= part.threshold ? 'var(--danger)' : 'var(--text-secondary)', fontWeight: 600 }}>
-                                        {part.quantity} {t("in stock")}
+                  let totalMatchingParts = 0;
+
+                  const renderedGroups = groupKeys.map(mId => {
+                    let shopName = t("Main Warehouse / Unassigned Shop");
+                    if (mId !== '__unassigned__') {
+                      const manager = staff.find(s => String(s.id) === mId);
+                      shopName = manager ? manager.name : `${t("Shop")} #${mId.slice(-4)}`;
+                    }
+
+                    const shopParts = groups[mId].filter(p => {
+                      if (!sTerm) return true;
+                      const pName = (p.name || p.partName || '').toLowerCase();
+                      const catName = (p.category || '').toLowerCase();
+                      return pName.includes(sTerm) || catName.includes(sTerm);
+                    });
+
+                    totalMatchingParts += shopParts.length;
+                    if (shopParts.length === 0) return null;
+
+                    const isExpanded = sTerm !== '' || groupKeys.length === 1 || expandedShop === mId || (expandedShop === null && mId === groupKeys[0]);
+
+                    return (
+                      <div key={mId} className="shop-section" style={{ border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', background: 'var(--bg-card)', marginBottom: '15px' }}>
+                        <div
+                          onClick={() => setExpandedShop(expandedShop === mId ? null : mId)}
+                          style={{ padding: '12px 15px', background: 'rgba(67, 97, 238, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Package size={18} color="var(--primary)" />
+                            <strong style={{ fontSize: '1rem' }}>{shopName}</strong>
+                            <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({shopParts.length} {t('items')})</span>
+                          </div>
+                          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </div>
+
+                        {isExpanded && (
+                          <div style={{ padding: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+                              {shopParts.map(part => {
+                                const isInBasket = requestBasket.find(b => b.partId === part.id);
+                                return (
+                                  <div
+                                    key={part.id}
+                                    onClick={() => toggleBasketItem(part, mId === '__unassigned__' ? null : mId)}
+                                    className="material-item-card"
+                                    style={{
+                                      padding: '10px',
+                                      borderRadius: '12px',
+                                      border: `2px solid ${isInBasket ? 'var(--primary)' : 'var(--border)'}`,
+                                      background: isInBasket ? 'rgba(67, 97, 238, 0.08)' : 'var(--bg-main)',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                      position: 'relative',
+                                      display: 'flex',
+                                      gap: '12px',
+                                      alignItems: 'center'
+                                    }}
+                                  >
+                                    {part.image && (
+                                      <div className="material-thumb-wrapper">
+                                        <ItemImage mediaId={part.image} onFullscreen={setFullscreenImage} />
+                                      </div>
+                                    )}
+                                    {!part.image && (
+                                      <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', flexShrink: 0 }}>
+                                        <Package size={24} opacity={0.3} />
+                                      </div>
+                                    )}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{part.name || part.partName}</div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <div style={{ fontWeight: 700, color: 'var(--success)', fontSize: '1rem' }}>{part.price} ETB</div>
+                                        <div style={{ fontSize: '0.75rem', color: part.quantity <= (part.threshold || part.minStock || 5) ? 'var(--danger)' : 'var(--text-secondary)', fontWeight: 600 }}>
+                                          {part.quantity} {t("in stock")}
+                                        </div>
                                       </div>
                                     </div>
+                                    {isInBasket && <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--primary)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', border: '2px solid white' }}><Check size={14} strokeWidth={3} /></div>}
                                   </div>
-                                  {isInBasket && <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--primary)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', border: '2px solid white' }}><Check size={14} strokeWidth={3} /></div>}
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        )}
+                      </div>
+                    );
+                  });
+
+                  if (totalMatchingParts === 0 && sTerm) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-secondary)' }}>
+                        <Search size={32} style={{ marginBottom: 8, opacity: 0.4 }} />
+                        <p>{t("No inventory items found matching")} "<strong>{shopSearchTerm}</strong>"</p>
+                      </div>
+                    );
+                  }
+
+                  return renderedGroups;
+                })()}
               </div>
 
               {/* Right Side: Request Basket */}
@@ -1035,17 +1308,17 @@ const Repairs = () => {
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>Qty:</span>
-                            <input 
-                              type="number" 
-                              value={item.qty} 
+                            <input
+                              type="number"
+                              value={item.qty}
                               onChange={(e) => updateBasketQty(item.partId, e.target.value)}
-                              style={{ 
-                                width: '70px', 
-                                padding: '8px', 
-                                borderRadius: '8px', 
-                                border: '2px solid var(--primary)', 
-                                background: '#f9fafb', 
-                                color: '#111827', 
+                              style={{
+                                width: '70px',
+                                padding: '8px',
+                                borderRadius: '8px',
+                                border: '2px solid var(--primary)',
+                                background: '#f9fafb',
+                                color: '#111827',
                                 fontWeight: 700,
                                 textAlign: 'center'
                               }}
@@ -1064,7 +1337,7 @@ const Repairs = () => {
                     <span>{t('Total Estimate')}:</span>
                     <span style={{ color: 'var(--primary)' }}>{requestBasket.reduce((sum, item) => sum + (item.price * (parseInt(item.qty) || 0)), 0).toFixed(0)} {t('ETB')}</span>
                   </div>
-                  <button 
+                  <button
                     onClick={submitMaterialRequest}
                     disabled={requestBasket.length === 0}
                     className="btn-primary w-full"
@@ -1078,6 +1351,45 @@ const Repairs = () => {
           </div>
         </div>
       )}
+      {/* Completion Notes Modal */}
+      {showCompleteModal && completeTarget && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 480 }}>
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CheckCircle2 size={24} color="var(--success)" /> {t('Mark as Completed')}
+              </h2>
+              <button className="close-btn" onClick={() => setShowCompleteModal(false)}>&times;</button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+                {t('Add completion notes before marking this repair as completed (optional).')}
+              </p>
+              <textarea
+                placeholder={t('Completion notes, final remarks, parts replaced...')}
+                value={completeNotes}
+                onChange={e => setCompleteNotes(e.target.value)}
+                rows={4}
+                style={{ width: '100%', resize: 'vertical', padding: '12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-main)', fontSize: '0.9rem' }}
+              />
+              <div className="modal-actions" style={{ marginTop: 16 }}>
+                <button className="btn-text" onClick={() => setShowCompleteModal(false)}>{t('cancel')}</button>
+                <button
+                  className="btn-primary"
+                  style={{ background: 'linear-gradient(135deg,#10b981,#059669)', border: 'none' }}
+                  onClick={async () => {
+                    setShowCompleteModal(false);
+                    await handleMarkCompleted(completeTarget, completeNotes);
+                  }}
+                >
+                  <CheckCircle2 size={16} /> {t('Confirm Completion')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDeclineModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '400px' }}>
@@ -1089,11 +1401,11 @@ const Repairs = () => {
               <p style={{ fontSize: '0.9rem', marginBottom: '15px', color: 'var(--text-secondary)' }}>
                 {t("Please provide a reason for declining this job.")}
               </p>
-              
+
               <div className="form-group" style={{ marginBottom: '15px' }}>
                 <label>{t('Reason (Text)')}</label>
-                <textarea 
-                  className="auth-input" 
+                <textarea
+                  className="auth-input"
                   style={{ height: '80px', paddingTop: '10px' }}
                   placeholder={t("Type your reason...")}
                   value={declineText}
@@ -1101,10 +1413,10 @@ const Repairs = () => {
                 />
               </div>
 
-              <div className="voice-recorder-section" style={{ 
-                background: 'var(--bg-main)', 
-                padding: '15px', 
-                borderRadius: '12px', 
+              <div className="voice-recorder-section" style={{
+                background: 'var(--bg-main)',
+                padding: '15px',
+                borderRadius: '12px',
                 textAlign: 'center',
                 marginBottom: '20px',
                 border: isRecording ? '2px solid var(--danger)' : '1px solid var(--border)'
@@ -1112,7 +1424,7 @@ const Repairs = () => {
                 <div style={{ marginBottom: '10px', fontSize: '0.85rem', fontWeight: 600 }}>
                   {isRecording ? t('RECORDING...') : audioBlob ? t('VOICE RECORDED') : t('VOICE NOTE (OPTIONAL)')}
                 </div>
-                
+
                 {!isRecording && !audioBlob ? (
                   <button type="button" className="voice-btn" onClick={startRecording} style={{ background: 'var(--primary)', color: 'white', border: 'none', width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center' }}>
                     <Mic size={24} />
@@ -1134,9 +1446,9 @@ const Repairs = () => {
                 )}
               </div>
 
-              <button 
-                type="submit" 
-                className="btn-primary w-full" 
+              <button
+                type="submit"
+                className="btn-primary w-full"
                 disabled={(!declineText.trim() && !audioBlob) || isRecording || submitting}
                 style={{ marginTop: '10px' }}
               >
@@ -1155,37 +1467,128 @@ const Repairs = () => {
           </div>
         </div>
       )}
+
+      {/* Register Vehicle Modal */}
+      {showRegisterModal && registerTarget && (
+        <div className="modal-overlay" onClick={() => setShowRegisterModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 480, width: '92%' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="icon-wrapper"><UserCheck size={20} /></div>
+                <h2>{t('Register Vehicle')}</h2>
+              </div>
+              <button className="btn-icon" onClick={() => setShowRegisterModal(false)}><X size={22} /></button>
+            </div>
+            {registerTarget.customer && (
+              <div style={{ padding: '12px 20px', background: 'rgba(67,97,238,0.07)', borderBottom: '1px solid var(--border)', fontSize: '0.85rem' }}>
+                <strong>{t('Customer')}:</strong> {registerTarget.customer.name} — {registerTarget.customer.phone}
+              </div>
+            )}
+            <form className="modal-body" onSubmit={handleRegisterSubmit}>
+              <div className="grid-2-col" style={{ marginBottom: 16 }}>
+                <div className="form-group">
+                  <label>{t('make')}</label>
+                  <input className="auth-input" value={regForm.make} onChange={e => setRegForm({ ...regForm, make: e.target.value })} placeholder="Toyota" />
+                </div>
+                <div className="form-group">
+                  <label>{t('model')} *</label>
+                  <input className="auth-input" required value={regForm.model} onChange={e => setRegForm({ ...regForm, model: e.target.value })} placeholder="Corolla" />
+                </div>
+              </div>
+              <div className="grid-2-col" style={{ marginBottom: 16 }}>
+                <div className="form-group">
+                  <label>{t('year')}</label>
+                  <input className="auth-input" type="number" value={regForm.year} onChange={e => setRegForm({ ...regForm, year: e.target.value })} placeholder="2020" />
+                </div>
+                <div className="form-group">
+                  <label>{t('color')}</label>
+                  <input className="auth-input" value={regForm.color} onChange={e => setRegForm({ ...regForm, color: e.target.value })} placeholder="White" />
+                </div>
+              </div>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label>{t('Plate Number')} * <small style={{ opacity: 0.6 }}>(e.g. AA 3 ደ 12345)</small></label>
+                <input className="auth-input" required value={regForm.plateNumber} onChange={e => setRegForm({ ...regForm, plateNumber: e.target.value })} placeholder="AA 3 ደ 12345" />
+              </div>
+              <div className="form-group" style={{ marginBottom: 24 }}>
+                <label>VIN <small style={{ opacity: 0.6 }}>({t('optional')})</small></label>
+                <input className="auth-input" value={regForm.vin} onChange={e => setRegForm({ ...regForm, vin: e.target.value })} placeholder="1HGCM82633A..." />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-outline" onClick={() => setShowRegisterModal(false)}>{t('cancel')}</button>
+                <button type="submit" className="btn-primary" disabled={regSubmitting}>
+                  <UserCheck size={16} /> {regSubmitting ? t('Saving...') : t('Register Vehicle')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const RepairHistoryCard = ({ 
-  repair, vehicles, customers, staff, currentUser, t, formatDate, 
-  handleOpenModal, handleOpenRequestModal, handleAssignmentAction, 
-  canDelete, canEditCost, requestConfirmation, deleteItem, openChatWith, language 
+const RepairHistoryCard = ({
+  repair, vehicles, customers, staff, currentUser, t, formatDate,
+  handleOpenModal, handleOpenRequestModal, handleAssignmentAction,
+  onMarkCompleted,
+  canDelete, canEditCost, requestConfirmation, deleteItem, openChatWith, language,
+  onCreateInvoice, onRegisterVehicle
 }) => {
   const vehicle = repair.vehicle || (vehicles || []).find(v => String(v.id) === String(repair.vehicleId));
   const owner = vehicle?.customer || (vehicle ? (customers || []).find(c => String(c.id) === String(vehicle.customerId)) : null);
   const mechanic = repair.mechanic || (staff || []).find(s => String(s.id) === String(repair.mechanicId));
+  const isReadOnly = currentUser?.role === 'customer' || currentUser?.role === 'cashier';
+  const statusHistory = repair.statusHistory || [];
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return '#10b981';
+      case 'in-progress': return 'var(--primary)';
+      case 'pending': return '#f59e0b';
+      case 'delivered': return '#8b5cf6';
+      case 'cancelled': return '#ef4444';
+      case 'waiting-for-parts': return '#f97316';
+      default: return 'var(--text-secondary)';
+    }
+  };
 
   return (
     <div className={`repair-card ${repair.assignmentStatus === 'declined' ? 'card-declined' : ''}`} key={repair.id}>
       <div className="repair-card-header">
-        <span className="repair-id">#{(repair.id || '').toUpperCase()}</span>
+        <span className="plate-badge-small" style={{ margin: 0, fontSize: '1.2rem', padding: '6px 12px' }}>
+          {vehicle?.plateNumber || vehicle?.plate || t('No Plate')}
+        </span>
         <div className="action-buttons">
-          {owner && (
-            <button className="icon-btn-small chat-btn" style={{ color: 'white', background: 'var(--primary)' }} onClick={() => openChatWith(owner)} title={t('chat')}>
+          {/* Message Customer button — only visible to non-customers */}
+          {owner && currentUser?.role !== 'customer' && (
+            <button
+              className="icon-btn-small chat-btn"
+              style={{ color: 'white', background: 'var(--primary)' }}
+              onClick={() => openChatWith(owner)}
+              title={t('Message Customer')}
+            >
               <MessageSquare size={16} />
             </button>
           )}
-          {repair.assignmentStatus !== 'declined' && (
+          {/* Message Mechanic button — only visible to non-customers, only when mechanic is assigned */}
+          {mechanic && currentUser?.role !== 'customer' && String(mechanic.id) !== String(currentUser?.id) && (
+            <button
+              className="icon-btn-small chat-btn"
+              style={{ color: 'white', background: '#7c3aed' }}
+              onClick={() => openChatWith(mechanic)}
+              title={t('Message Mechanic')}
+            >
+              <MessageSquare size={16} />
+            </button>
+          )}
+          {repair.assignmentStatus !== 'declined' && (currentUser?.role !== 'mechanic' || repair.status !== 'completed') && (
             <button className="icon-btn-small" onClick={() => handleOpenModal(repair)} title={t('edit')}>
               <Edit2 size={16} />
             </button>
           )}
           {canDelete && (
-            <button 
-              className="icon-btn-small delete-btn" 
+            <button
+              className="icon-btn-small delete-btn"
               onClick={() => requestConfirmation(t('confirmDeleteRepair'), () => deleteItem('repairs', repair.id))}
             >
               <Trash2 size={16} />
@@ -1193,26 +1596,112 @@ const RepairHistoryCard = ({
           )}
         </div>
       </div>
-      
+
       <h4 className="vehicle-name">{vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : t('Unknown')}</h4>
-      <span className="plate-badge-small">{vehicle?.plate}</span>
 
       <div className="repair-details">
         <div className="detail-row">
-          <CalendarIcon size={14} /> <span>{formatDate(repair.dateIn)}</span>
+          <CalendarIcon size={14} /> <span>{formatDate(repair.dateIn || repair.entryDate)}</span>
         </div>
         <div className="detail-row">
           <Wrench size={14} /> <span>{mechanic ? mechanic.name : (t("Unassigned"))}</span>
         </div>
+        {repair.exitDate && (
+          <div className="detail-row">
+            <CheckCircle2 size={14} color="var(--success)" />
+            <span style={{ color: 'var(--success)', fontWeight: 600 }}>{t('Completed')}: {formatDate(repair.exitDate)}</span>
+          </div>
+        )}
       </div>
 
       <div className="repair-notes">
-        {repair.notes}
+        {repair.description || repair.notes}
       </div>
+
+      {repair.completionNotes && (
+        <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(16,185,129,0.08)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)', fontSize: '0.82rem' }}>
+          <strong style={{ color: '#059669' }}>Completion Notes:</strong> {repair.completionNotes}
+        </div>
+      )}
 
       {(repair.status === 'completed' || canEditCost) && (
         <div className="repair-cost">
           <DollarSign size={14} /> <span style={{ fontWeight: 700 }}>{t("Labor")} : {repair.laborCost || 0} {t('ETB')}</span>
+        </div>
+      )}
+
+      {/* ── Invoice & Vehicle Registration Actions ── */}
+      {currentUser?.role !== 'customer' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+          {/* Create Invoice / View Invoice */}
+          {(repair.status === 'completed' || repair.status === 'delivered') && (
+            repair.hasInvoice ? (
+              <a
+                href={`/billing?id=${repair.invoiceId}`}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '9px 0', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem',
+                  textDecoration: 'none', cursor: 'pointer',
+                  background: 'rgba(16,185,129,0.12)', color: '#059669',
+                  border: '1.5px solid rgba(16,185,129,0.4)'
+                }}
+              >
+                <Eye size={15} /> {t('View Invoice')}
+              </a>
+            ) : (
+              <button
+                onClick={() => onCreateInvoice && onCreateInvoice(repair)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '9px 0', width: '100%', border: 'none', borderRadius: 10,
+                  fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                  background: 'linear-gradient(135deg,var(--primary),#4cc9f0)', color: '#fff',
+                  boxShadow: '0 4px 12px rgba(67,97,238,0.25)'
+                }}
+              >
+                <FileText size={15} /> {t('Create Invoice')}
+              </button>
+            )
+          )}
+
+          {/* Register Vehicle – only when vehicle has no confirmed plate */}
+          {(() => {
+            const veh = repair.vehicle || (vehicles || []).find(v => v.id === repair.vehicleId);
+            const hasPlate = !!(veh?.plateNumber || veh?.plate);
+            if (hasPlate) return null; // already registered
+            return (
+              <button
+                onClick={() => onRegisterVehicle && onRegisterVehicle(repair)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '9px 0', width: '100%', border: '1.5px dashed rgba(67,97,238,0.5)',
+                  borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                  background: 'rgba(67,97,238,0.06)', color: 'var(--primary)'
+                }}
+              >
+                <UserCheck size={15} /> {t('Register Vehicle')}
+              </button>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Status History Timeline */}
+      {statusHistory.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: 8 }}>{t('Status History')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderLeft: '2px solid var(--border)', paddingLeft: 12 }}>
+            {statusHistory.map((h, i) => (
+              <div key={h.id || i} style={{ fontSize: '0.78rem', color: 'var(--text-primary)' }}>
+                <span style={{ fontWeight: 700, color: getStatusColor(h.status), textTransform: 'uppercase' }}>{t(h.status)}</span>
+                {h.notes && <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>— {t(h.notes)}</span>}
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 1 }}>
+                  {h.changedBy && <span>{h.changedBy}</span>}
+                  {h.createdAt && <span> · {new Date(h.createdAt).toLocaleDateString()}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -1223,11 +1712,11 @@ const RepairHistoryCard = ({
       )}
 
       {repair.isRoadside && (
-        <button 
-          className="btn-primary w-full mt-10" 
+        <button
+          className="btn-primary w-full mt-10"
           onClick={() => window.location.href = '/tracker'}
-          style={{ 
-            background: 'linear-gradient(135deg, var(--primary) 0%, #4cc9f0 100%)', 
+          style={{
+            background: 'linear-gradient(135deg, var(--primary) 0%, #4cc9f0 100%)',
             border: 'none',
             display: 'flex',
             alignItems: 'center',
@@ -1244,51 +1733,54 @@ const RepairHistoryCard = ({
       {/* Accept / Decline buttons — shown to assigned mechanic while status is pending */}
       {currentUser.role === 'mechanic' &&
         String(repair.mechanicId) === String(currentUser.id) &&
+        repair.status !== 'completed' &&
+        repair.status !== 'delivered' &&
+        repair.status !== 'cancelled' &&
         !repair.assignmentStatus && (
-        <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => handleAssignmentAction(repair, 'accept')}
-            style={{
-              flex: 1,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px 0',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
-              transition: 'transform 0.15s, opacity 0.15s'
-            }}
-            onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseOut={e => e.currentTarget.style.opacity = '1'}
-          >
-            <Check size={16} /> {t('Accept Job')}
-          </button>
-          <button
-            onClick={() => handleAssignmentAction(repair, 'decline')}
-            style={{
-              flex: 1,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px 0',
-              background: 'transparent',
-              color: '#ef4444',
-              border: '2px solid #ef4444',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              transition: 'background 0.15s, color 0.15s'
-            }}
-            onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-            onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ef4444'; }}
-          >
-            <X size={16} /> {t('Decline')}
-          </button>
-        </div>
-      )}
+          <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => handleAssignmentAction(repair, 'accept')}
+              style={{
+                flex: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '10px 0',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                transition: 'transform 0.15s, opacity 0.15s'
+              }}
+              onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
+            >
+              <Check size={16} /> {t('Accept Job')}
+            </button>
+            <button
+              onClick={() => handleAssignmentAction(repair, 'decline')}
+              style={{
+                flex: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '10px 0',
+                background: 'transparent',
+                color: '#ef4444',
+                border: '2px solid #ef4444',
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: 'background 0.15s, color 0.15s'
+              }}
+              onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ef4444'; }}
+            >
+              <X size={16} /> {t('Decline')}
+            </button>
+          </div>
+        )}
 
       {/* Show mechanic their accepted status + complete action */}
       {currentUser.role === 'mechanic' && repair.assignmentStatus === 'accepted' && (
@@ -1310,7 +1802,7 @@ const RepairHistoryCard = ({
           {/* Mark as Completed button — only shows while work not done */}
           {repair.status !== 'completed' && (
             <button
-              onClick={() => updateItem('repairs', repair.id, { status: 'completed' })}
+              onClick={() => onMarkCompleted(repair)}
               style={{
                 width: '100%',
                 padding: '10px 0',
@@ -1328,7 +1820,7 @@ const RepairHistoryCard = ({
               onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
               onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
-              <CheckCircle2 size={16} /> Mark as Completed
+              <CheckCircle2 size={16} /> {t('Mark as Completed')}
             </button>
           )}
         </div>
@@ -1337,16 +1829,39 @@ const RepairHistoryCard = ({
       {/* Admin / Manager view of mechanic response */}
       {(currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'coder') && (
         <div style={{ marginTop: 14 }}>
-          {/* No response yet */}
-          {!repair.assignmentStatus && repair.mechanicId && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '7px 12px', borderRadius: 8,
-              background: 'rgba(245,158,11,0.08)',
-              border: '1px dashed rgba(245,158,11,0.5)',
-              color: '#d97706', fontSize: '0.8rem', fontWeight: 600
-            }}>
-              <Clock size={13} /> Awaiting mechanic response…
+          {/* No response yet OR Unassigned */}
+          {!repair.assignmentStatus && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {repair.mechanicId && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 12px', borderRadius: 8,
+                  background: 'rgba(245,158,11,0.08)',
+                  border: '1px dashed rgba(245,158,11,0.5)',
+                  color: '#d97706', fontSize: '0.8rem', fontWeight: 600
+                }}>
+                  <Clock size={13} /> {t('Awaiting mechanic response...')}
+                </div>
+              )}
+              {repair.status === 'pending' && (
+                <button
+                  onClick={() => handleAssignmentAction(repair, 'accept')}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '8px 0',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(67,97,238,0.2)'
+                  }}
+                >
+                  <Check size={14} /> {t('Auto Accept Job')}
+                </button>
+              )}
             </div>
           )}
 
@@ -1438,7 +1953,7 @@ const RepairHistoryCard = ({
           )}
         </div>
       )}
-      
+
       {repair.assignmentStatus === 'declined' && (
         <div className="declined-watermark">{t('declined').toUpperCase()}</div>
       )}
@@ -1472,20 +1987,53 @@ const ItemImage = ({ mediaId, onFullscreen }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!mediaId) return;
-    getMedia(mediaId).then(data => {
-      if (data && data.blob) {
-        setUrl(URL.createObjectURL(data.blob));
-      }
+    if (!mediaId) {
       setLoading(false);
+      return;
+    }
+
+    if (typeof mediaId === 'string' && (mediaId.startsWith('http') || mediaId.startsWith('data:') || mediaId.startsWith('blob:'))) {
+      setUrl(mediaId);
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    getMedia(mediaId).then(data => {
+      if (isMounted && data && data.blob) {
+        setUrl(URL.createObjectURL(data.blob));
+      } else if (isMounted) {
+        setUrl(mediaId);
+      }
+      if (isMounted) setLoading(false);
+    }).catch(() => {
+      if (isMounted) {
+        setUrl(mediaId);
+        setLoading(false);
+      }
     });
-    return () => { if (url) URL.revokeObjectURL(url); };
+
+    return () => {
+      isMounted = false;
+      if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
+    };
   }, [mediaId]);
 
   if (!mediaId) return null;
-  if (loading) return <div className="img-skeleton-small" style={{ width: '100%', height: '100%', background: '#eee' }} />;
-  return <img src={url} alt="part" style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }} onClick={(e) => {
-    e.stopPropagation();
-    onFullscreen(url);
-  }} />;
+  if (loading) return <div className="img-skeleton-small" style={{ width: '100%', height: '100%', background: 'var(--bg-main)', borderRadius: '8px' }} />;
+
+  const displaySrc = url || mediaId;
+
+  return (
+    <img
+      src={displaySrc}
+      alt="part"
+      style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', borderRadius: '8px' }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onFullscreen) onFullscreen(displaySrc);
+      }}
+      title="Click to view full image"
+    />
+  );
 };

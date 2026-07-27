@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Car, Wrench, Package, CreditCard, CalendarClock, BriefcaseBusiness, LogOut, Settings as SettingsIcon, Navigation, Briefcase, Download, History, ClipboardList, Moon, Sun, Globe, Landmark, MessageSquare, LayoutGrid, Zap, Plus } from 'lucide-react';
+import { LayoutDashboard, Users, Car, Wrench, Package, CreditCard, CalendarClock, BriefcaseBusiness, LogOut, Settings as SettingsIcon, Navigation, Briefcase, Download, History, ClipboardList, Moon, Sun, Globe, Landmark, MessageSquare, LayoutGrid, Zap, Plus, TrendingUp } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import InstallPWA from './InstallPWA';
@@ -78,7 +78,8 @@ const Sidebar = () => {
         { path: '/appointments', label: t('appointments'), icon: <CalendarClock size={20} />, roles: ['admin', 'receptionist', 'customer', 'manager', 'coder'] },
         { path: '/customers', label: t('customers'), icon: <Users size={20} />, roles: ['admin', 'receptionist', 'manager', 'coder', 'cashier'] },
         { path: '/vehicles', label: t('vehicles'), icon: <Car size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder', 'cashier'] },
-        { path: '/repairs', label: t('repairs'), icon: <Wrench size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder'] },
+        { path: '/repairs', label: t('repairs'), icon: <Wrench size={20} />, roles: ['admin', 'mechanic', 'receptionist', 'manager', 'coder', 'cashier'] },
+        { path: '/my-repairs', label: t('My Repairs'), icon: <Wrench size={20} />, roles: ['customer'] },
         { path: '/attendance', label: t('Attendance'), icon: <ClipboardList size={20} />, roles: ['admin', 'manager', 'coder'] },
         { path: '/bonus', label: t("Bonus"), icon: <Landmark size={20} />, roles: ['mechanic', 'coder'] },
       ]
@@ -93,6 +94,7 @@ const Sidebar = () => {
     {
       title: t("BILLING"),
       items: [
+        { path: '/revenue', label: t('Revenue'), icon: <TrendingUp size={20} />, roles: ['admin', 'manager', 'coder'] },
         { path: '/billing#invoices', label: t('invoices'), icon: <ClipboardList size={20} />, roles: ['admin', 'cashier', 'customer', 'coder'] },
         { path: '/billing#reports', label: t('financialReports'), icon: <History size={20} />, roles: ['admin', 'coder'] },
       ]
@@ -180,7 +182,7 @@ const Sidebar = () => {
             <div>
               <h2 style={{ marginBottom: 2 }}>{currentUser?.garageName || 'Miky Garage'}</h2>
               <div style={{ fontSize: '10px', opacity: 0.6, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-                ID: {currentUser?.ownerId || '0001'}
+                ID: {currentUser?.garage?.displayId || currentUser?.ownerId || '0001'}
               </div>
             </div>
           </div>

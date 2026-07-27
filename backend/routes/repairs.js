@@ -291,11 +291,15 @@ router.put('/:id', authenticate, async (req, res) => {
     }
 
     if (req.user.role === 'mechanic') {
-      if (existingRepair.mechanicId !== req.user.id) {
+      if (existingRepair.mechanicId && existingRepair.mechanicId !== req.user.id) {
         return res.status(403).json({ error: 'Access denied: You are not the assigned mechanic' });
       }
+      // If mechanic is accepting an unassigned job, set mechanicId to req.user.id
+      if (data.assignmentStatus === 'accepted' && !existingRepair.mechanicId) {
+        data.mechanicId = req.user.id;
+      }
       // Mechanics can only modify status-related mechanics parameters
-      const allowedKeysForMechanic = ['status', 'assignmentStatus', 'declineReason', 'declineVoice', 'completionNotes'];
+      const allowedKeysForMechanic = ['status', 'assignmentStatus', 'declineReason', 'declineVoice', 'completionNotes', 'mechanicId'];
       const clientKeys = Object.keys(data);
       for (const key of clientKeys) {
         if (!allowedKeysForMechanic.includes(key)) {
@@ -307,10 +311,12 @@ router.put('/:id', authenticate, async (req, res) => {
       }
     }
 
-    // Prevent editing completed repair unless authorized
-    const isAuthorizedReopener = ['admin', 'receptionist', 'coder'].includes(req.user.role);
+    // Prevent mechanics from reopening completed repair orders
+    const isAuthorizedReopener = ['admin', 'manager', 'receptionist', 'coder'].includes(req.user.role);
     if (existingRepair.status === 'completed' && !isAuthorizedReopener) {
-      return res.status(403).json({ error: 'Access denied: Completed repair orders cannot be reopened or edited by mechanics' });
+      if (data.status && data.status !== 'completed') {
+        return res.status(403).json({ error: 'Access denied: Completed repair orders cannot be reopened or edited by mechanics' });
+      }
     }
 
     // Clean mechanic assignment
@@ -397,6 +403,9 @@ router.put('/:id', authenticate, async (req, res) => {
       }
 
       return updatedRepair;
+    }, {
+      maxWait: 15000,
+      timeout: 30000
     });
 
     res.json(updated);

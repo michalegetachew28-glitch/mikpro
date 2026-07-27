@@ -6,7 +6,7 @@ import {
   CreditCard, FileText, CheckCircle, CheckCircle2, Search, Download, Printer,
   Settings, BarChart3, Plus, Trash2, Building, Smartphone, Edit2,
   DollarSign, Landmark, Wallet, History, AlertCircle, Share2,
-  FilePlus, Save, ArrowLeft, X, Image as ImageIcon, Package
+  FilePlus, Save, ArrowLeft, X, Image as ImageIcon, Package, Copy
 } from 'lucide-react';
 import InvoiceForm from './InvoiceForm';
 import { generateInvoicePDF } from '../utils/pdfUtils';
@@ -22,7 +22,8 @@ const Billing = () => {
     customers, materialRequests, setMaterialRequests,
     repairs, staff, mechanicPaymentDetails, bonuses, setBonuses,
     t, language, formatDate, requestConfirmation,
-    addNotification, logActivity
+    addNotification, logActivity,
+    isBillingLoading, refreshBillingData
   } = useAppContext();
   const { currentUser } = useAuth();
 
@@ -32,6 +33,7 @@ const Billing = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [currency, setCurrency] = useState(billingSettings.currency || 'ETB');
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [prefillInvoice, setPrefillInvoice] = useState(null);
   const [showProofModal, setShowProofModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(null); // 'bank' or 'phone' or null
   const [editingAccountId, setEditingAccountId] = useState(null);
@@ -59,7 +61,19 @@ const Billing = () => {
         setShowMobileDetail(true);
       }
     }
+
+    // Auto-open InvoiceForm if prefill data was passed from Repairs page
+    if (location.state?.prefillInvoice) {
+      setPrefillInvoice(location.state.prefillInvoice);
+      setShowInvoiceForm(true);
+      // Clear state so refresh doesn't re-open
+      window.history.replaceState({}, document.title);
+    }
   }, [location.hash, location.search, invoices]);
+
+  useEffect(() => {
+    refreshBillingData();
+  }, [refreshBillingData]);
 
   const [billingForm, setBillingForm] = useState({
     taxRate: billingSettings.taxRate || 15,
@@ -146,6 +160,18 @@ const Billing = () => {
     setInvoices(prev => [newInvoice, ...prev]);
     setShowInvoiceForm(false);
     setSelectedInvoice(newInvoice);
+    
+    // Auto-display and scroll to invoice detail viewer.
+    if (window.innerWidth <= 1100) {
+      setShowMobileDetail(true);
+      setTimeout(() => {
+        document.getElementById('top-of-billing')?.scrollIntoView({ behavior: 'smooth' });
+      }, 10);
+    } else {
+      setTimeout(() => {
+        document.getElementById('invoice-detail-view')?.scrollIntoView({ behavior: 'smooth' });
+      }, 10);
+    }
 
     // Notify customer
     addNotification(
@@ -481,7 +507,12 @@ const Billing = () => {
         </div>
       </div>
       <div className="invoice-list">
-        {visibleInvoices.length === 0 ? (
+        {isBillingLoading ? (
+          <div className="billing-loading-row">
+            <div className="billing-spinner" />
+            <p>Loading invoices…</p>
+          </div>
+        ) : visibleInvoices.length === 0 ? (
           <div className="empty-state">
             <AlertCircle size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
             <p>{t('noGaragesFound')}</p>
@@ -768,11 +799,32 @@ const Billing = () => {
                                 fontSize: '1.15rem',
                                 fontWeight: '800',
                                 color: isMaterialInvoice ? 'var(--secondary)' : 'var(--primary)',
-                                letterSpacing: '0.5px'
+                                letterSpacing: '0.5px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
                               }}>
-                                {currentUser?.role === 'admin'
-                                  ? `****${detail.accountNumber?.slice(-4)}`
-                                  : detail.accountNumber}
+                                <span>
+                                  {currentUser?.role === 'admin'
+                                    ? `****${detail.accountNumber?.slice(-4)}`
+                                    : detail.accountNumber}
+                                </span>
+                                {currentUser?.role !== 'admin' && (
+                                  <button
+                                    type="button"
+                                    className="btn-icon"
+                                    style={{ padding: '4px', background: 'transparent' }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(detail.accountNumber);
+                                      addNotification(t("Account number copied!"), 'success', currentUser?.id);
+                                    }}
+                                    title={t("Copy Account Number")}
+                                  >
+                                    <Copy size={16} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -838,7 +890,23 @@ const Billing = () => {
                                   <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#059669' }}>{acc.provider}</span>
                                 </div>
                                 <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{acc.accountName}</div>
-                                <div style={{ fontFamily: 'monospace', fontSize: '1rem', fontWeight: '700', color: '#059669' }}>{acc.accountNumber}</div>
+                                <div style={{ fontFamily: 'monospace', fontSize: '1rem', fontWeight: '700', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <span>{acc.accountNumber}</span>
+                                  <button
+                                    type="button"
+                                    className="btn-icon"
+                                    style={{ padding: '4px', background: 'transparent' }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(acc.accountNumber);
+                                      addNotification(t("Account number copied!"), 'success', currentUser?.id);
+                                    }}
+                                    title={t("Copy Account Number")}
+                                  >
+                                    <Copy size={14} color="#059669" />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -940,7 +1008,7 @@ const Billing = () => {
               </div>
             )}
             {(selectedInvoice.hasProof || selectedInvoice.status === 'payment-submitted') &&
-              (currentUser?.role === 'admin' || currentUser?.role === 'coder' || currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('billing_manage') || currentUser?.role === 'inventoryManager') && (
+              (currentUser?.role === 'admin' || currentUser?.role === 'cashier' || currentUser?.role === 'coder' || currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('billing_manage') || currentUser?.role === 'inventoryManager') && (
                 <div className="verification-panel glass-panel" style={{
                   width: '100%',
                   maxWidth: '800px',
@@ -1102,7 +1170,12 @@ const Billing = () => {
       <div className="settings-card">
         <h2><Landmark size={24} /> {t('bankTransfer')}</h2>
         <div className="payment-details-list">
-          {adminPaymentDetails.filter(d => d.type === 'bank' && (currentUser.role === 'admin' || currentUser.role === 'coder' || d.managerId === currentUser.id)).map(detail => (
+          {isBillingLoading ? (
+            <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-secondary)' }}>
+              <div className="billing-spinner" style={{ width: 24, height: 24 }} />
+              <span style={{ fontSize: '0.9rem' }}>Loading bank accounts…</span>
+            </div>
+          ) : adminPaymentDetails.filter(d => d.type === 'bank' && (currentUser.role === 'admin' || currentUser.role === 'coder' || d.managerId === currentUser.id)).map(detail => (
             <div key={detail.id} className="detail-item glass-panel" style={{ padding: 16, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <strong>{detail.provider}</strong>
@@ -1123,7 +1196,12 @@ const Billing = () => {
       <div className="settings-card">
         <h2><Smartphone size={24} /> {t('phonePayment')}</h2>
         <div className="payment-details-list">
-          {adminPaymentDetails.filter(d => d.type === 'phone' && (currentUser.role === 'admin' || currentUser.role === 'coder' || d.managerId === currentUser.id)).map(detail => (
+          {isBillingLoading ? (
+            <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-secondary)' }}>
+              <div className="billing-spinner" style={{ width: 24, height: 24 }} />
+              <span style={{ fontSize: '0.9rem' }}>Loading mobile accounts…</span>
+            </div>
+          ) : adminPaymentDetails.filter(d => d.type === 'phone' && (currentUser.role === 'admin' || currentUser.role === 'coder' || d.managerId === currentUser.id)).map(detail => (
             <div key={detail.id} className="detail-item glass-panel" style={{ padding: 16, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <strong>{detail.provider}</strong>
@@ -1257,7 +1335,8 @@ const Billing = () => {
 
         {showInvoiceForm && (
           <InvoiceForm
-            onClose={() => setShowInvoiceForm(false)}
+            prefill={prefillInvoice}
+            onClose={() => { setShowInvoiceForm(false); setPrefillInvoice(null); }}
             onSave={handleSaveInvoice}
           />
         )}
@@ -1363,7 +1442,20 @@ const Billing = () => {
                           const file = e.target.files[0];
                           if (file) {
                             const reader = new FileReader();
-                            reader.onloadend = () => setProofData({ ...proofData, screenshot: reader.result });
+                            reader.onloadend = () => {
+                              const img = new Image();
+                              img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 800;
+                                const scaleSize = MAX_WIDTH / img.width;
+                                canvas.width = MAX_WIDTH;
+                                canvas.height = img.height * scaleSize;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                setProofData({ ...proofData, screenshot: canvas.toDataURL('image/jpeg', 0.8) });
+                              };
+                              img.src = reader.result;
+                            };
                             reader.readAsDataURL(file);
                           }
                         }}

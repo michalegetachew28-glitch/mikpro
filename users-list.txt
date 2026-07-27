@@ -1,0 +1,30 @@
+[
+  {
+    "id": "cmrrvessd0002kre3dkqxco1b",
+    "name": "hhh",
+    "email": "251988888800@mechpro.tmp",
+    "phone": "251988888800",
+    "role": "customer"
+  },
+  {
+    "id": "cmrtq044g0002g3eujkgy85gm",
+    "name": "erkljgjke",
+    "email": "251963636366@mechpro.staff",
+    "phone": "251963636366",
+    "role": "inventoryManager"
+  },
+  {
+    "id": "cmrkpskj10003gc8azcwh20k0",
+    "name": "Michale Getachew",
+    "email": "getachewmichale4@gmail.com",
+    "phone": "251956565656",
+    "role": "admin"
+  },
+  {
+    "id": "cmrkqhvr5000213f511grxyie",
+    "name": "lop",
+    "email": "251986868585@mechpro.staff",
+    "phone": "251986868585",
+    "role": "mechanic"
+  }
+]

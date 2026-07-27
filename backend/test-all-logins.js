@@ -59,7 +59,7 @@ async function run() {
     const loginRes = await fetch("http://localhost:5000/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emailOrPhone: "yechale1210@gmail.com", password: "password123" })
+      body: JSON.stringify({ emailOrPhone: "demoadmin@garage.com", password: "admin123" })
 
     });
     const loginData = await loginRes.json();

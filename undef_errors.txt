@@ -1,0 +1,38 @@
+FILE: \src\components\Messaging.jsx
+   L556:96 'clearMessages' is not defined.
+   L1301:7 'setMessages' is not defined.
+   L1310:5 'setMessages' is not defined.
+FILE: \src\components\Profile.jsx
+   L92:7 'updateOtherAccount' is not defined.
+   L142:13 'updateOtherAccount' is not defined.
+   L157:9 'updateOtherAccount' is not defined.
+FILE: \src\components\SuperAdminPortal.jsx
+   L1876:5 'setApprovingId' is not defined.
+   L1879:7 'setApprovingId' is not defined.
+   L1892:7 'mediaRecorderRef' is not defined.
+   L1893:7 'audioChunksRef' is not defined.
+   L1896:30 'audioChunksRef' is not defined.
+   L1900:36 'audioChunksRef' is not defined.
+   L1911:7 'setIsRecording' is not defined.
+   L1912:7 'setRecordingTime' is not defined.
+   L1913:7 'timerRef' is not defined.
+   L1914:9 'setRecordingTime' is not defined.
+   L1922:9 'mediaRecorderRef' is not defined.
+   L1922:37 'isRecording' is not defined.
+   L1923:7 'mediaRecorderRef' is not defined.
+   L1924:7 'setIsRecording' is not defined.
+   L1925:21 'timerRef' is not defined.
+   L1926:11 'mediaRecorderRef' is not defined.
+   L1927:9 'mediaRecorderRef' is not defined.
+   L2133:57 'isRecording' is not defined.
+   L2136:23 'isRecording' is not defined.
+   L2148:18 'isRecording' is not defined.
+   L2151:56 'recordingTime' is not defined.
+   L2153:27 'mediaRecorderRef' is not defined.
+   L2153:53 'mediaRecorderRef' is not defined.
+   L2154:23 'setIsRecording' is not defined.
+   L2155:37 'timerRef' is not defined.
+   L2156:23 'audioChunksRef' is not defined.
+   L2182:19 'approvingId' is not defined.
+FILE: \src\context\AppContext.jsx
+   L2065:48 'formatCurrency' is not defined.

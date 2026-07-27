@@ -37,6 +37,8 @@ import SubscriptionRequired from './components/SubscriptionRequired';
 import SubscriptionPage from './components/SubscriptionPage';
 import InternalMessaging from './components/InternalMessaging';
 import LoadingOverlay from './components/LoadingOverlay';
+import CustomerRepairs from './components/CustomerRepairs';
+import Revenue from './components/Revenue';
 
 // Role-based guard
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -55,8 +57,20 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
-  const { currentUser, globalLoading } = useAuth();
-  
+  const { currentUser, globalLoading, initializing } = useAuth();
+
+  // Block ALL routes until the session check (JWT validation) is complete.
+  // This prevents stale localStorage from flashing a "logged in" state before
+  // we confirm the token is still valid with the backend.
+  if (initializing) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, background: 'var(--bg-main, #f4f7fe)' }}>
+        <div className="loader-spinner" style={{ width: 48, height: 48 }} />
+        <p style={{ color: 'var(--text-secondary, #6b7280)', fontSize: '0.9rem', margin: 0 }}>Loading your session...</p>
+      </div>
+    );
+  }
+
   return (
     <Suspense fallback={
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f7fe' }}>
@@ -101,19 +115,16 @@ function App() {
           <Route path="appointments" element={<ProtectedRoute allowedRoles={['admin', 'receptionist', 'customer', 'manager', 'coder']}><Appointments /></ProtectedRoute>} />
           <Route path="billing"      element={<ProtectedRoute allowedRoles={['admin', 'cashier', 'customer', 'manager', 'inventoryManager', 'coder']}><Billing /></ProtectedRoute>} />
           <Route path="vehicles"     element={<ProtectedRoute allowedRoles={['admin', 'mechanic', 'receptionist', 'manager', 'coder']}><Vehicles /></ProtectedRoute>} />
-          <Route path="repairs"      element={<ProtectedRoute allowedRoles={['admin', 'mechanic', 'receptionist', 'manager', 'coder']}><Repairs /></ProtectedRoute>} />
-          <Route path="attendance" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'coder']}><AttendanceLayout /></ProtectedRoute>}>
-            <Route index element={<Attendance />} />
-            <Route path="history" element={<AttendanceHistory />} />
-            <Route path="reports" element={<AttendanceReports />} />
-            <Route path="summary" element={<AttendanceEmployeeSummary />} />
-          </Route>
-          <Route path="inventory"    element={<ProtectedRoute allowedRoles={['storekeeper', 'mechanic', 'inventoryManager', 'coder']}><Inventory /></ProtectedRoute>} />
-          <Route path="material-requests" element={<ProtectedRoute allowedRoles={['storekeeper', 'inventoryManager', 'manager', 'mechanic', 'coder']}><MaterialRequests /></ProtectedRoute>} />
-          <Route path="customers"    element={<ProtectedRoute allowedRoles={['admin', 'receptionist', 'manager', 'coder']}><Customers /></ProtectedRoute>} />
-          <Route path="salary"       element={<ProtectedRoute allowedRoles={['admin', 'mechanic', 'cashier', 'receptionist', 'storekeeper', 'manager', 'coder']}><Salary /></ProtectedRoute>} />
+          <Route path="repairs"      element={<ProtectedRoute allowedRoles={['admin', 'mechanic', 'receptionist', 'manager', 'coder', 'cashier']}><Repairs /></ProtectedRoute>} />
+          <Route path="my-repairs"   element={<ProtectedRoute allowedRoles={['customer']}><CustomerRepairs /></ProtectedRoute>} />
+          <Route path="attendance" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'coder']}><Attendance /></ProtectedRoute>} />
+          <Route path="inventory"    element={<ProtectedRoute allowedRoles={['admin', 'storekeeper', 'mechanic', 'inventoryManager', 'manager', 'coder']}><Inventory /></ProtectedRoute>} />
+          <Route path="material-requests" element={<ProtectedRoute allowedRoles={['admin', 'storekeeper', 'inventoryManager', 'manager', 'mechanic', 'coder']}><MaterialRequests /></ProtectedRoute>} />
+          <Route path="customers"    element={<ProtectedRoute allowedRoles={['admin', 'receptionist', 'manager', 'cashier', 'coder']}><Customers /></ProtectedRoute>} />
+          <Route path="salary"       element={<ProtectedRoute allowedRoles={['admin', 'mechanic', 'cashier', 'receptionist', 'storekeeper', 'manager', 'inventoryManager', 'coder']}><Salary /></ProtectedRoute>} />
 
           {/* Admin/Owner Only */}
+          <Route path="revenue"      element={<ProtectedRoute allowedRoles={['admin', 'manager', 'coder']}><Revenue /></ProtectedRoute>} />
           <Route path="staff"        element={<ProtectedRoute allowedRoles={['admin', 'coder']}><ErrorBoundary><Staff /></ErrorBoundary></ProtectedRoute>} />
           <Route path="activity"     element={<ProtectedRoute allowedRoles={['coder']}><ActivityLogs /></ProtectedRoute>} />
           <Route path="backup"       element={<ProtectedRoute allowedRoles={['admin', 'coder']}><Backup /></ProtectedRoute>} />

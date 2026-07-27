@@ -1,0 +1,24 @@
+﻿=== Testing role logins ===
+
+[Admin] Status: 200
+Ô£à Login SUCCESS - role: admin, garage: Miky Garage
+
+[Manager (phone)] Status: 200
+Ô£à Login SUCCESS - role: manager, garage: Miky Garage
+
+[Cashier (phone)] Status: 200
+Ô£à Login SUCCESS - role: cashier, garage: Miky Garage
+
+[Mechanic (phone)] Status: 200
+Ô£à Login SUCCESS - role: mechanic, garage: Miky Garage
+
+[InventoryMgr (phone)] Status: 200
+Ô£à Login SUCCESS - role: inventoryManager, garage: Miky Garage
+
+[Customer (email)] Status: 200
+Ô£à Login SUCCESS - role: customer, garage: Miky Garage
+
+=== Testing customer creation ===
+
+[Customer Create] Status: 400
+ÔØî Customer create FAILED - Error: Phone number 251911000099 is already registered.

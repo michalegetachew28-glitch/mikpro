@@ -1,1220 +1,1590 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  CreditCard, Banknote, History, CheckCircle2,
-  Clock, X, AlertCircle, Save, Landmark as Bank,
-  Smartphone, Plus, Trash2, Edit2, Search, Filter,
-  ArrowUpRight, ArrowDownLeft, Wallet, Info, ChevronRight,
-  TrendingDown, TrendingUp, Bell, Settings, Image, Eye,
-  Sparkles, Star, AlertTriangle
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { api } from '../services/api';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import PhoneInput from './PhoneInput';
+import {
+  DollarSign, Users, CheckCircle, Clock, TrendingUp, BarChart2,
+  Plus, RefreshCw, Download, Search, Lock, Unlock, CreditCard, Eye,
+  Building2, Smartphone, Banknote, AlertCircle, X, User, Edit2, Trash2,
+  Wallet, Receipt, Calendar, FileText, Send, RotateCcw, ThumbsUp, ThumbsDown
+} from 'lucide-react';
+import { SkeletonStatsGrid, SkeletonListPage } from './SkeletonLoader';
 import './Salary.css';
 
+const STATUS_COLORS = {
+  Pending: { bg: '#f59e0b20', text: '#f59e0b' },
+  Approved: { bg: '#22c55e20', text: '#22c55e' },
+  Paid: { bg: '#6366f120', text: '#6366f1' },
+  Open: { bg: '#06b6d420', text: '#06b6d4' },
+  Locked: { bg: '#f59e0b20', text: '#f59e0b' }
+};
+
 const ETHIOPIAN_BANKS = [
-  "Commercial Bank of Ethiopia (CBE)",
-  "Dashen Bank",
-  "Awash Bank",
-  "Bank of Abyssinia",
-  "Cooperative Bank of Oromia",
-  "Nib International Bank",
-  "Hibret Bank",
-  "Wegagen Bank",
-  "Zemen Bank",
-  "Oromia International Bank",
-  "Bunna Bank",
-  "Berhan Bank",
-  "Abay Bank",
-  "Addis International Bank",
-  "Debub Global Bank",
-  "Enat Bank"
+  'Commercial Bank of Ethiopia (CBE)',
+  'Awash Bank',
+  'Dashen Bank',
+  'Bank of Abyssinia',
+  'Wegagen Bank',
+  'Nib International Bank',
+  'Hibret Bank',
+  'Cooperative Bank of Oromia',
+  'Zemen Bank',
+  'Oromia International Bank'
 ];
 
-const ETHIOPIAN_MOBILE_SERVICES = [
-  "Telebirr",
-  "CBE Birr",
-  "M-Pesa",
-  "Awash Birr",
-  "HelloCash",
-  "Amole"
+const ETHIOPIAN_MOBILE_PROVIDERS = [
+  'Telebirr',
+  'CBE Birr',
+  'AwashBirr',
+  'HelloCash'
 ];
 
-const Salary = () => {
-  const {
-    salaries, setSalaries, salaryPayments, setSalaryPayments,
-    t, language, formatDate, addNotification, staff, attendance,
-    addItem, updateItem, logActivity, requestConfirmation,
-    isInitialLoadComplete
-  } = useAppContext();
-  const { currentUser, getAccounts, updateOtherAccount } = useAuth();
+function nameToColor(name = '') {
+  const palette = [
+    '#4361ee', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1'
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return palette[Math.abs(hash) % palette.length];
+}
 
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, history, accounts
-  const [showManageModal, setShowManageModal] = useState(false);
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [showAccountModal, setShowAccountModal] = useState(false);
-  const [showProofModal, setShowProofModal] = useState(false);
-  const [selectedProof, setSelectedProof] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [salaryFilter, setSalaryFilter] = useState('all'); // all, paid, pending
+function getInitials(name = '') {
+  return name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase();
+}
 
-  const [manageData, setManageData] = useState({
-    amount: 5000,
-    type: 'monthly',
-    status: 'active',
-    absentDeduction: 0,
-    lateDeduction: 0,
-    isDeductionEnabled: false
+export default function Salary() {
+  const { showToast, isSyncing, isInitialLoadComplete } = useAppContext();
+  const { currentUser } = useAuth();
+  
+  const userRole = currentUser?.role || 'mechanic';
+  const isEmployee = userRole === 'mechanic' || userRole === 'manager';
+  
+  const [activeTab, setActiveTab] = useState(isEmployee ? 'my-salary' : 'dashboard');
+  const [dashData, setDashData] = useState({});
+  const [trend, setTrend] = useState([]);
+  const [deptCosts, setDeptCosts] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [periods, setPeriods] = useState([]);
+  const [calculations, setCalculations] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [structures, setStructures] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // My Salary (Employee) states
+  const [personalDash, setPersonalDash] = useState(null);
+  const [personalLoading, setPersonalLoading] = useState(false);
+  const [bankForm, setBankForm] = useState({
+    bankName: '',
+    bankAccount: '',
+    mobileBank: '',
+    mobileAccount: ''
   });
-  const [paymentData, setPaymentData] = useState({
-    amount: 0,
-    method: 'Bank Transfer',
-    screenshot: null
-  });
+  // My Salary — history filters
+  const [historyStatusFilter, setHistoryStatusFilter] = useState('all');
+  const [historyDateFrom, setHistoryDateFrom] = useState('');
+  const [historyDateTo, setHistoryDateTo] = useState('');
+  const [payHistoryDateFrom, setPayHistoryDateFrom] = useState('');
+  const [payHistoryDateTo, setPayHistoryDateTo] = useState('');
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(t('File too large'));
-        return;
+  // Salary Payment tab state
+  const [paymentEmployees, setPaymentEmployees] = useState([]);
+  const [paymentSearch, setPaymentSearch] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState('all');
+
+  // Side panel state (replaces the old dialog)
+  const [showPaymentDialog, setShowPaymentDialog] = useState(null);
+  const [payDialogMethod, setPayDialogMethod] = useState('Cash');
+  const [payDialogReference, setPayDialogReference] = useState('');
+  const [payDialogDate, setPayDialogDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [payDialogNotes, setPayDialogNotes] = useState('');
+  const [dialogProcessing, setDialogProcessing] = useState(false);
+
+  // Employee approval state
+  const [showRejectBox, setShowRejectBox] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [approvalProcessing, setApprovalProcessing] = useState(false);
+
+  // Payroll tab filters
+  const [filterPeriod, setFilterPeriod] = useState('');
+  const [searchCalc, setSearchCalc] = useState('');
+
+  // Modals
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [showStructureModal, setShowStructureModal] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(null);
+  const [showSlip, setShowSlip] = useState(null);
+
+  const [periodForm, setPeriodForm] = useState({ periodName: '', salaryType: 'Monthly', startDate: '', endDate: '' });
+  const [structureForm, setStructureForm] = useState({
+    employeeId: '', baseSalary: '', absencePenaltyPerDay: '', latePenaltyPerOccurrence: ''
+  });
+  const [editingStructure, setEditingStructure] = useState(null);
+  const [payForm, setPayForm] = useState({ paymentMethod: 'Cash', paymentReference: '', notes: '' });
+  const [saving, setSaving] = useState(false);
+
+  // Global load for admins & cashiers
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [d, t, dc, e, p, s, py] = await Promise.all([
+        api.getPayrollDashboard(),
+        api.getPayrollTrend(6),
+        api.getDepartmentCosts(),
+        api.getEmployees(),
+        api.getSalaryPeriods(),
+        api.getSalaryStructures(),
+        api.getSalaryPayments()
+      ]);
+      setDashData(d);
+      setTrend(t);
+      setDeptCosts(dc);
+      setEmployees(Array.isArray(e) ? e : []);
+      setPeriods(Array.isArray(p) ? p : []);
+      setStructures(Array.isArray(s) ? s : []);
+      setPayments(Array.isArray(py) ? py : []);
+    } catch (err) {
+      showToast('Failed to load payroll data: ' + err.message, 'error');
+    } finally { setLoading(false); }
+  }, [showToast]);
+
+  // Personal Load for Employees (Mechanic & Manager)
+  const loadPersonalDashboard = useCallback(async () => {
+    setPersonalLoading(true);
+    try {
+      const data = await api.getPersonalSalaryDashboard();
+      setPersonalDash(data);
+      if (data?.employee) {
+        setBankForm({
+          bankName: data.employee.bankName || '',
+          bankAccount: data.employee.bankAccount || '',
+          mobileBank: data.employee.mobileBank || '',
+          mobileAccount: data.employee.mobileAccount || ''
+        });
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPaymentData({ ...paymentData, screenshot: reader.result });
+    } catch (err) {
+      showToast('Failed to load personal salary dashboard: ' + err.message, 'error');
+    } finally {
+      setPersonalLoading(false);
+    }
+  }, [showToast]);
+
+  const loadPaymentEmployees = useCallback(async () => {
+    setPaymentLoading(true);
+    try {
+      const data = await api.getPayableEmployees();
+      setPaymentEmployees(Array.isArray(data) ? data : []);
+    } catch (err) {
+      showToast('Failed to load employee payment data: ' + err.message, 'error');
+    } finally { setPaymentLoading(false); }
+  }, [showToast]);
+
+  const loadCalcs = useCallback(async () => {
+    if (!filterPeriod) { setCalculations([]); return; }
+    try {
+      const c = await api.getSalaryCalculations({ periodId: filterPeriod });
+      setCalculations(Array.isArray(c) ? c : []);
+    } catch (err) { showToast(err.message, 'error'); }
+  }, [filterPeriod, showToast]);
+
+  useEffect(() => {
+    if (isEmployee) {
+      loadPersonalDashboard();
+    } else {
+      load();
+    }
+  }, [isEmployee, load, loadPersonalDashboard]);
+
+  useEffect(() => {
+    if (!isEmployee) loadCalcs();
+  }, [filterPeriod, loadCalcs, isEmployee]);
+
+  useEffect(() => {
+    if (!isEmployee && activeTab === 'salary-payment') loadPaymentEmployees();
+  }, [activeTab, loadPaymentEmployees, isEmployee]);
+
+  const handleGeneratePayroll = async () => {
+    if (!filterPeriod) { showToast('Select a period first', 'warning'); return; }
+    setSaving(true);
+    try {
+      const result = await api.generatePayroll(filterPeriod);
+      showToast(`Generated ${result.generated} records${result.failed?.length ? `, ${result.failed.length} failed` : ''}`, 'success');
+      loadCalcs();
+      load();
+    } catch (err) { showToast(err.message, 'error'); } finally { setSaving(false); }
+  };
+
+  const handleApprove = async (id) => {
+    try { await api.approveSalaryCalc(id); showToast('Approved', 'success'); loadCalcs(); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleReject = async (id) => {
+    try { await api.rejectSalaryCalc(id, 'Rejected'); showToast('Rejected', 'info'); loadCalcs(); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleLockPeriod = async (id) => {
+    try { await api.lockSalaryPeriod(id); showToast('Period locked', 'success'); load(); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleUnlockPeriod = async (id) => {
+    try { await api.unlockSalaryPeriod(id); showToast('Period unlocked', 'success'); load(); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleMarkPaid = async (id) => {
+    try { await api.markSalaryPeriodPaid(id); showToast('Period marked as Paid', 'success'); load(); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleCreatePeriod = async () => {
+    setSaving(true);
+    try {
+      await api.createSalaryPeriod(periodForm);
+      showToast('Period created', 'success');
+      setShowPeriodModal(false);
+      setPeriodForm({ periodName: '', salaryType: 'Monthly', startDate: '', endDate: '' });
+      load();
+    } catch (err) { showToast(err.message, 'error'); } finally { setSaving(false); }
+  };
+
+  const closeStructureModal = () => {
+    setShowStructureModal(false);
+    setEditingStructure(null);
+    setStructureForm({ employeeId: '', baseSalary: '', absencePenaltyPerDay: '', latePenaltyPerOccurrence: '' });
+  };
+
+  const openEditStructure = (s) => {
+    setEditingStructure(s);
+    setStructureForm({
+      employeeId: s.employeeId,
+      baseSalary: String(s.baseSalary ?? ''),
+      absencePenaltyPerDay: String(s.absencePenaltyPerDay ?? ''),
+      latePenaltyPerOccurrence: String(s.latePenaltyPerOccurrence ?? '')
+    });
+    setShowStructureModal(true);
+  };
+
+  const handleSaveStructure = async () => {
+    if (!structureForm.employeeId) { showToast('Please select an employee', 'warning'); return; }
+    if (!structureForm.baseSalary || isNaN(Number(structureForm.baseSalary))) { showToast('Enter a valid Base Salary', 'warning'); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        employeeId: structureForm.employeeId,
+        baseSalary: parseFloat(structureForm.baseSalary) || 0,
+        absencePenaltyPerDay: parseFloat(structureForm.absencePenaltyPerDay) || 0,
+        latePenaltyPerOccurrence: parseFloat(structureForm.latePenaltyPerOccurrence) || 0
       };
-      reader.readAsDataURL(file);
+      if (editingStructure) {
+        await api.updateSalaryStructure(editingStructure.id, payload);
+        showToast('Salary structure updated successfully', 'success');
+      } else {
+        await api.createSalaryStructure(payload);
+        showToast('Salary structure saved successfully', 'success');
+      }
+      closeStructureModal();
+      load();
+    } catch (err) { showToast(err.message, 'error'); } finally { setSaving(false); }
+  };
+
+  const handleDeleteStructure = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this salary structure?')) return;
+    try {
+      await api.deleteSalaryStructure(id);
+      showToast('Salary structure soft-deleted successfully', 'success');
+      load();
+    } catch (err) {
+      showToast(err.message, 'error');
     }
   };
 
-  const [accountData, setAccountData] = useState({
-    type: 'bank',
-    provider: '',
-    accountName: '',
-    accountNumber: '',
-    branch: '',
-    walletNumber: ''
+  const handlePay = async () => {
+    if (!showPayModal) return;
+    setSaving(true);
+    try {
+      await api.createSalaryPayment({ salaryCalculationId: showPayModal.id, amount: showPayModal.netSalary, ...payForm });
+      showToast('Payment recorded successfully', 'success');
+      setShowPayModal(null);
+      loadCalcs(); load();
+    } catch (err) { showToast(err.message, 'error'); } finally { setSaving(false); }
+  };
+
+  const handleViewSlip = async (id) => {
+    try { const slip = await api.getSalarySlip(id); setShowSlip(slip); }
+    catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleDialogPay = async () => {
+    if (!showPaymentDialog) return;
+    const dlgE = showPaymentDialog;
+    const calc = dlgE.latestCalculation;
+    if (calc && calc.status === 'Pending') { showToast('Salary must be Approved before payment', 'warning'); return; }
+    setDialogProcessing(true);
+    try {
+      const payload = {
+        amount: calc ? calc.netSalary : dlgE.baseSalary,
+        paymentMethod: payDialogMethod,
+        paymentReference: payDialogReference || undefined,
+        paymentDate: payDialogDate || undefined,
+        notes: payDialogNotes || undefined
+      };
+      if (calc) {
+        payload.salaryCalculationId = calc.id;
+      } else {
+        payload.employeeId = dlgE.id;
+      }
+      await api.createSalaryPayment(payload);
+      showToast(`✅ Payment processed for ${dlgE.fullName}`, 'success');
+      setShowPaymentDialog(null);
+      setPayDialogReference('');
+      setPayDialogNotes('');
+      setPayDialogDate(new Date().toISOString().split('T')[0]);
+      await Promise.all([loadPaymentEmployees(), load()]);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setDialogProcessing(false);
+    }
+  };
+
+  const handleApprovePayment = async (paymentId) => {
+    setApprovalProcessing(true);
+    try {
+      await api.approveSalaryPayment(paymentId);
+      showToast('✅ Payment approved successfully!', 'success');
+      loadPersonalDashboard();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setApprovalProcessing(false);
+    }
+  };
+
+  const handleRejectPayment = async (paymentId) => {
+    if (!rejectReason.trim()) { showToast('Please provide a reason for rejection', 'warning'); return; }
+    setApprovalProcessing(true);
+    try {
+      await api.reportSalaryPaymentIssue(paymentId, rejectReason);
+      showToast('Payment rejected. Admin has been notified.', 'info');
+      setShowRejectBox(false);
+      setRejectReason('');
+      loadPersonalDashboard();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setApprovalProcessing(false);
+    }
+  };
+
+  const openPaymentDialog = (emp) => {
+    setShowPaymentDialog(emp);
+    setPayDialogMethod('Cash');
+    setPayDialogReference('');
+    setPayDialogDate(new Date().toISOString().split('T')[0]);
+    setPayDialogNotes('');
+  };
+
+  const printSlip = () => { window.print(); };
+
+  const handleUpdateBankInfo = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.updatePersonalBankInfo(bankForm);
+      showToast('Banking details updated successfully', 'success');
+      loadPersonalDashboard();
+    } catch (err) {
+      showToast('Failed to update banking details: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filteredCalcs = calculations.filter(c => {
+    const name = c.employee?.fullName?.toLowerCase() || '';
+    return !searchCalc || name.includes(searchCalc.toLowerCase()) || c.employee?.employeeNumber?.toLowerCase().includes(searchCalc.toLowerCase());
   });
 
-  // A. Helper to calculate deductions for an employee based on attendance (Define early to avoid ReferenceError)
-  const getEmployeeDeductions = (empId) => {
-    const sal = (salaries || []).find(s => String(s.employeeId) === String(empId));
-    if (!sal || !sal.isDeductionEnabled) return { totalDeduction: 0, absentDays: 0, lateDays: 0 };
+  const filteredPaymentEmployees = paymentEmployees.filter(emp => {
+    const matchSearch = !paymentSearch ||
+      emp.fullName?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+      emp.employeeNumber?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+      emp.department?.toLowerCase().includes(paymentSearch.toLowerCase());
+    const cs = emp.cardStatus || 'idle';
+    const matchFilter =
+      paymentFilter === 'all' ||
+      (paymentFilter === 'payable'          && cs === 'payable') ||
+      (paymentFilter === 'processing'       && cs === 'processing') ||
+      (paymentFilter === 'waiting_approval' && cs === 'waiting_approval') ||
+      (paymentFilter === 'paid'             && cs === 'paid') ||
+      (paymentFilter === 'rejected'         && cs === 'rejected');
+    return matchSearch && matchFilter;
+  });
 
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+  const payTotal = paymentEmployees.length;
+  const payPaid = paymentEmployees.filter(e => e.cardStatus === 'paid').length;
+  const payPayable = paymentEmployees.filter(e => e.cardStatus === 'payable').length;
+  const payProcessing = paymentEmployees.filter(e => e.cardStatus === 'processing' || e.cardStatus === 'waiting_approval').length;
+  const payTotalETB = paymentEmployees
+    .filter(e => e.cardStatus === 'paid')
+    .reduce((s, e) => s + (e.latestCalculation?.netSalary || 0), 0);
+  const payPayableETB = paymentEmployees
+    .filter(e => e.cardStatus === 'payable')
+    .reduce((s, e) => s + (e.latestCalculation?.netSalary || 0), 0);
+  const payProcessingETB = paymentEmployees
+    .filter(e => e.cardStatus === 'processing' || e.cardStatus === 'waiting_approval')
+    .reduce((s, e) => s + (e.latestCalculation?.netSalary || 0), 0);
 
-    // Filter attendance for the current month
-    const myMonthAttendance = (attendance || []).filter(a => {
-      if (String(a.staffId) !== String(empId)) return false;
-      const d = new Date(a.date);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
+  const maxTrend = Math.max(...trend.map(t => t.total), 1);
+  const maxDept = Math.max(...deptCosts.map(d => d.total), 1);
 
-    const absentDays = myMonthAttendance.filter(a => a.status === 'absent').length;
-    const lateDays = myMonthAttendance.filter(a => a.status === 'late').length;
+  const dlgEmp = showPaymentDialog;
+  const hasBank = dlgEmp && (dlgEmp.bankName || dlgEmp.bankAccount);
+  const hasMobile = dlgEmp && (dlgEmp.mobileBank || dlgEmp.mobileAccount);
+  const hasAnyAccount = hasBank || hasMobile;
 
-    const totalDeduction = (absentDays * (sal.absentDeduction || 0)) + (lateDays * (sal.lateDeduction || 0));
-
-    return { totalDeduction, absentDays, lateDays };
+  const CARD_STATUS_BADGE = {
+    payable:        { cls: 'payable',    label: 'Payable' },
+    processing:     { cls: 'processing', label: 'Processing' },
+    waiting_approval: { cls: 'waiting',  label: 'Awaiting Approval' },
+    paid:           { cls: 'paid',       label: 'Paid' },
+    rejected:       { cls: 'rejected',   label: 'Rejected' },
+    idle:           { cls: 'payable',    label: 'Payable' },
   };
 
-  // B. Helper to determine payment status and next available date
-  const getPaymentStatus = (empId) => {
-    const sal = salaries.find(s => String(s.employeeId) === String(empId));
-    if (!sal) return { status: 'none', nextDate: null, daysLeft: 0, lastPay: null };
-
-    const myPayments = salaryPayments
-      .filter(p => String(p.employeeId) === String(empId) && p.status === 'paid')
-      .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
-
-    const lastPay = myPayments[0];
-    if (!lastPay) return { status: 'pending', nextDate: new Date(), daysLeft: 0, lastPay: null };
-
-    const now = new Date();
-    const lastDate = new Date(lastPay.paymentDate);
-
-    // Safety check for invalid date in history
-    if (isNaN(lastDate.getTime())) return { status: 'pending', nextDate: now, daysLeft: 0, lastPay: null };
-
-    let nextDate = new Date(lastDate);
-
-    if (sal.type === 'weekly') {
-      nextDate.setDate(lastDate.getDate() + 7);
-    } else {
-      nextDate.setDate(lastDate.getDate() + 30);
-    }
-
-    const diffTime = nextDate - now;
-    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    let status = 'paid'; // Already paid for this cycle
-    if (now >= nextDate) {
-      status = 'pending';
-      const overdueThreshold = sal.type === 'weekly' ? 7 : 30;
-      if (daysLeft < -overdueThreshold) status = 'overdue';
-    }
-
-    return { status, nextDate, daysLeft, lastPay };
-  };
-
-  const handleResetLock = (empId) => {
-    if (!isAdmin) return;
-    const myPayments = salaryPayments.filter(p => String(p.employeeId) === String(empId));
-    if (myPayments.length === 0) return;
-
-    // To 'reset' we just delete the last payment or modify it, 
-    // but a cleaner way for demo is to just notify it's reset.
-    // Real implementation: remove the lock by ignoring the last payment's date.
-    addNotification(`${t('paymentLockReset')} ${employees.find(e => e.id === empId)?.name}.`, 'info');
-  };
-
-  const role = currentUser?.role || 'customer';
-  const isAdmin = role === 'admin' || role === 'coder';
-  const isCashier = role === 'cashier';
-  const isEmployee = !isAdmin && !isCashier; // Mechanic, Receptionist, Storekeeper, Manager
-
-  // 1. Get all employees (excluding customers and inventory managers)
-  const employees = useMemo(() => {
-    const allStaff = staff || [];
-    return allStaff.filter(s => s && s.role !== 'inventoryManager' && s.role !== 'customer');
-  }, [staff]);
-
-  // 2. Filter employees for Admin/Cashier view
-  const filteredEmployees = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
-    return employees.filter(s => {
-      if (!s) return false;
-      const { status } = getPaymentStatus(s.id);
-      const employeeId = String(s.ownerId || s.id || '').toLowerCase();
-      const name = (s.name || '').toLowerCase();
-      const role = (s.role || '').toLowerCase();
-      const payStatus = status.toLowerCase();
-
-      return name.includes(searchLower) ||
-        role.includes(searchLower) ||
-        employeeId.includes(searchLower) ||
-        payStatus.includes(searchLower);
-    });
-  }, [employees, searchTerm, getPaymentStatus]);
-
-  // 3. Get personal salary info for employee
-  const mySalary = useMemo(() => {
-    return salaries.find(s => String(s.employeeId) === String(currentUser?.id));
-  }, [salaries, currentUser?.id]);
-
-  // Salary record for the currently selected employee in the Pay modal
-  const selectedEmployeeSal = useMemo(() => {
-    if (!selectedEmployee) return null;
-    return salaries.find(s => String(s.employeeId) === String(selectedEmployee.id));
-  }, [salaries, selectedEmployee]);
-
-  const myPayments = useMemo(() => {
-    return salaryPayments
-      .filter(p => String(p.employeeId) === String(currentUser?.id))
-      .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
-  }, [salaryPayments, currentUser?.id]);
-
-  // 4. Stats
-  const stats = useMemo(() => {
-    if (isAdmin || isCashier) {
-      const activeSalaries = salaries.filter(s => s.status === 'active');
-      const totalLiability = activeSalaries.reduce((sum, s) => {
-        const { totalDeduction } = getEmployeeDeductions(s.employeeId);
-        return sum + (Number(s.amount) || 0) - totalDeduction;
-      }, 0);
-      const totalDeductions = activeSalaries.reduce((sum, s) => {
-        const { totalDeduction } = getEmployeeDeductions(s.employeeId);
-        return sum + totalDeduction;
-      }, 0);
-      const paidThisMonth = salaryPayments
-        .filter(p => p.status === 'paid' && new Date(p.paymentDate).getMonth() === new Date().getMonth())
-        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-      const pendingCount = employees.filter(e => {
-        const s = salaries.find(sal => String(sal.employeeId) === String(e.id));
-        if (!s) return false;
-        const lastPay = salaryPayments
-          .filter(p => String(p.employeeId) === String(e.id))
-          .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate))[0];
-        if (!lastPay) return true;
-        const now = new Date();
-        const last = new Date(lastPay.paymentDate);
-        return s.type === 'monthly' ? (now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear()) : (now - last > 7 * 24 * 60 * 60 * 1000);
-      }).length;
-
-      return { totalLiability, paidThisMonth, pendingCount, totalDeductions };
-    } else {
-      const paidTotal = myPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-      const lastPay = myPayments[0];
-      return { paidTotal, lastPay };
-    }
-  }, [isAdmin, isCashier, salaries, salaryPayments, employees, myPayments]);
-
-  // 5. Actions
-  const handleOpenManage = (emp) => {
-    setSelectedEmployee(emp);
-    const existing = salaries.find(s => String(s.employeeId) === String(emp.id));
-    setManageData({
-      amount: existing?.amount || 5000,
-      type: existing?.type || 'monthly',
-      status: existing?.status || 'active',
-      absentDeduction: existing?.absentDeduction || 0,
-      lateDeduction: existing?.lateDeduction || 0,
-      isDeductionEnabled: existing?.isDeductionEnabled || false
-    });
-    setShowManageModal(true);
-  };
-
-  const handleSaveSalary = (e) => {
-    e.preventDefault();
-    const existing = salaries.find(s => String(s.employeeId) === String(selectedEmployee.id));
-    const newData = {
-      employeeId: selectedEmployee.id,
-      employeeName: selectedEmployee.name,
-      ...manageData,
-      absentDeduction: Number(manageData.absentDeduction) || 0,
-      lateDeduction: Number(manageData.lateDeduction) || 0,
-      isDeductionEnabled: !!manageData.isDeductionEnabled,
-      updatedAt: new Date().toISOString()
-    };
-
-    if (existing) {
-      updateItem('salaries', existing.id, newData);
-      addNotification(`${t('salaryConfigUpdated')} ${selectedEmployee.name}`, 'success');
-    } else {
-      newData.id = `sal_${Date.now()}`;
-      newData.createdAt = new Date().toISOString();
-      addItem('salaries', newData);
-      addNotification(`${t('salaryConfigCreated')} ${selectedEmployee.name}`, 'success');
-    }
-    logActivity('Salary Managed', `Admin updated salary for ${selectedEmployee.name} to ${manageData.amount} ETB (${manageData.type})`);
-    setShowManageModal(false);
-  };
-
-  const handleOpenPay = (emp) => {
-    setSelectedEmployee(emp);
-    const sal = salaries.find(s => String(s.employeeId) === String(emp.id));
-    const { totalDeduction } = getEmployeeDeductions(emp.id);
-    const baseAmount = sal?.amount || 0;
-
-    setPaymentData({
-      amount: Math.max(0, baseAmount - totalDeduction),
-      method: 'Bank Transfer'
-    });
-    setShowPayModal(true);
-  };
-
-  const handleProcessPayment = (e) => {
-    e.preventDefault();
-    const newPayment = {
-      id: `pay_${Date.now()}`,
-      employeeId: selectedEmployee.id,
-      employeeName: selectedEmployee.name,
-      amount: paymentData.amount,
-      method: paymentData.method,
-      paymentDate: new Date().toISOString(),
-      status: paymentData.method === 'Cash' && isCashier ? 'pending' : 'paid',
-      screenshot: paymentData.screenshot,
-      processedBy: currentUser.name,
-      processedById: currentUser.id
-    };
-
-    addItem('salaryPayments', newPayment);
-    addNotification(`${t('salaryProcessed')} ${paymentData.amount} ETB ${t('processedFor')} ${selectedEmployee.name}`, 'success');
-
-    // Notify employee
-    addNotification(`${t('yourSalaryProcessed')} ${paymentData.amount} ETB ${t('processedVia')} ${paymentData.method}.`, 'success', selectedEmployee.id);
-
-    logActivity('Salary Payment', `${currentUser.name} processed ${paymentData.amount} ETB for ${selectedEmployee.name}`);
-    setShowPayModal(false);
-  };
-
-  const handleConfirmCashPayment = (payment) => {
-    updateItem('salaryPayments', payment.id, {
-      status: 'paid',
-      confirmedBy: currentUser.name,
-      confirmedById: currentUser.id,
-      confirmedAt: new Date().toISOString()
-    });
-    addNotification(`${t('cashSalaryConfirmed')} ${payment.employeeName}.`, 'success');
-    addNotification(`${t('cashSalaryConfirmed')} ${t('confirmedByCashier')}.`, 'success', payment.employeeId);
-    logActivity('Salary Confirmation', `Cashier confirmed payment for ${payment.employeeName}`);
-  };
-
-  // Employee account actions
-  const handleOpenAccount = (type) => {
-    const info = type === 'bank' ? mySalary?.bankInfo : mySalary?.mobileInfo;
-    setAccountData({
-      type: type,
-      provider: info?.provider || '',
-      accountName: info?.accountName || currentUser.name,
-      accountNumber: info?.accountNumber || '',
-      branch: info?.branch || '',
-      walletNumber: info?.walletNumber || ''
-    });
-    setShowAccountModal(true);
-  };
-
-  const handleSaveAccount = (e) => {
-    e.preventDefault();
-    if (!mySalary) {
-      addNotification('Admin must configure your salary first before you can add account details.', 'error');
-      return;
-    }
-
-    const updates = {};
-    if (accountData.type === 'bank') {
-      updates.bankInfo = {
-        provider: accountData.provider,
-        accountName: accountData.accountName,
-        accountNumber: accountData.accountNumber,
-        branch: accountData.branch
-      };
-    } else {
-      updates.mobileInfo = {
-        provider: accountData.provider,
-        accountName: accountData.accountName,
-        walletNumber: accountData.walletNumber
-      };
-    }
-
-    updateItem('salaries', mySalary.id, updates);
-    addNotification('Account information updated successfully.', 'success');
-    setShowAccountModal(false);
-  };
-
-  // Render Functions
-  const renderAdminDashboard = () => (
-    <div className="salary-admin-view">
-      <div className="salary-stats">
-        <div className="stat-card liability">
-          <div className="stat-icon"><TrendingDown size={28} strokeWidth={2.5} /></div>
-          <div className="stat-info">
-            <span className="label">{t('netLiability')}</span>
-            <span className="value">{stats.totalLiability.toLocaleString()} ETB</span>
-          </div>
+  // 1. Mechanic / Manager Dashboard view
+  if (isEmployee) {
+    if (personalLoading || !personalDash || (isSyncing && !isInitialLoadComplete)) {
+      return (
+        <div className="salary-page">
+          <SkeletonStatsGrid count={5} />
+          <SkeletonListPage rows={5} cols={6} />
         </div>
-        <div className="stat-card pending">
-          <div className="stat-icon"><AlertCircle size={28} strokeWidth={2.5} /></div>
-          <div className="stat-info">
-            <span className="label">{t('totalDeductions')}</span>
-            <span className="value">{stats.totalDeductions.toLocaleString()} ETB</span>
-          </div>
-        </div>
-        <div className="stat-card paid">
-          <div className="stat-icon"><TrendingUp size={28} strokeWidth={2.5} /></div>
-          <div className="stat-info">
-            <span className="label">{t('paidThisMonth')}</span>
-            <span className="value">{stats.paidThisMonth.toLocaleString()} ETB</span>
-          </div>
-        </div>
-      </div>
+      );
+    }
 
-      <div className="search-bar-container">
-        <div className="search-input-wrapper">
-          <input
-            type="text"
-            placeholder={t('Search by name, ID, role or status...')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button className="btn-clear-search" onClick={() => setSearchTerm('')} title={t('Clear')}>
-              <X size={16} />
-            </button>
-          )}
-          <Search size={18} className="search-icon" />
-        </div>
-      </div>
+    const { employee, baseSalary, totalPaid, pendingSalary, lastPayment, nextPayment, totalBonuses, totalDeductions, salaryHistory, paymentHistory } = personalDash;
 
-      <div className="employee-salary-list">
-        {filteredEmployees.map(emp => {
-          const sal = salaries.find(s => String(s.employeeId) === String(emp.id));
-          const { status, nextDate, daysLeft, lastPay } = getPaymentStatus(emp.id);
-          const { totalDeduction, absentDays } = getEmployeeDeductions(emp.id);
-          const isOwnSalary = String(currentUser.id) === String(emp.id);
+    // Filter salary history
+    const filteredSalaryHistory = (salaryHistory || []).filter(c => {
+      const matchStatus = historyStatusFilter === 'all' || c.status === historyStatusFilter;
+      const calcDate = c.calculatedAt || c.createdAt;
+      const matchFrom = !historyDateFrom || (calcDate && calcDate >= historyDateFrom);
+      const matchTo   = !historyDateTo   || (calcDate && calcDate.slice(0,10) <= historyDateTo);
+      return matchStatus && matchFrom && matchTo;
+    });
 
-          return (
-            <div key={emp.id} className={`employee-salary-card ${status}-card`}>
-              <div className="employee-base-info">
-                <div className="emp-avatar">
-                  {emp.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="emp-meta">
-                  <h3>{emp.name}</h3>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span className={`role-tag role-${emp.role}`}>{t(emp.role)}</span>
-                    <span className={`status-badge ${status}`}>
-                      {status === 'paid' ? 'Active' : status === 'overdue' ? 'Overdue' : 'Due'}
-                    </span>
-                  </div>
-                </div>
-                {status === 'paid' && (
-                  <div className="top-paid-badge">
-                    <CheckCircle2 size={14} /> PAID
-                  </div>
-                )}
-              </div>
-
-              <div className="salary-details">
-                <div className="detail-item">
-                  <span className="label">{t('originalSalary')}</span>
-                  <span className="value">{sal ? sal.amount.toLocaleString() : t('Not Set')} {sal && 'ETB'}</span>
-                </div>
-                {sal?.isDeductionEnabled && totalDeduction > 0 && (
-                  <div className="detail-item deduction">
-                    <span className="label">{t('deductions')} ({absentDays} {t('abs')})</span>
-                    <span className="value text-danger">-{totalDeduction.toLocaleString()} ETB</span>
-                  </div>
-                )}
-                <div className="detail-item">
-                  <span className="label">{t('nextDate')}</span>
-                  <span className="value" style={{ color: status === 'paid' ? 'var(--success)' : 'inherit' }}>
-                    {nextDate && !isNaN(nextDate.getTime()) ? formatDate(nextDate.toISOString()) : '—'}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <span className="label">{t('Status')}</span>
-                  <span className="value" style={{ color: status === 'paid' ? 'var(--success)' : status === 'overdue' ? 'var(--danger)' : 'var(--warning)' }}>
-                    {status === 'paid' ? `${t('Paid')} (${daysLeft}d)` : status === 'overdue' ? t('Overdue') : t('payable')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="salary-actions">
-                {isAdmin && (
-                  <button className="btn-manage" onClick={() => handleOpenManage(emp)}>
-                    <Settings size={16} /> {t('Manage')}
-                  </button>
-                )}
-                {status === 'paid' ? (
-                  <div className="paid-confirmation-striking">
-                    <div className="striking-content">
-                      <CheckCircle2 size={20} />
-                      <div>
-                        <strong>{t('salaryProcessed')}</strong>
-                        <span>{t('nextAvailableIn')} {daysLeft} {t('days')}</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    className="btn-pay"
-                    onClick={() => handleOpenPay(emp)}
-                    disabled={!sal || (isCashier && isOwnSalary)}
-                    title={isCashier && isOwnSalary ? t("Cashiers cannot pay their own salary") : ""}
-                  >
-                    <Wallet size={16} /> {t('processPay')}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  const renderEmployeeDashboard = () => {
-    const { totalDeduction, absentDays, lateDays } = getEmployeeDeductions(currentUser.id);
-    const { status, nextDate, daysLeft, lastPay } = getPaymentStatus(currentUser.id);
-    const finalSalary = Math.max(0, (mySalary?.amount || 0) - totalDeduction);
+    // Filter payment history
+    const filteredPayHistory = (paymentHistory || []).filter(p => {
+      const d = p.paymentDate?.slice(0,10);
+      const matchFrom = !payHistoryDateFrom || (d && d >= payHistoryDateFrom);
+      const matchTo   = !payHistoryDateTo   || (d && d <= payHistoryDateTo);
+      return matchFrom && matchTo;
+    });
 
     return (
-      <div className="salary-employee-view">
-        <div className="employee-welcome">
-          <h1>{t('welcomeName')}, {currentUser.name}</h1>
-          <p>{t('salaryInfoSubtitle')}</p>
+      <div className="salary-page">
+        <div className="salary-header">
+          <div>
+            <h1 className="salary-title">My Salary</h1>
+            <p className="salary-sub">{employee.fullName} &middot; {employee.employeeNumber} &middot; {employee.department}</p>
+          </div>
+          <button className="sal-btn sal-btn-outline" onClick={loadPersonalDashboard}><RefreshCw size={15} /> Refresh</button>
         </div>
 
-        <div className="employee-stats">
-          <div className="stat-card current">
-            <div className="stat-label">{t('remainingSalary')}</div>
-            <div className="stat-value" style={{ color: 'var(--primary)' }}>{finalSalary.toLocaleString()} ETB</div>
-            <div className="stat-sub">{t('base')}: {mySalary?.amount?.toLocaleString()} ETB</div>
-          </div>
-          <div className="stat-card earned">
-            <div className="stat-label">{t('totalDeductions')}</div>
-            <div className="stat-value text-danger">-{totalDeduction.toLocaleString()} ETB</div>
-            <div className="stat-sub">{absentDays} {t('abs')} / {lateDays} {t('late')}</div>
-          </div>
-          <div className="stat-card last">
-            <div className="stat-label">{status === 'paid' ? t('nextPaymentIn') : t('Payment Status')}</div>
-            <div className="stat-value" style={{ color: status === 'paid' ? 'var(--success)' : 'var(--warning)' }}>
-              {status === 'paid' ? `${daysLeft} ${t('days')}` : t('dueNow')}
-            </div>
-            <div className="stat-sub">
-              {status === 'paid' && nextDate && !isNaN(nextDate.getTime())
-                ? `${t('Available')}: ${formatDate(nextDate.toISOString())}`
-                : t('contactCashier')}
-            </div>
-          </div>
-        </div>
-
-        <div className="account-info-section">
-          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Banknote size={22} className="text-primary" /> {t('Payment Account')}
-            </h2>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {(!mySalary?.bankInfo || !mySalary?.mobileInfo) ? (
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    const type = !mySalary?.bankInfo ? 'bank' : 'mobile';
-                    handleOpenAccount(type);
-                  }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', minWidth: '160px', justifyContent: 'center' }}
-                >
-                  <Plus size={18} />
-                  <span>{!mySalary?.bankInfo ? t('Add Bank Account') : t('Add Mobile Banking')}</span>
-                </button>
-              ) : (
-                <button
-                  className="btn-outline"
-                  onClick={() => handleOpenAccount('bank')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', minWidth: '160px', justifyContent: 'center' }}
-                >
-                  <Edit2 size={16} /> {t('Edit Information')}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {(!mySalary?.bankInfo || !mySalary?.mobileInfo) && (
-            <div className="payout-completion-tip">
-              <div className="tip-icon"><Sparkles size={24} /></div>
-              <div className="tip-content">
-                <strong>{t('Complete Your Payout Profile')}</strong>
-                <p>{t("Adding a second account ensures you're always ready for payments.")}</p>
+        {/* Summary cards */}
+        <div className="sal-cards">
+          {[
+            { label: 'Current Base Salary',      value: `ETB ${(baseSalary||0).toLocaleString()}`,      color: '#4361ee' },
+            { label: 'Total Paid to Date',        value: `ETB ${(totalPaid||0).toLocaleString()}`,       color: '#22c55e' },
+            { label: 'Pending / Approved',        value: `ETB ${(pendingSalary||0).toLocaleString()}`,   color: '#f59e0b' },
+            { label: 'Total Bonuses',             value: `ETB ${(totalBonuses||0).toLocaleString()}`,    color: '#ec4899' },
+            { label: 'Total Deductions',          value: `ETB ${(totalDeductions||0).toLocaleString()}`, color: '#ef4444' }
+          ].map(c => (
+            <div key={c.label} className="sal-card" style={{ borderTop: `3px solid ${c.color}` }}>
+              <div className="sal-card-body">
+                <div className="sal-card-value">{c.value}</div>
+                <div className="sal-card-label">{c.label}</div>
               </div>
             </div>
-          )}
+          ))}
+        </div>
 
-          <div className="account-details-grid">
-            {/* Bank Account Slot */}
-            <div className="account-slot">
-              <div className="slot-label">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Bank size={16} /> {t('bankAccount')}
-                  {!mySalary?.bankInfo && <Star size={12} fill="var(--warning)" color="var(--warning)" />}
+        {/* Payout alert banners */}
+        {/* Payout alert banners: pending approval */}
+        {(() => {
+          const pendingPayment = (paymentHistory || []).find(
+            p => p.status === 'Processing' || p.status === 'Waiting for Employee Approval'
+          );
+          if (!pendingPayment) return null;
+          const isWaiting = pendingPayment.status === 'Waiting for Employee Approval';
+          const bannerCls = isWaiting ? 'waiting' : 'processing';
+          return (
+            <div className={`sp-approval-banner ${bannerCls}`}>
+              <div className={`sp-banner-title ${bannerCls}`}>
+                {isWaiting ? <ThumbsUp size={18} /> : <Send size={18} />}
+                {isWaiting ? 'Action Required: Approve or Reject Your Salary Payment' : 'Salary Payment Processing'}
+              </div>
+              <div className="sp-banner-details">
+                <div className="sp-banner-detail-item">
+                  <span className="sp-banner-detail-label">Amount</span>
+                  <span className="sp-banner-detail-value">ETB {pendingPayment.amount?.toLocaleString()}</span>
                 </div>
-                <span className={`status-badge ${mySalary?.bankInfo ? 'linked' : 'unlinked'}`}>
-                  {mySalary?.bankInfo ? t('Linked') : t('Not Linked')}
-                </span>
+                <div className="sp-banner-detail-item">
+                  <span className="sp-banner-detail-label">Method</span>
+                  <span className="sp-banner-detail-value">{pendingPayment.paymentMethod}</span>
+                </div>
+                <div className="sp-banner-detail-item">
+                  <span className="sp-banner-detail-label">Receipt #</span>
+                  <span className="sp-banner-detail-value" style={{fontFamily:'monospace',fontSize:'0.82rem'}}>{pendingPayment.receiptNumber}</span>
+                </div>
               </div>
-              {mySalary?.bankInfo ? (
-                <div className="account-card bank">
-                  <div className="acc-icon"><Bank size={32} /></div>
-                  <div className="acc-info">
-                    <span className="acc-provider">{mySalary.bankInfo.provider}</span>
-                    <span className="acc-number">{mySalary.bankInfo.accountNumber}</span>
-                    <span className="acc-name">{mySalary.bankInfo.accountName}</span>
-                    {mySalary.bankInfo.branch && <span className="acc-branch">{mySalary.bankInfo.branch}</span>}
-                  </div>
-                  <button className="edit-slot-btn" title="Edit Info" onClick={() => handleOpenAccount('bank')}>
-                    <Edit2 size={14} />
+              {pendingPayment.notes && (
+                <div style={{fontSize:'0.82rem',opacity:0.7}}>Note: {pendingPayment.notes}</div>
+              )}
+              {isWaiting && (
+                <div className="sp-banner-actions">
+                  <button
+                    className="sp-banner-approve-btn"
+                    onClick={() => handleApprovePayment(pendingPayment.id)}
+                    disabled={approvalProcessing}
+                  >
+                    <ThumbsUp size={15} />
+                    {approvalProcessing ? 'Processing...' : 'Approve Payment'}
+                  </button>
+                  <button
+                    className="sp-banner-reject-btn"
+                    onClick={() => setShowRejectBox(prev => !prev)}
+                    disabled={approvalProcessing}
+                  >
+                    <ThumbsDown size={15} /> Reject / Report Issue
                   </button>
                 </div>
-              ) : (
-                <button className="setup-card mini bank" onClick={() => handleOpenAccount('bank')}>
-                  <div className="setup-icon"><Plus size={24} /></div>
-                  <span className="setup-text">{t('Link Bank Account')}</span>
-                </button>
               )}
-            </div>
-
-            {/* Mobile Banking Slot */}
-            <div className="account-slot">
-              <div className="slot-label">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Smartphone size={16} /> {t('Mobile Banking')}
-                  {!mySalary?.mobileInfo && <Star size={12} fill="var(--warning)" color="var(--warning)" />}
-                </div>
-                <span className={`status-badge ${mySalary?.mobileInfo ? 'linked' : 'unlinked'}`}>
-                  {mySalary?.mobileInfo ? t('Linked') : t('Not Linked')}
-                </span>
-              </div>
-              {mySalary?.mobileInfo ? (
-                <div className="account-card mobile">
-                  <div className="acc-icon"><Smartphone size={32} /></div>
-                  <div className="acc-info">
-                    <span className="acc-provider">{mySalary.mobileInfo.provider}</span>
-                    <span className="acc-number">{mySalary.mobileInfo.walletNumber}</span>
-                    <span className="acc-name">{mySalary.mobileInfo.accountName}</span>
+              {showRejectBox && isWaiting && (
+                <div className="sp-reject-reason-box">
+                  <label>Reason for rejection (required)</label>
+                  <textarea
+                    placeholder="Describe the issue with this payment..."
+                    value={rejectReason}
+                    onChange={e => setRejectReason(e.target.value)}
+                    rows={3}
+                  />
+                  <div style={{display:'flex',gap:8}}>
+                    <button
+                      className="sp-reject-reason-submit"
+                      onClick={() => handleRejectPayment(pendingPayment.id)}
+                      disabled={approvalProcessing}
+                    >
+                      {approvalProcessing ? 'Submitting...' : 'Confirm Rejection'}
+                    </button>
+                    <button
+                      style={{background:'none',border:'none',cursor:'pointer',color:'var(--text-secondary)',fontSize:'0.85rem',fontFamily:'inherit'}}
+                      onClick={() => { setShowRejectBox(false); setRejectReason(''); }}
+                    >Cancel</button>
                   </div>
-                  <button className="edit-slot-btn" title="Edit Info" onClick={() => handleOpenAccount('mobile')}>
-                    <Edit2 size={14} />
-                  </button>
                 </div>
-              ) : (
-                <button className="setup-card mini mobile" onClick={() => handleOpenAccount('mobile')}>
-                  <div className="setup-icon"><Plus size={24} /></div>
-                  <span className="setup-text">{t('Set Up Mobile Banking')}</span>
-                </button>
               )}
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
-        <div className="payment-history-section">
-          <div className="section-header">
-            <h2><History size={20} /> Payment History</h2>
-          </div>
-          <div className="history-table-container">
-            {myPayments.length === 0 ? (
-              <div className="empty-state">No payment history available.</div>
-            ) : (
-              <table className="history-table">
+        {/* Main two-column grid — stacks on mobile via CSS class */}
+        <div className="my-salary-grid">
+          {/* LEFT: History tables */}
+          <div>
+            {/* === Payroll Slips === */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+              <h3 className="sal-section-title" style={{ margin: 0 }}>My Payroll Slips</h3>
+            </div>
+
+            {/* Slip filters */}
+            <div className="my-sal-filter-bar">
+              <div className="my-sal-filter-pills">
+                {[['all','All'],['Pending','Pending'],['Approved','Approved'],['Paid','Paid']].map(([k,l]) => (
+                  <button
+                    key={k}
+                    className={`sal-pay-pill ${historyStatusFilter === k ? 'active' : ''}`}
+                    onClick={() => setHistoryStatusFilter(k)}
+                  >{l}</button>
+                ))}
+              </div>
+              <div className="my-sal-date-range">
+                <input
+                  type="date"
+                  className="sal-input"
+                  style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  value={historyDateFrom}
+                  onChange={e => setHistoryDateFrom(e.target.value)}
+                  title="From date"
+                />
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>–</span>
+                <input
+                  type="date"
+                  className="sal-input"
+                  style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  value={historyDateTo}
+                  onChange={e => setHistoryDateTo(e.target.value)}
+                  title="To date"
+                />
+                {(historyDateFrom || historyDateTo || historyStatusFilter !== 'all') && (
+                  <button
+                    className="sal-btn sal-btn-xs sal-btn-outline"
+                    onClick={() => { setHistoryDateFrom(''); setHistoryDateTo(''); setHistoryStatusFilter('all'); }}
+                  >Clear</button>
+                )}
+              </div>
+            </div>
+
+            <div className="sal-table-wrap">
+              <table className="sal-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Method</th>
+                    <th>Period</th>
+                    <th>Base</th>
+                    <th>Gross</th>
+                    <th>Deductions</th>
+                    <th>Net Salary</th>
                     <th>Status</th>
+                    <th>Slip</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {myPayments.map(p => (
-                    <tr key={p.id}>
-                      <td>{formatDate(p.paymentDate)}</td>
-                      <td className="amount">{p.amount.toLocaleString()} ETB</td>
-                      <td>{p.method}</td>
-                      <td>
-                        <div className="status-actions-cell">
-                          <span className={`status-pill pill-${p.status}`}>
-                            {p.status.toUpperCase()}
-                          </span>
-                          {p.screenshot && (
-                            <button
-                              className="btn-view-proof"
-                              type="button"
-                              onClick={() => { setSelectedProof(p.screenshot); setShowProofModal(true); }}
-                              title={t('View Receipt')}
-                            >
-                              <Image size={14} />
-                            </button>
-                          )}
-                        </div>
+                  {filteredSalaryHistory.length === 0 ? (
+                    <tr><td colSpan={7} style={{ textAlign: 'center', opacity: 0.5, padding: 20 }}>No records match your filters</td></tr>
+                  ) : filteredSalaryHistory.map(c => (
+                    <tr key={c.id}>
+                      <td data-label="Period"><strong>{c.salaryPeriod?.periodName}</strong></td>
+                      <td data-label="Base">ETB {c.baseSalary?.toLocaleString()}</td>
+                      <td data-label="Gross">ETB {c.grossSalary?.toLocaleString()}</td>
+                      <td data-label="Deductions" style={{ color: '#ef4444' }}>ETB {c.totalDeduction?.toLocaleString()}</td>
+                      <td data-label="Net" style={{ fontWeight: 700, color: 'var(--primary)' }}>ETB {c.netSalary?.toLocaleString()}</td>
+                      <td data-label="Status">
+                        <span className="sal-badge" style={{ background: STATUS_COLORS[c.status]?.bg, color: STATUS_COLORS[c.status]?.text }}>{c.status}</span>
+                      </td>
+                      <td data-label="Slip">
+                        <button className="sal-btn sal-btn-xs sal-btn-outline" onClick={() => handleViewSlip(c.id)}><Eye size={12} /> View</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
+            </div>
+
+            {/* === Received Payments === */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 28, marginBottom: 8 }}>
+              <h3 className="sal-section-title" style={{ margin: 0 }}>My Received Payments</h3>
+            </div>
+
+            {/* Payment filters */}
+            <div className="my-sal-filter-bar">
+              <div className="my-sal-date-range">
+                <input
+                  type="date"
+                  className="sal-input"
+                  style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  value={payHistoryDateFrom}
+                  onChange={e => setPayHistoryDateFrom(e.target.value)}
+                  title="From date"
+                />
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>–</span>
+                <input
+                  type="date"
+                  className="sal-input"
+                  style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                  value={payHistoryDateTo}
+                  onChange={e => setPayHistoryDateTo(e.target.value)}
+                  title="To date"
+                />
+                {(payHistoryDateFrom || payHistoryDateTo) && (
+                  <button
+                    className="sal-btn sal-btn-xs sal-btn-outline"
+                    onClick={() => { setPayHistoryDateFrom(''); setPayHistoryDateTo(''); }}
+                  >Clear</button>
+                )}
+              </div>
+            </div>
+
+            <div className="sal-table-wrap">
+              <table className="sal-table">
+                <thead>
+                  <tr>
+                    <th>Receipt</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPayHistory.length === 0 ? (
+                    <tr><td colSpan={5} style={{ textAlign: 'center', opacity: 0.5, padding: 20 }}>No payments in this date range</td></tr>
+                  ) : filteredPayHistory.map(p => (
+                    <tr key={p.id}>
+                      <td data-label="Receipt" style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{p.receiptNumber}</td>
+                      <td data-label="Date">{p.paymentDate?.split('T')[0]}</td>
+                      <td data-label="Method">{p.paymentMethod}</td>
+                      <td data-label="Amount" style={{ color: '#22c55e', fontWeight: 600 }}>ETB {p.amount?.toLocaleString()}</td>
+                      <td data-label="Notes">{p.notes || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </div>
-    );
-  };
 
-  const renderCashierDashboard = () => {
-    const pendingCashPayments = salaryPayments.filter(p => p.status === 'pending');
-
-    return (
-      <div className="salary-cashier-view">
-        <div className="cashier-header">
-          <h1>Pending Cash Payments</h1>
-          <p>Confirm and process employee salaries paid in cash</p>
-        </div>
-
-        <div className="pending-payments-list">
-          {pendingCashPayments.length === 0 ? (
-            <div className="empty-state">No pending cash payments to confirm.</div>
-          ) : (
-            pendingCashPayments.map(p => (
-              <div key={p.id} className="payment-confirmation-card">
-                <div className="payment-main-info">
-                  <div className="emp-info">
-                    <h3>{p.employeeName}</h3>
-                    <span className="pay-date">{formatDate(p.paymentDate)}</span>
+          {/* RIGHT: Banking form */}
+          <div>
+            <div className="sal-chart-card">
+              <h3 className="sal-section-title"><Building2 size={16} /> My Payment Accounts</h3>
+              <p style={{ fontSize: '0.82rem', opacity: 0.7, marginBottom: 20 }}>
+                These details are used by Admin &amp; Cashier to process bank / mobile transfers.
+              </p>
+              <form onSubmit={handleUpdateBankInfo}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div className="sal-form-row">
+                    <label>Bank Name</label>
+                    <select className="sal-select w-full" value={bankForm.bankName} onChange={e => setBankForm(f => ({ ...f, bankName: e.target.value }))}>
+                      <option value="">No Bank Account</option>
+                      {ETHIOPIAN_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
                   </div>
-                  <div className="pay-amount">
-                    {Number(p.amount).toLocaleString()} ETB
+                  <div className="sal-form-row">
+                    <label>Account Number</label>
+                    <input className="sal-input w-full" placeholder="e.g. 1000234567899" value={bankForm.bankAccount} onChange={e => setBankForm(f => ({ ...f, bankAccount: e.target.value }))} />
                   </div>
-                </div>
-                <div className="payment-footer">
-                  <span className="method-tag"><Banknote size={14} /> Cash Payment</span>
-                  <button className="btn-confirm" onClick={() => handleConfirmCashPayment(p)}>
-                    <CheckCircle2 size={16} /> Confirm Delivery
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+                  <div className="sal-form-row">
+                    <label>Mobile Banking Provider</label>
+                    <select className="sal-select w-full" value={bankForm.mobileBank} onChange={e => setBankForm(f => ({ ...f, mobileBank: e.target.value }))}>
+                      <option value="">No Mobile Money</option>
+                      {ETHIOPIAN_MOBILE_PROVIDERS.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div className="sal-form-row">
+                    <label>Registered Mobile Number</label>
+                    <input className="sal-input w-full" placeholder="e.g. +251911234567" value={bankForm.mobileAccount} onChange={e => setBankForm(f => ({ ...f, mobileAccount: e.target.value }))} />
+                  </div>
+                  <button className="sal-btn sal-btn-primary" style={{ marginTop: 6 }} type="submit" disabled={saving}>
+                    {saving ? 'Saving...' : 'Update Banking Profile'}
                   </button>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="all-employees-access" style={{ marginTop: '40px' }}>
-          <h2>Employee Account Access</h2>
-          <p>View bank/mobile details for salary processing</p>
-          <div className="cashier-employee-grid">
-            {filteredEmployees.map(emp => {
-              const sal = salaries.find(s => String(s.employeeId) === String(emp.id));
-              const { status } = getPaymentStatus(emp.id);
-              const isOwnSalary = String(currentUser.id) === String(emp.id);
-
-              return (
-                <div key={emp.id} className="cashier-emp-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <strong>{emp.name}</strong>
-                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                      <span className="role-tag">{t(emp.role)}</span>
-                      <span className={`status-badge ${status}`} style={{ fontSize: '0.6rem' }}>
-                        {status === 'paid' ? 'Paid' : 'Due'}
-                      </span>
-                    </div>
-                  </div>
-                  {sal?.bankInfo ? (
-                    <div className="acc-brief bank">
-                      <Bank size={14} /> {sal.bankInfo.provider}: {sal.bankInfo.accountNumber}
-                    </div>
-                  ) : sal?.mobileInfo ? (
-                    <div className="acc-brief mobile">
-                      <Smartphone size={14} /> {sal.mobileInfo.provider}: {sal.mobileInfo.accountNumber}
-                    </div>
-                  ) : (
-                    <div className="acc-none">No account info</div>
-                  )}
-                  {status === 'paid' ? (
-                    <div className="paid-status-small">
-                      <CheckCircle2 size={12} /> Paid
-                    </div>
-                  ) : (
-                    <button
-                      className="btn-pay-small"
-                      onClick={() => handleOpenPay(emp)}
-                      disabled={!sal || isOwnSalary}
-                      title={isOwnSalary ? "You cannot pay your own salary" : ""}
-                    >
-                      <Wallet size={12} /> Process Salary
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+              </form>
+            </div>
           </div>
         </div>
+
+        {showSlip && renderSlipModal()}
       </div>
     );
-  };
+  }
+
+  // 2. Admin / Cashier Dashboard and Tabs rendering
+  const showStructuresTab = userRole === 'admin' || userRole === 'coder';
+
+  if ((loading && employees.length === 0) || (isSyncing && !isInitialLoadComplete)) {
+    return <SkeletonListPage rows={6} cols={6} />;
+  }
 
   return (
     <div className="salary-page">
-      <div className="salary-header-global">
-        <div className="title-section">
-          <Bank size={32} color="var(--primary)" />
-          <div>
-            <h1>{t('salaryManagement')}</h1>
-            <p>{isAdmin ? t("payrollSubtitleAdmin") : t("payrollSubtitleEmployee")}</p>
-          </div>
+      {/* Header */}
+      <div className="salary-header">
+        <div>
+          <h1 className="salary-title">Payroll System</h1>
+          <p className="salary-sub">Process payment and sync employee calculations</p>
         </div>
-        {(isAdmin || isCashier) && (
-          <div className="header-tabs">
-            <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>{t('overview')}</button>
-            <button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>{t('paymentLogs')}</button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="sal-btn sal-btn-outline" onClick={load}><RefreshCw size={15} /> Refresh</button>
+          {showStructuresTab && (
+            <>
+              <button className="sal-btn sal-btn-secondary" onClick={() => setShowStructureModal(true)}><Plus size={15} /> Salary Structure</button>
+              <button className="sal-btn sal-btn-primary" onClick={() => setShowPeriodModal(true)}><Plus size={15} /> New Period</button>
+            </>
+          )}
+        </div>
       </div>
 
+      {/* Tabs */}
+      <div className="sal-tabs">
+        {[
+          ['dashboard', 'Dashboard'],
+          ['payments', 'Payments'],
+          showStructuresTab ? ['structures', 'Salary Structures'] : null,
+          ['salary-payment', '💳 Salary Payments']
+        ].filter(Boolean).map(([k, l]) => (
+          <button key={k} className={`sal-tab ${activeTab === k ? 'active' : ''}`} onClick={() => setActiveTab(k)}>{l}</button>
+        ))}
+      </div>
+
+      {/* Dashboard cards */}
       {activeTab === 'dashboard' && (
         <>
-          {isAdmin && renderAdminDashboard()}
-          {isCashier && renderCashierDashboard()}
-          {isEmployee && renderEmployeeDashboard()}
+          <div className="sal-cards">
+            {[
+              { label: 'Total Employees', value: dashData.totalEmployees || 0, icon: <Users size={22} />, color: '#4361ee' },
+              { label: 'Monthly Payroll', value: `ETB ${(dashData.monthlyPayrollCost || 0).toLocaleString()}`, icon: <DollarSign size={22} />, color: '#22c55e' },
+              { label: 'Paid Salaries', value: `ETB ${(dashData.totalSalaryPaid || 0).toLocaleString()}`, icon: <CreditCard size={22} />, color: '#6366f1' },
+              { label: 'Pending Payments', value: `ETB ${(dashData.pendingPayments || 0).toLocaleString()}`, icon: <Clock size={22} />, color: '#f59e0b' },
+              { label: 'Approved PayrollsCount', value: dashData.approvedPayroll || 0, icon: <CheckCircle size={22} />, color: '#06b6d4' },
+              { label: 'Paid PayrollsCount', value: dashData.paidPayroll || 0, icon: <TrendingUp size={22} />, color: '#8b5cf6' },
+              { label: 'Total Bonuses Distributed', value: `ETB ${(dashData.totalBonuses || 0).toLocaleString()}`, icon: <TrendingUp size={22} />, color: '#ec4899' },
+              { label: 'Total Deductions', value: `ETB ${(dashData.totalDeductions || 0).toLocaleString()}`, icon: <AlertCircle size={22} />, color: '#ef4444' }
+            ].map(card => (
+              <div key={card.label} className="sal-card" style={{ borderTop: `3px solid ${card.color}` }}>
+                <div className="sal-card-icon" style={{ background: card.color + '20', color: card.color }}>{card.icon}</div>
+                <div className="sal-card-body">
+                  <div className="sal-card-value">{loading ? '—' : card.value}</div>
+                  <div className="sal-card-label">{card.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 24 }}>
+            {/* Trend */}
+            <div className="sal-chart-card">
+              <h3 className="sal-section-title">6-Month Payroll Cost Trends</h3>
+              <div className="sal-bar-chart">
+                {trend.map((t, i) => (
+                  <div key={i} className="sal-bar-group">
+                    <div className="sal-bar" style={{ height: `${(t.total / maxTrend) * 100}%` }} title={`ETB ${t.total?.toLocaleString()}`} />
+                    <div className="sal-bar-label">{t.month?.split(' ')[0]}</div>
+                    <div className="sal-bar-val">ETB {(t.total / 1000).toFixed(0)}k</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Department */}
+            <div className="sal-chart-card">
+              <h3 className="sal-section-title">Department Salaries Cost Distribution</h3>
+              {deptCosts.length === 0 ? (
+                <div style={{ opacity: 0.4, textAlign: 'center', paddingTop: 40 }}>No breakdown data</div>
+              ) : deptCosts.map((d, i) => (
+                <div key={i} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyItems: 'space-between', justifyContent: 'space-between', marginBottom: 4, fontSize: '0.85rem' }}>
+                    <span>{d.department}</span><span style={{ fontWeight: 700 }}>ETB {d.total?.toLocaleString()}</span>
+                  </div>
+                  <div style={{ height: 8, background: 'var(--border)', borderRadius: 4 }}>
+                    <div style={{ height: '100%', background: '#4361ee', borderRadius: 4, width: `${(d.total / maxDept) * 100}%`, transition: 'width 0.6s' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </>
       )}
 
-      {activeTab === 'history' && (
-        <div className="salary-history-full">
-          <div className="section-header">
-            <h2>{t('systemPaymentHistory')}</h2>
-            <div className="filters">
-              <div className="search-input-wrapper animate-fadeIn">
-                <input
-                  type="text"
-                  placeholder={t('Search history...')}
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <button className="btn-clear-search" onClick={() => setSearchTerm('')} title={t('Clear')}>
-                    <X size={14} />
-                  </button>
-                )}
-                <Search size={16} className="search-icon" />
-              </div>
+      {/* Payroll calculations tab */}
+      {activeTab === 'payroll' && (
+        <div className="sal-section">
+          <div className="sal-payroll-toolbar">
+            <select className="sal-select" value={filterPeriod} onChange={e => setFilterPeriod(e.target.value)}>
+              <option value="">Select Period</option>
+              {periods.map(p => <option key={p.id} value={p.id}>{p.periodName} ({p.status})</option>)}
+            </select>
+            <div className="sal-search">
+              <Search size={14} />
+              <input placeholder="Search employee..." value={searchCalc} onChange={e => setSearchCalc(e.target.value)} />
             </div>
+            
+            {/* Generate options */}
+            {filterPeriod && (
+              <button className="sal-btn sal-btn-primary" onClick={handleGeneratePayroll} disabled={saving}><TrendingUp size={15} /> {saving ? 'Processing...' : 'Run Calculations'}</button>
+            )}
+
+            {/* Admin options lock / unlock / mark paid */}
+            {filterPeriod && (userRole === 'admin' || userRole === 'coder') && (
+              <>
+                {periods.find(p => p.id === filterPeriod)?.status === 'Locked' ? (
+                  <button className="sal-btn sal-btn-outline" onClick={() => handleUnlockPeriod(filterPeriod)}><Unlock size={14} /> Unlock Period</button>
+                ) : (
+                  <button className="sal-btn sal-btn-outline" onClick={() => handleLockPeriod(filterPeriod)}><Lock size={14} /> Lock Period</button>
+                )}
+                {periods.find(p => p.id === filterPeriod)?.status !== 'Paid' && (
+                  <button className="sal-btn sal-btn-secondary" onClick={() => handleMarkPaid(filterPeriod)}><CreditCard size={14} /> Mark Paid</button>
+                )}
+              </>
+            )}
           </div>
-          <div className="history-table-container">
-            <table className="history-table">
+
+          <div className="sal-periods-row">
+            {periods.slice(0, 6).map(p => (
+              <div key={p.id} className={`sal-period-chip ${filterPeriod === p.id ? 'active' : ''}`} onClick={() => setFilterPeriod(p.id)}>
+                <strong>{p.periodName}</strong>
+                <span className="sal-badge" style={{ background: STATUS_COLORS[p.status]?.bg, color: STATUS_COLORS[p.status]?.text }}>{p.status}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="sal-table-wrap">
+            <table className="sal-table">
               <thead>
-                  <tr>
-                    <th>{t('Date')}</th>
-                    <th>{t('Employee')}</th>
-                    <th>{t('Amount')}</th>
-                    <th>{t('Method')}</th>
-                    <th>{t('processedBy')}</th>
-                    <th>{t('Status')}</th>
-                  </tr>
+                <tr>
+                  <th>Employee</th><th>Base</th><th>Gross</th><th>Deductions</th><th>Net Salary</th>
+                  <th>Present</th><th>Absent</th><th>Late Occurrences</th><th>Excused</th><th>Status</th><th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-                {salaryPayments
-                  .filter(p => p.employeeName.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate))
-                  .map(p => (
-                    <tr key={p.id}>
-                      <td>{formatDate(p.paymentDate)}</td>
-                      <td>{p.employeeName}</td>
-                      <td className="amount">{Number(p.amount).toLocaleString()} ETB</td>
-                      <td>{p.method}</td>
-                      <td>{p.processedBy}</td>
-                      <td>
-                        <div className="status-actions-cell">
-                          <span className={`status-pill pill-${p.status}`}>
-                            {p.status.toUpperCase()}
-                          </span>
-                          {p.screenshot && (
-                            <button
-                              className="btn-view-proof"
-                              type="button"
-                              onClick={() => { setSelectedProof(p.screenshot); setShowProofModal(true); }}
-                              title={t('View Receipt')}
-                            >
-                              <Image size={14} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                {!filterPeriod ? (
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, opacity: 0.4 }}>Select a salary period to view payroll calculations</td></tr>
+                ) : filteredCalcs.length === 0 ? (
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, opacity: 0.4 }}>No calculations found. Click "Run Calculations" to compile.</td></tr>
+                ) : filteredCalcs.map(c => (
+                  <tr key={c.id}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{c.employee?.fullName}</div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{c.employee?.employeeNumber} · {c.employee?.department}</div>
+                    </td>
+                    <td>ETB {c.baseSalary?.toLocaleString()}</td>
+                    <td style={{ color: '#22c55e', fontWeight: 600 }}>ETB {c.grossSalary?.toLocaleString()}</td>
+                    <td style={{ color: '#ef4444' }}>ETB {c.totalDeduction?.toLocaleString()}</td>
+                    <td style={{ fontWeight: 700, color: '#4361ee' }}>ETB {c.netSalary?.toLocaleString()}</td>
+                    <td>{c.presentDays}/{c.workingDays}</td>
+                    <td style={{ color: c.absentDays > 0 ? '#ef4444' : 'inherit' }}>{c.absentDays}d</td>
+                    <td style={{ color: c.lateDeduction > 0 ? '#f59e0b' : 'inherit' }}>{Math.round(c.lateDeduction / (structures.find(s => s.employeeId === c.employeeId)?.latePenaltyPerOccurrence || 1))} occ</td>
+                    <td style={{ color: c.leaveDays > 0 ? '#6366f1' : 'inherit' }}>{c.leaveDays}d</td>
+                    <td>
+                      <span className="sal-badge" style={{ background: STATUS_COLORS[c.status]?.bg, color: STATUS_COLORS[c.status]?.text }}>{c.status}</span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                        <button className="sal-btn sal-btn-xs sal-btn-outline" onClick={() => handleViewSlip(c.id)}><Eye size={12} /></button>
+                        {c.status === 'Pending' && (userRole === 'admin' || userRole === 'coder') && (
+                          <>
+                            <button className="sal-btn sal-btn-xs sal-btn-success" onClick={() => handleApprove(c.id)}>Approve</button>
+                            <button className="sal-btn sal-btn-xs sal-btn-danger" onClick={() => handleReject(c.id)}>Reject</button>
+                          </>
+                        )}
+                        {c.status === 'Approved' && (
+                          <button className="sal-btn sal-btn-xs sal-btn-primary" onClick={() => { setShowPayModal(c); setPayForm({ paymentMethod: 'Cash', paymentReference: '', notes: '' }); }}><CreditCard size={12} /> Pay</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Modals */}
-      {showManageModal && selectedEmployee && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{t('manageSalary')}: {selectedEmployee.name}</h2>
-              <button className="close-btn" onClick={() => setShowManageModal(false)}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleSaveSalary} className="modal-form">
-              <div className="form-group">
-                <label>Salary Amount (ETB): {manageData.amount.toLocaleString()}</label>
-                <div className="slider-container">
-                  <input
-                    type="range"
-                    min="1000"
-                    max="100000"
-                    step="500"
-                    value={manageData.amount}
-                    onChange={(e) => setManageData({ ...manageData, amount: parseInt(e.target.value) })}
-                  />
-                  <input
-                    type="number"
-                    value={manageData.amount}
-                    onChange={(e) => setManageData({ ...manageData, amount: parseInt(e.target.value) })}
-                    className="salary-amount-input"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>{t('salaryType')}</label>
-                <div className="type-selector">
-                  <button
-                    type="button"
-                    className={manageData.type === 'weekly' ? 'active' : ''}
-                    onClick={() => setManageData({ ...manageData, type: 'weekly' })}
-                  >{t('weekly')}</button>
-                  <button
-                    type="button"
-                    className={manageData.type === 'monthly' ? 'active' : ''}
-                    onClick={() => setManageData({ ...manageData, type: 'monthly' })}
-                  >{t('monthly')}</button>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>{t('Status')}</label>
-                <select
-                  value={manageData.status}
-                  onChange={(e) => setManageData({ ...manageData, status: e.target.value })}
-                >
-                  <option value="active">{t('Active')}</option>
-                  <option value="inactive">{t('Inactive')}</option>
-                </select>
-              </div>
-
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div className="form-group">
-                  <label>{t('absentDeduction')}</label>
-                  <input
-                    type="number"
-                    value={manageData.absentDeduction}
-                    onChange={(e) => setManageData({ ...manageData, absentDeduction: parseInt(e.target.value) || 0 })}
-                    placeholder="e.g. 200"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>{t('lateDeduction')}</label>
-                  <input
-                    type="number"
-                    value={manageData.lateDeduction}
-                    onChange={(e) => setManageData({ ...manageData, lateDeduction: parseInt(e.target.value) || 0 })}
-                    placeholder="e.g. 50"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group checkbox-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={manageData.isDeductionEnabled}
-                    onChange={(e) => setManageData({ ...manageData, isDeductionEnabled: e.target.checked })}
-                    style={{ width: '18px', height: '18px' }}
-                  />
-                  <span>{t('enableAutoDeductions')}</span>
-                </label>
-              </div>
-
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">{t('saveConfig')}</button>
-              </div>
-            </form>
+      {/* Global payments tab */}
+      {activeTab === 'payments' && (
+        <div className="sal-section">
+          <div className="sal-table-wrap">
+            <table className="sal-table">
+              <thead>
+                <tr><th>Employee</th><th>Period</th><th>Method</th><th>Amount</th><th>Receipt</th><th>Date</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                {payments.length === 0 ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, opacity: 0.4 }}>No payments registered yet</td></tr>
+                ) : payments.map(p => (
+                  <tr key={p.id}>
+                    <td><div style={{ fontWeight: 600 }}>{p.employee?.fullName}</div><div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{p.employee?.employeeNumber}</div></td>
+                    <td>{p.salaryCalculation?.salaryPeriod?.periodName || '—'}</td>
+                    <td>{p.paymentMethod}</td>
+                    <td style={{ fontWeight: 700, color: '#22c55e' }}>ETB {p.amount?.toLocaleString()}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{p.receiptNumber}</td>
+                    <td>{p.paymentDate?.split('T')[0]}</td>
+                    <td style={{ opacity: 0.6, fontSize: '0.82rem' }}>{p.notes || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {showPayModal && selectedEmployee && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Process Payment: {selectedEmployee.name}</h2>
-              <button className="close-btn" onClick={() => setShowPayModal(false)}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleProcessPayment} className="modal-form">
-              <div className="form-group">
-                <label>Amount to Pay (ETB)</label>
-                <input
-                  type="number"
-                  value={paymentData.amount}
-                  onChange={(e) => setPaymentData({ ...paymentData, amount: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Payment Method</label>
-                <div className="method-grid">
-                  <div
-                    className={`method-card ${paymentData.method === 'Bank Transfer' ? 'active' : ''}`}
-                    onClick={() => setPaymentData({ ...paymentData, method: 'Bank Transfer' })}
-                  >
-                    <Bank size={20} />
-                    <span>{t('bankTransfer')}</span>
-                  </div>
-                  <div
-                    className={`method-card ${paymentData.method === 'Mobile Banking' ? 'active' : ''}`}
-                    onClick={() => setPaymentData({ ...paymentData, method: 'Mobile Banking' })}
-                  >
-                    <Smartphone size={20} />
-                    <span>{t('mobileBanking')}</span>
-                  </div>
-                  <div
-                    className={`method-card ${paymentData.method === 'Cash' ? 'active' : ''}`}
-                    onClick={() => setPaymentData({ ...paymentData, method: 'Cash' })}
-                  >
-                    <Banknote size={20} />
-                    <span>{t('cashPayment')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account Verification Details */}
-              {paymentData.method !== 'Cash' && (
-                <div className="payment-target-info">
-                  {paymentData.method === 'Bank Transfer' ? (
-                    selectedEmployeeSal?.bankInfo ? (
-                      <div className="target-account-card">
-                        <span className="target-label">{t('Recipient Bank Details')}:</span>
-                        <div className="target-details">
-                          <strong>{selectedEmployeeSal.bankInfo.provider}</strong>
-                          <span>{selectedEmployeeSal.bankInfo.accountNumber}</span>
-                          <small>{selectedEmployeeSal.bankInfo.accountName}</small>
-                        </div>
+      {/* Salary Structures tab */}
+      {activeTab === 'structures' && showStructuresTab && (
+        <div className="sal-section">
+          <div style={{ marginBottom: 16 }}>
+            <button className="sal-btn sal-btn-primary" onClick={() => { setEditingStructure(null); setStructureForm({ employeeId: '', baseSalary: '', absencePenaltyPerDay: '', latePenaltyPerOccurrence: '' }); setShowStructureModal(true); }}><Plus size={15} /> Add Salary Structure</button>
+          </div>
+          <div className="sal-table-wrap">
+            <table className="sal-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Base Salary (ETB)</th>
+                  <th>Absent Deduction (ETB/day)</th>
+                  <th>Late Deduction (ETB/occurrence)</th>
+                  <th>Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {structures.length === 0 ? (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, opacity: 0.4 }}>No salary structures configured</td></tr>
+                ) : structures.map(s => (
+                  <tr key={s.id}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{s.employee?.fullName}</div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{s.employee?.employeeNumber}</div>
+                    </td>
+                    <td style={{ fontWeight: 600, color: '#4361ee' }}>ETB {(s.baseSalary || 0).toLocaleString()}</td>
+                    <td style={{ color: '#ef4444' }}>ETB {(s.absencePenaltyPerDay || 0).toLocaleString()}<span style={{ opacity: 0.5, fontSize: '0.75rem' }}>/day</span></td>
+                    <td style={{ color: '#f59e0b' }}>ETB {(s.latePenaltyPerOccurrence || 0).toLocaleString()}<span style={{ opacity: 0.5, fontSize: '0.75rem' }}>/occurrence</span></td>
+                    <td>{s.active ? <span style={{ color: '#22c55e', fontWeight: 700 }}>✓ Active</span> : <span style={{ opacity: 0.4 }}>Inactive</span>}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          className="sal-btn sal-btn-xs sal-btn-outline"
+                          onClick={() => openEditStructure(s)}
+                        >
+                          <Edit2 size={13} /> Edit
+                        </button>
+                        <button
+                          className="sal-btn sal-btn-xs sal-btn-danger"
+                          style={{ background: '#ef444420', color: '#ef4444' }}
+                          onClick={() => handleDeleteStructure(s.id)}
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
-                    ) : (
-                      <div className="target-account-card warning">
-                        <AlertTriangle size={16} /> <span>{t('No Bank Account Linked by Staff')}</span>
-                      </div>
-                    )
-                  ) : (
-                    selectedEmployeeSal?.mobileInfo ? (
-                      <div className="target-account-card">
-                        <span className="target-label">{t('Recipient Mobile Wallet')}:</span>
-                        <div className="target-details">
-                          <strong>{selectedEmployeeSal.mobileInfo.provider}</strong>
-                          <span>{selectedEmployeeSal.mobileInfo.walletNumber}</span>
-                          <small>{selectedEmployeeSal.mobileInfo.accountName}</small>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="target-account-card warning">
-                        <AlertTriangle size={16} /> <span>{t('No Mobile Wallet Linked by Staff')}</span>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-
-              <div className="form-group">
-                <label>{t('Upload Receipt/Screenshot')}</label>
-                <div className="screenshot-upload-wrapper">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    id="screenshot-upload"
-                    hidden
-                  />
-                  <label htmlFor="screenshot-upload" className="btn-upload-label">
-                    <Image size={18} />
-                    {paymentData.screenshot ? t('Change Screenshot') : t('Select Screenshot')}
-                  </label>
-                  {paymentData.screenshot && (
-                    <div className="screenshot-preview-inline">
-                      <img src={paymentData.screenshot} alt="Preview" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">{t('confirmPayment')}</button>
-              </div>
-            </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {showAccountModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{accountData.type === 'bank' ? t('Link Bank Account') : t('Set Up Mobile Banking')}</h2>
-              <button className="close-btn" onClick={() => setShowAccountModal(false)}><X size={20} /></button>
+      {/* ── SALARY PAYMENT TAB ── */}
+      {activeTab === 'salary-payment' && (
+        <div className="sal-section">
+          {/* ── 4 Summary Cards ── */}
+          <div className="sal-pay-stats-bar">
+            {[
+              {
+                label: 'Total Employees',
+                value: payTotal,
+                etb: `${paymentEmployees.length} staff`,
+                icon: <Users size={18} />,
+                color: '#4361ee'
+              },
+              {
+                label: 'Salary Payable',
+                value: payPayable,
+                etb: `ETB ${payPayableETB.toLocaleString()}`,
+                icon: <Wallet size={18} />,
+                color: '#f59e0b'
+              },
+              {
+                label: 'Salary Paid',
+                value: payPaid,
+                etb: `ETB ${payTotalETB.toLocaleString()}`,
+                icon: <CheckCircle size={18} />,
+                color: '#22c55e'
+              },
+              {
+                label: 'Processing',
+                value: payProcessing,
+                etb: `ETB ${payProcessingETB.toLocaleString()}`,
+                icon: <Clock size={18} />,
+                color: '#8b5cf6'
+              },
+            ].map(s => (
+              <div key={s.label} className="sal-pay-stat-box" style={{ borderLeft: `4px solid ${s.color}` }}>
+                <div className="sal-pay-stat-icon" style={{ color: s.color, background: s.color + '18' }}>{s.icon}</div>
+                <div>
+                  <div className="sal-pay-stat-value" style={{ color: s.color }}>{paymentLoading ? '—' : s.value}</div>
+                  <div className="sal-pay-stat-label">{s.label}</div>
+                  <div className="sal-pay-stat-etb">{paymentLoading ? '' : s.etb}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Toolbar ── */}
+          <div className="sal-pay-toolbar">
+            <div className="sal-search" style={{ flex: 1, minWidth: 220 }}>
+              <Search size={14} />
+              <input
+                placeholder="Search name, ID, or department..."
+                value={paymentSearch}
+                onChange={e => setPaymentSearch(e.target.value)}
+              />
             </div>
-            <form onSubmit={handleSaveAccount} className="modal-form">
-              <div className="account-type-toggle">
-                <div
-                  className={`type-option ${accountData.type === 'bank' ? 'active' : ''}`}
-                  onClick={() => setAccountData({ ...accountData, type: 'bank', provider: '' })}
-                >
-                  <Bank size={18} />
-                  <span>{t('Bank Account')}</span>
+            <select
+              className="sal-pay-select-filter"
+              value={paymentFilter}
+              onChange={e => setPaymentFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="payable">Payable</option>
+              <option value="processing">Processing</option>
+              <option value="waiting_approval">Pending Approval</option>
+              <option value="paid">Paid</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button className="sal-btn sal-btn-outline" onClick={loadPaymentEmployees} disabled={paymentLoading}>
+              <RefreshCw size={14} style={{ animation: paymentLoading ? 'spin 1s linear infinite' : 'none' }} />
+              {paymentLoading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+
+          {/* ── Card Grid Workspace ── */}
+          <div className="sal-pay-workspace">
+            <div className="sal-pay-workspace-left">
+              {paymentLoading ? (
+                <div className="sal-pay-loading">
+                  {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="sal-pay-skeleton" />)}
                 </div>
-                <div
-                  className={`type-option ${accountData.type === 'mobile' ? 'active' : ''}`}
-                  onClick={() => setAccountData({ ...accountData, type: 'mobile', provider: '' })}
-                >
-                  <Smartphone size={18} />
-                  <span>{t('Mobile Banking')}</span>
+              ) : filteredPaymentEmployees.length === 0 ? (
+                <div className="sal-pay-empty" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', color: 'var(--text-secondary)', gap: '10px', textAlign: 'center' }}>
+                  <Users size={48} style={{ opacity: 0.3 }} />
+                  <p style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>No employees matching filters</p>
+                  <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>Try changing the search term or status filter</span>
                 </div>
-              </div>
-
-              <div className="form-group">
-                <label>{accountData.type === 'bank' ? t('Bank Name') : t('Mobile Banking Provider')}</label>
-                <select
-                  value={accountData.provider}
-                  onChange={(e) => setAccountData({ ...accountData, provider: e.target.value })}
-                  required
-                >
-                  <option value="">{t('Select Provider')}</option>
-                  {(accountData.type === 'bank' ? ETHIOPIAN_BANKS : ETHIOPIAN_MOBILE_SERVICES).map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>{t('Account Holder Name')}</label>
-                <input
-                  type="text"
-                  value={accountData.accountName}
-                  onChange={(e) => setAccountData({ ...accountData, accountName: e.target.value })}
-                  required
-                  placeholder={t('Enter full name')}
-                />
-              </div>
-
-              {accountData.type === 'bank' ? (
-                <>
-                  <div className="form-group">
-                    <label>{t('Bank Account Number')}</label>
-                    <input
-                      type="text"
-                      value={accountData.accountNumber}
-                      onChange={(e) => setAccountData({ ...accountData, accountNumber: e.target.value })}
-                      required
-                      placeholder="1000..."
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('Branch (Optional)')}</label>
-                    <input
-                      type="text"
-                      value={accountData.branch}
-                      onChange={(e) => setAccountData({ ...accountData, branch: e.target.value })}
-                      placeholder="e.g. Bole Branch"
-                    />
-                  </div>
-                </>
               ) : (
-                <div className="form-group">
-                  <label>{t('Phone Number')}</label>
-                  <PhoneInput
-                    value={accountData.walletNumber}
-                    onChange={(val, valid) => {
-                      setAccountData({ ...accountData, walletNumber: val });
-                      // Instant validity check if needed
-                    }}
-                    required={true}
-                  />
+                <div className="sal-pay-grid">
+                  {filteredPaymentEmployees.map(emp => {
+                    const calc = emp.latestCalculation;
+                    const lastPay = calc?.latestPayment;
+                    const cardStatus = emp.cardStatus || 'idle';
+                    const badge = CARD_STATUS_BADGE[cardStatus] || CARD_STATUS_BADGE.idle;
+                    const avatarColor = nameToColor(emp.fullName);
+                    const initials = getInitials(emp.fullName);
+
+                    return (
+                      <div key={emp.id} className={`sal-pay-card state-${cardStatus}`}>
+                        <div className="sal-pay-card-main-info">
+                          <div className="sal-pay-card-left">
+                            <div className="sal-pay-card-avatar-wrap">
+                              <div className="sal-pay-card-avatar" style={{ background: avatarColor }}>{initials}</div>
+                              <span className={`sal-pay-card-avatar-dot ${cardStatus === 'idle' ? 'inactive' : ''}`} />
+                            </div>
+                            <div className="sal-pay-card-meta">
+                              <div className="sal-pay-card-name">{emp.fullName}</div>
+                              <div className="sal-pay-card-id">{emp.employeeNumber}</div>
+                              <div className="sal-pay-card-role">{emp.department || 'General Staff'}</div>
+                            </div>
+                          </div>
+
+                          <div className="sal-pay-card-salary-block">
+                            <span className="sal-pay-card-salary-label">Net Salary</span>
+                            <span className="sal-pay-card-salary-value">
+                              {calc ? `ETB ${calc.netSalary?.toLocaleString()}` : `ETB ${emp.baseSalary?.toLocaleString()}`}
+                            </span>
+                            {calc?.periodName && (
+                              <div className="sal-pay-card-period"><Clock size={11} /> {calc.periodName}</div>
+                            )}
+                          </div>
+
+                          <div className="sal-pay-card-right">
+                            <span className={`sp-badge ${badge.cls}`}>
+                              <span className="sp-badge-dot" />
+                              {badge.label}
+                            </span>
+                            
+                            {cardStatus === 'payable' && (
+                              <button className="sal-pay-btn-action btn-blue" onClick={() => openPaymentDialog(emp)}>
+                                <CreditCard size={13} /> Process Payment
+                              </button>
+                            )}
+                            {cardStatus === 'processing' && (
+                              <button className="sal-pay-btn-action btn-dark" onClick={() => openPaymentDialog(emp)}>
+                                <Eye size={13} /> View Payment
+                              </button>
+                            )}
+                            {cardStatus === 'waiting_approval' && (
+                              <button className="sal-pay-btn-action btn-dark" onClick={() => openPaymentDialog(emp)}>
+                                <Eye size={13} /> View Payment
+                              </button>
+                            )}
+                            {cardStatus === 'paid' && (
+                              <button className="sal-pay-btn-action btn-green-outline" onClick={() => openPaymentDialog(emp)}>
+                                <FileText size={13} /> View Receipt
+                              </button>
+                            )}
+                            {cardStatus === 'rejected' && (
+                              <button className="sal-pay-btn-action btn-red-outline" onClick={() => openPaymentDialog(emp)}>
+                                <RotateCcw size={13} /> Reprocess Payment
+                              </button>
+                            )}
+                            {cardStatus === 'idle' && (
+                              <button className="sal-pay-btn-action btn-blue" onClick={() => openPaymentDialog(emp)}>
+                                <CreditCard size={13} /> Process Payment
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Card bottom row bar */}
+                        <div className="sal-pay-card-bottom-bar">
+                          <div className="sal-pay-card-bottom-col">
+                            <span className="sal-pay-card-bottom-label">Payment Method</span>
+                            <span className="sal-pay-card-bottom-value">
+                              {lastPay ? lastPay.paymentMethod : '—'}
+                            </span>
+                          </div>
+                          
+                          <div className="sal-pay-card-bottom-col">
+                            <span className="sal-pay-card-bottom-label">Payment Status</span>
+                            {cardStatus === 'paid' && <span className="sal-pay-card-bottom-value approved">Approved</span>}
+                            {cardStatus === 'waiting_approval' && <span className="sal-pay-card-bottom-value waiting">Waiting Approval</span>}
+                            {cardStatus === 'processing' && <span className="sal-pay-card-bottom-value processing">Processing</span>}
+                            {cardStatus === 'rejected' && <span className="sal-pay-card-bottom-value rejected">Rejected</span>}
+                            {cardStatus === 'payable' && <span className="sal-pay-card-bottom-value not-paid">Not Paid</span>}
+                            {cardStatus === 'idle' && <span className="sal-pay-card-bottom-value not-paid">—</span>}
+                          </div>
+
+                          {cardStatus === 'paid' && lastPay?.paymentDate && (
+                            <div className="sal-pay-card-paid-date">
+                              Paid On: {lastPay.paymentDate?.split('T')[0]}
+                            </div>
+                          )}
+                          {cardStatus === 'rejected' && lastPay?.issueReason && (
+                            <div className="sp-rejected-note" style={{ margin: 0 }}>
+                              ⚠ {lastPay.issueReason}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">{t('Update Information')}</button>
+
+              {/* ── Stepped workflow timeline footer ── */}
+              <div className="sal-pay-workflow-footer">
+                <h4 className="sal-pay-workflow-title">Payment Workflow</h4>
+                <div className="sal-pay-workflow-steps">
+                  <div className="sal-pay-workflow-step">
+                    <div className="sal-pay-workflow-step-num">1</div>
+                    <div className="sal-pay-workflow-step-info">
+                      <div className="sal-pay-workflow-step-title">Admin Processes</div>
+                      <div className="sal-pay-workflow-step-desc">Payment initiated by admin</div>
+                    </div>
+                  </div>
+                  <div className="sal-pay-workflow-arrow">→</div>
+                  <div className="sal-pay-workflow-step">
+                    <div className="sal-pay-workflow-step-num">2</div>
+                    <div className="sal-pay-workflow-step-info">
+                      <div className="sal-pay-workflow-step-title">Employee Approval</div>
+                      <div className="sal-pay-workflow-step-desc">Reviews and approves</div>
+                    </div>
+                  </div>
+                  <div className="sal-pay-workflow-arrow">→</div>
+                  <div className="sal-pay-workflow-step">
+                    <div className="sal-pay-workflow-step-num">3</div>
+                    <div className="sal-pay-workflow-step-info">
+                      <div className="sal-pay-workflow-step-title">Payment Completed</div>
+                      <div className="sal-pay-workflow-step-desc">Payout finalized and closed</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </form>
+            </div>
+            {/* ── inline right panel details layout ── */}
+            {renderPaymentPanel()}
           </div>
         </div>
       )}
 
-      {showProofModal && selectedProof && (
-        <div className="modal-overlay" onClick={() => setShowProofModal(false)}>
-          <div className="modal-content proof-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{t('Payment Proof')}</h2>
-              <button className="close-btn" onClick={() => setShowProofModal(false)}><X size={20} /></button>
+      {/* ── MODALS: Admin / Cashier ── */}
+      {showPeriodModal && (
+        <div className="sal-modal-overlay" onClick={() => setShowPeriodModal(false)}>
+          <div className="sal-modal" onClick={e => e.stopPropagation()}>
+            <div className="sal-modal-header"><h3>New Salary Period</h3><button className="sal-modal-close" onClick={() => setShowPeriodModal(false)}>✕</button></div>
+            <div className="sal-modal-body">
+              {[['periodName', 'Period Name', 'text', 'e.g. July 2026'], ['startDate', 'Start Date', 'date', ''], ['endDate', 'End Date', 'date', '']].map(([k, l, t, p]) => (
+                <div className="sal-form-row" key={k}><label>{l}</label><input className="sal-input" type={t} placeholder={p} value={periodForm[k]} onChange={e => setPeriodForm(f => ({ ...f, [k]: e.target.value }))} /></div>
+              ))}
+              <div className="sal-form-row"><label>Salary Type</label>
+                <select className="sal-select w-full" value={periodForm.salaryType} onChange={e => setPeriodForm(f => ({ ...f, salaryType: e.target.value }))}>
+                  {['Monthly', 'Weekly', 'Daily'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="proof-viewer">
-              <img src={selectedProof} alt="Payment Proof" />
-              <a href={selectedProof} download="salary_receipt.png" className="btn-primary download-btn">
-                {t('downloadScreenshot')}
-              </a>
+            <div className="sal-modal-footer">
+              <button className="sal-btn sal-btn-outline" onClick={() => setShowPeriodModal(false)}>Cancel</button>
+              <button className="sal-btn sal-btn-primary" disabled={saving} onClick={handleCreatePeriod}>{saving ? 'Creating...' : 'Create'}</button>
             </div>
           </div>
         </div>
       )}
+
+      {showStructureModal && (
+        <div className="sal-modal-overlay" onClick={closeStructureModal}>
+          <div className="sal-modal" onClick={e => e.stopPropagation()}>
+            <div className="sal-modal-header">
+              <h3>{editingStructure ? 'Edit Salary Structure' : 'Add Salary Structure'}</h3>
+              <button className="sal-modal-close" onClick={closeStructureModal}>✕</button>
+            </div>
+            <div className="sal-modal-body">
+              <div className="sal-form-row">
+                <label>Employee</label>
+                <select
+                  className="sal-select w-full"
+                  value={structureForm.employeeId}
+                  onChange={e => setStructureForm(f => ({ ...f, employeeId: e.target.value }))}
+                  disabled={!!editingStructure}
+                >
+                  <option value="">Select Employee</option>
+                  {employees.map(e => <option key={e.id} value={e.id}>{e.fullName}</option>)}
+                </select>
+              </div>
+
+              <div className="sal-form-row">
+                <label>Base Salary (ETB)</label>
+                <input
+                  className="sal-input"
+                  type="number"
+                  placeholder="e.g. 5000.00"
+                  value={structureForm.baseSalary}
+                  onChange={e => setStructureForm(f => ({ ...f, baseSalary: e.target.value }))}
+                />
+              </div>
+
+              <div className="sal-form-row">
+                <label>Absent Deduction (ETB per day)</label>
+                <input
+                  className="sal-input"
+                  type="number"
+                  placeholder="e.g. 200.00"
+                  value={structureForm.absencePenaltyPerDay}
+                  onChange={e => setStructureForm(f => ({ ...f, absencePenaltyPerDay: e.target.value }))}
+                />
+              </div>
+
+              <div className="sal-form-row">
+                <label>Late Deduction (ETB per occurrence)</label>
+                <input
+                  className="sal-input"
+                  type="number"
+                  placeholder="e.g. 50.00"
+                  value={structureForm.latePenaltyPerOccurrence}
+                  onChange={e => setStructureForm(f => ({ ...f, latePenaltyPerOccurrence: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="sal-modal-footer">
+              <button className="sal-btn sal-btn-outline" onClick={closeStructureModal}>Cancel</button>
+              <button className="sal-btn sal-btn-primary" disabled={saving} onClick={handleSaveStructure}>
+                {saving ? 'Processing...' : 'Save Structures'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPayModal && (
+        <div className="sal-modal-overlay" onClick={() => setShowPayModal(null)}>
+          <div className="sal-modal" onClick={e => e.stopPropagation()}>
+            <div className="sal-modal-header"><h3>Process Payout</h3><button className="sal-modal-close" onClick={() => setShowPayModal(null)}>✕</button></div>
+            <div className="sal-modal-body">
+              <div className="sal-slip-preview">
+                <div className="sal-slip-line"><span>Name</span><strong>{showPayModal.employee?.fullName}</strong></div>
+                <div className="sal-slip-line"><span>Gross Salary</span><strong>ETB {showPayModal.grossSalary?.toLocaleString()}</strong></div>
+                <div className="sal-slip-line"><span>Deductions</span><strong style={{ color: '#ef4444' }}>ETB {showPayModal.totalDeduction?.toLocaleString()}</strong></div>
+                <div className="sal-slip-line sal-slip-net"><span>Net Pay</span><strong>ETB {showPayModal.netSalary?.toLocaleString()}</strong></div>
+              </div>
+              <div className="sal-form-row">
+                <label>Payment Method</label>
+                <select className="sal-select w-full" value={payForm.paymentMethod} onChange={e => setPayForm(f => ({ ...f, paymentMethod: e.target.value }))}>
+                  {['Cash', 'Bank Transfer', 'Mobile Banking'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="sal-form-row"><label>Transaction ID / Signature</label><input className="sal-input" placeholder="Ref Reference" value={payForm.paymentReference} onChange={e => setPayForm(f => ({ ...f, paymentReference: e.target.value }))} /></div>
+              <div className="sal-form-row"><label>Optional Notes</label><input className="sal-input" placeholder="" value={payForm.notes} onChange={e => setPayForm(f => ({ ...f, notes: e.target.value }))} /></div>
+            </div>
+            <div className="sal-modal-footer">
+              <button className="sal-btn sal-btn-outline" onClick={() => setShowPayModal(null)}>Cancel</button>
+              <button className="sal-btn sal-btn-primary" disabled={saving} onClick={handlePay}>{saving ? 'Saving...' : 'Disburse'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {showSlip && renderSlipModal()}
     </div>
   );
-};
 
-export default Salary;
+  function renderPaymentPanel() {
+    if (!showPaymentDialog) return null;
+    const dlgE = showPaymentDialog;
+    const calc = dlgE.latestCalculation;
+    const panelHasBank = dlgE.bankName || dlgE.bankAccount;
+    const panelHasMobile = dlgE.mobileBank || dlgE.mobileAccount;
+    const panelHasAny = panelHasBank || panelHasMobile;
+    const avatarCol = nameToColor(dlgE.fullName);
+
+    return (
+      <>
+        <div className="sp-panel-overlay" onClick={() => setShowPaymentDialog(null)} />
+        <div className="sp-panel">
+          {/* Header */}
+          <div className="sp-panel-header">
+            <div className="sp-panel-emp-avatar" style={{ background: avatarCol }}>
+              {getInitials(dlgE.fullName)}
+            </div>
+            <div className="sp-panel-emp-info">
+              <div className="sp-panel-emp-name">{dlgE.fullName}</div>
+              <div className="sp-panel-emp-meta">{dlgE.employeeNumber} · {dlgE.department || 'Staff'}</div>
+            </div>
+            <button className="sp-panel-close" onClick={() => setShowPaymentDialog(null)}><X size={16} /></button>
+          </div>
+
+          {/* Body */}
+          <div className="sp-panel-body">
+            {/* Net Salary Display */}
+            <div className="sp-salary-display">
+              <div className="sp-salary-display-label">Net Salary to Disburse</div>
+              <div className="sp-salary-display-amount">
+                ETB {calc?.netSalary?.toLocaleString() ?? dlgE.baseSalary?.toLocaleString()}
+              </div>
+              {calc?.periodName && (
+                <div className="sp-salary-display-period">Period: {calc.periodName}</div>
+              )}
+            </div>
+
+            {/* Employee Payment Accounts */}
+            <div className="sp-section-header"><Building2 size={13} /> Payment Accounts</div>
+            {!panelHasAny ? (
+              <div className="sp-no-account">
+                <AlertCircle size={18} />
+                No payment account configured for this employee.
+              </div>
+            ) : (
+              <div className="sp-accounts-grid">
+                {panelHasBank && (
+                  <div className="sp-account-box bank">
+                    <div className="sp-account-box-title"><Building2 size={13} /> Bank Transfer</div>
+                    <div className="sp-account-row"><span>Bank</span><strong>{dlgE.bankName}</strong></div>
+                    <div className="sp-account-row"><span>Account</span><strong style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{dlgE.bankAccount}</strong></div>
+                    <div className="sp-account-row"><span>Holder</span><strong>{dlgE.fullName}</strong></div>
+                  </div>
+                )}
+                {panelHasMobile && (
+                  <div className="sp-account-box mobile">
+                    <div className="sp-account-box-title"><Smartphone size={13} /> Mobile Money</div>
+                    <div className="sp-account-row"><span>Provider</span><strong>{dlgE.mobileBank}</strong></div>
+                    <div className="sp-account-row"><span>Phone</span><strong style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{dlgE.mobileAccount}</strong></div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Method */}
+            <div className="sp-section-header"><CreditCard size={13} /> Payment Method</div>
+            <div className="sp-method-tabs">
+              {[
+                { key: 'Cash', icon: '💵', label: 'Cash' },
+                { key: 'Bank Transfer', icon: '🏦', label: 'Bank Transfer', disabled: !panelHasBank },
+                { key: 'Mobile Banking', icon: '📱', label: 'Mobile', disabled: !panelHasMobile },
+              ].map(m => (
+                <button
+                  key={m.key}
+                  className={`sp-method-tab ${payDialogMethod === m.key ? 'active' : ''}`}
+                  onClick={() => !m.disabled && setPayDialogMethod(m.key)}
+                  disabled={m.disabled}
+                >
+                  <span className="sp-method-icon">{m.icon}</span>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Payment Details */}
+            <div className="sp-section-header"><FileText size={13} /> Payment Details</div>
+            <div className="sp-field">
+              <label>Payment Date</label>
+              <input
+                type="date"
+                value={payDialogDate}
+                onChange={e => setPayDialogDate(e.target.value)}
+              />
+            </div>
+            <div className="sp-field">
+              <label>Transaction Reference Number</label>
+              <input
+                type="text"
+                placeholder="e.g. TXN-2026-0071 (optional)"
+                value={payDialogReference}
+                onChange={e => setPayDialogReference(e.target.value)}
+              />
+            </div>
+            <div className="sp-field">
+              <label>Payment Note (optional)</label>
+              <textarea
+                placeholder="Add any notes or remarks..."
+                value={payDialogNotes}
+                onChange={e => setPayDialogNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="sp-panel-footer">
+            <button className="sp-btn-cancel" onClick={() => setShowPaymentDialog(null)}>Cancel</button>
+            <button
+              className="sp-btn-confirm"
+              onClick={handleDialogPay}
+              disabled={dialogProcessing}
+            >
+              {dialogProcessing
+                ? <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+                : <><Send size={14} /> Confirm Payment · ETB {(calc?.netSalary ?? dlgE.baseSalary)?.toLocaleString()}</>
+              }
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  function renderSlipModal() {
+    return (
+      <div className="sal-modal-overlay" onClick={() => setShowSlip(null)}>
+        <div className="sal-modal sal-slip-modal" onClick={e => e.stopPropagation()}>
+          <div className="sal-slip-header">
+            <h2>GARAGE SALARY SYSTEM</h2>
+            <div style={{ opacity: 0.6, fontSize: '0.85rem' }}>PAYROLL STATEMENT</div>
+            <div style={{ fontSize: '0.8rem', marginTop: 4 }}>Period: {showSlip.salaryPeriod?.periodName}</div>
+          </div>
+          <div className="sal-slip-employee">
+            <div>
+              <strong>{showSlip.employee?.fullName}</strong>
+              <div style={{ opacity: 0.6, fontSize: '0.82rem', marginTop: 3 }}>
+                Details: {showSlip.employee?.employeeNumber} · {showSlip.employee?.department}
+              </div>
+            </div>
+            {showSlip.payments?.[0] && (
+              <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                <span className="sal-badge" style={{ background: '#22c55e20', color: '#22c55e' }}>Receipt Generated</span>
+                <div style={{ fontFamily: 'monospace', opacity: 0.7, marginTop: 4 }}>No: {showSlip.payments[0].receiptNumber}</div>
+              </div>
+            )}
+          </div>
+          <table className="sal-slip-table">
+            <tbody>
+              <tr><td>Base Rate Salary</td><td>ETB {showSlip.baseSalary?.toLocaleString()}</td></tr>
+              <tr><td>Earnings / Bonuses</td><td>ETB {showSlip.bonus?.toLocaleString()}</td></tr>
+              <tr className="sal-slip-subtotal"><td>Gross Remuneration</td><td>ETB {showSlip.grossSalary?.toLocaleString()}</td></tr>
+              <tr style={{ color: '#ef4444' }}><td>Absence Penalties ({showSlip.absentDays} days)</td><td>− ETB {showSlip.absenceDeduction?.toLocaleString()}</td></tr>
+              <tr style={{ color: '#ef4444' }}><td>Tardiness / Late Penalties ({showSlip.lateHours?.toFixed(1)} hrs)</td><td>− ETB {showSlip.lateDeduction?.toLocaleString()}</td></tr>
+              <tr style={{ color: '#ef4444' }}><td>Other Account Adjustments</td><td>− ETB {showSlip.otherDeduction?.toLocaleString()}</td></tr>
+              <tr className="sal-slip-net-row"><td><strong>NET DISBURSEMENT</strong></td><td><strong>ETB {showSlip.netSalary?.toLocaleString()}</strong></td></tr>
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 28 }}>
+            <button className="sal-btn sal-btn-outline" onClick={() => setShowSlip(null)}>Close View</button>
+            <button className="sal-btn sal-btn-primary" onClick={printSlip}><Download size={14} /> Send to Print / PDF</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}

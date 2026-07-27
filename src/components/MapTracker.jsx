@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
+import { rtdb } from '../services/firebase';
+import { ref, set, update } from 'firebase/database';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -67,54 +70,79 @@ const LocationPicker = ({ onLocationSelect }) => {
 
 // Main Component
 const MapTracker = () => {
-  const { activeTrackers, setActiveTrackers, addItem, updateItem, deleteItem, customers, staff, language, t, addNotification } = useAppContext();
+  const { activeTrackers, setActiveTrackers, addItem, updateItem, deleteItem, customers, staff, t, addNotification, wsRef } = useAppContext();
   const { currentUser } = useAuth();
 
   const [selectedTrackerId, setSelectedTrackerId] = useState(null);
   const [simulating, setSimulating] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
+  const [viewMode, setViewMode] = useState('list');
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [pinningLocation, setPinningLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingTrackerId, setEditingTrackerId] = useState(null);
+  const [gpsAccuracy, setGpsAccuracy] = useState(null);
+  const gpsWatchId = useRef(null);
 
-  // Stabilize location selection callback to prevent listener leaks
+  // Allow map click to refine location
   const handleLocationSelect = useCallback((coords) => {
-    console.log("[DEBUG Live Tracking] Map clicked at:", coords);
     setPinningLocation(coords);
   }, []);
 
-  // Auto-locate when user starts requesting assistance
+  // Start continuous GPS watch when customer opens the request panel
   useEffect(() => {
-    if (isSelectingLocation && !pinningLocation) {
-      setIsLocating(true);
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const coords = [position.coords.latitude, position.coords.longitude];
-            setPinningLocation(coords);
-            setIsLocating(false);
-            addNotification(t("GPS location found!"), 'success');
-          },
-          (error) => {
-            console.warn("Geolocation error:", error);
-            setIsLocating(false);
-            // Fallback to Addis Ababa center if GPS fails so the user can still confirm
-            const fallback = [9.03, 38.74];
-            setPinningLocation(fallback);
-            addNotification(t("Could not get GPS. Using default location. Please click on map to adjust."), 'warning');
-          },
-          { enableHighAccuracy: true, timeout: 5000 }
-        );
-      } else {
-        setIsLocating(false);
-        // Fallback to Addis Ababa center if Geolocation is not supported
-        setPinningLocation([9.03, 38.74]);
-        addNotification(t("Geolocation not supported. Please click on map to adjust."), 'warning');
+    if (!isSelectingLocation) {
+      // Stop watching when panel is closed
+      if (gpsWatchId.current != null) {
+        navigator.geolocation.clearWatch(gpsWatchId.current);
+        gpsWatchId.current = null;
       }
+      return;
     }
-  }, [isSelectingLocation, pinningLocation, t, addNotification]);
+
+    setIsLocating(true);
+    setPinningLocation(null);
+    setGpsAccuracy(null);
+
+    if (!('geolocation' in navigator)) {
+      setIsLocating(false);
+      setPinningLocation([9.03, 38.74]);
+      addNotification(t('Geolocation not supported. Tap the map to set your location.'), 'warning');
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const coords = [position.coords.latitude, position.coords.longitude];
+        setPinningLocation(coords);
+        setGpsAccuracy(Math.round(position.coords.accuracy));
+        setIsLocating(false);
+      },
+      (error) => {
+        console.warn('[GPS] watchPosition error:', error);
+        setIsLocating(false);
+        if (!pinningLocation) {
+          setPinningLocation([9.03, 38.74]);
+          addNotification(t('GPS unavailable. Default location set — tap map to adjust.'), 'warning');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+
+    gpsWatchId.current = watchId;
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      gpsWatchId.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSelectingLocation]);
+
+  const stopGpsWatch = () => {
+    if (gpsWatchId.current != null) {
+      navigator.geolocation.clearWatch(gpsWatchId.current);
+      gpsWatchId.current = null;
+    }
+  };
 
   // Helper to get coordinates from address using Nominatim (OSM)
   const geocodeAddress = async (address) => {
@@ -122,11 +150,9 @@ const MapTracker = () => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
       const data = await response.json();
-      if (data && data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
+      if (data && data.length > 0) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
     } catch (error) {
-      console.error("Geocoding failed:", error);
+      console.error('Geocoding failed:', error);
     }
     return null;
   };
@@ -155,78 +181,69 @@ const MapTracker = () => {
     return myTrackers.find(t => t.id === selectedTrackerId) || myTrackers[0];
   }, [myTrackers, selectedTrackerId]);
 
-  const handleRequestAssistance = () => {
-    console.log("[DEBUG Live Tracking] Confirm Location button clicked. pinningLocation:", pinningLocation);
-    if (pinningLocation) {
-      const repairId = `r_${Date.now()}`;
+  const handleRequestAssistance = async () => {
+    if (!pinningLocation) return;
 
-      // FORCE CONSISTENT OWNER ID FOR ROADSIDE (Default to primary garage '0001')
-      const targetOwnerId = currentUser?.ownerId || '0001';
-      const prefix = `garage_${targetOwnerId}_`;
-
-      // Create Repair Entry
-      const newRepair = {
-        id: repairId,
-        customerId: currentUser?.id || `guest_${Date.now()}`,
-        ownerId: targetOwnerId,
-        vehicleId: '',
-        status: 'pending',
-        notes: 'Roadside Assistance Request (via Map)',
-        isRoadside: true,
-        location: pinningLocation,
-        dateIn: new Date().toISOString(),
-        laborCost: 0,
-        parts: []
-      };
-
-      // Create Tracker Entry
-      const newTracker = {
-        id: `tr_${repairId}`,
-        repairId: repairId,
-        customerId: currentUser?.id || `guest_${Date.now()}`,
-        mechanicId: null, // Initially unassigned
-        customerLocation: pinningLocation,
-        mechanicLocation: [9.03, 38.74], // Default garage location
-        status: 'pending',
-        ownerId: targetOwnerId,
-        timestamp: new Date().toISOString()
-      };
-
-      console.log("[DEBUG Live Tracking] Finalizing request assistance submission for owner:", targetOwnerId);
-
-      // DISPATCH TO CONTEXT (Already handles BroadCastChannel sync and LocalStorage persistence)
-      if (editingTrackerId) {
-        // UPDATE Existing Tracker
-        updateItem('trackers', editingTrackerId, {
+    if (editingTrackerId) {
+      // UPDATE existing tracker location
+      try {
+        await api.updateTracker(editingTrackerId, { customerLocation: pinningLocation });
+        updateItem('trackers', editingTrackerId, { customerLocation: pinningLocation, timestamp: new Date().toISOString() });
+        addNotification(t('Location updated successfully!'), 'success');
+      } catch (e) {
+        addNotification(t('Failed to update location. Please try again.'), 'danger');
+        console.error('[MapTracker] updateTracker failed', e);
+      }
+    } else {
+      // CREATE new tracker — backend persists to PostgreSQL, Firebase delivers in real time
+      try {
+        const savedTracker = await api.createTracker({
+          customerId: currentUser?.id,
           customerLocation: pinningLocation,
-          timestamp: new Date().toISOString()
+          status: 'pending'
         });
 
-        // Also update associated repair if possible
-        const tracker = activeTrackers.find(t => t.id === editingTrackerId);
-        if (tracker && tracker.repairId) {
-          updateItem('repairs', tracker.repairId, { location: pinningLocation });
+        if (savedTracker?.id) {
+          const normalized = {
+            ...savedTracker,
+            customerLocation: pinningLocation,
+            mechanicLocation: savedTracker.mechanicLat != null
+              ? [savedTracker.mechanicLat, savedTracker.mechanicLng]
+              : [9.03, 38.74],
+          };
+
+          // 1. Add to local state immediately (customer sees it right away)
+          setActiveTrackers(prev => {
+            const exists = prev.find(t => t.id === normalized.id);
+            return exists ? prev : [...prev, normalized];
+          });
+          setSelectedTrackerId(savedTracker.id);
+
+          // 2. Write to Firebase RTDB so Admin/Mechanic gets it instantly
+          const trackerRTDBRef = ref(rtdb, `liveTrackers/${savedTracker.id}`);
+          await set(trackerRTDBRef, {
+            lat: pinningLocation[0],
+            lng: pinningLocation[1],
+            status: 'pending',
+            customerId: currentUser?.id,
+            timestamp: new Date().toISOString(),
+            // Include full tracker so AppContext can add it to the list
+            fullTracker: savedTracker
+          });
+
+          addNotification(t('Roadside assistance request sent! Help is on the way.'), 'success');
         }
-
-        addNotification(t("Location updated successfully!"), 'success');
-      } else {
-        // ADD New Tracker
-        addItem('repairs', newRepair);
-        addItem('trackers', newTracker);
-        addNotification(t("Repair request sent with location!"), 'success');
+      } catch (e) {
+        addNotification(t('Failed to send request. Please try again.'), 'danger');
+        console.error('[MapTracker] createTracker failed', e);
       }
-
-      // RESET UI STATE
-      setIsSelectingLocation(false);
-      setPinningLocation(null);
-      setEditingTrackerId(null);
-      if (!editingTrackerId) setSelectedTrackerId(editingTrackerId || newTracker.id);
-      setViewMode('list'); // Automatically switch to list view to show the new tracking card
-
-      console.log("[DEBUG Live Tracking] handleRequestAssistance completed successfully.");
-    } else {
-      setIsSelectingLocation(true);
     }
+
+    stopGpsWatch();
+    setIsSelectingLocation(false);
+    setPinningLocation(null);
+    setEditingTrackerId(null);
+    setViewMode('list');
   };
 
   const handleEditLocation = (trackerId) => {
@@ -239,75 +256,123 @@ const MapTracker = () => {
     addNotification(t("Click on map to update your location."), 'info');
   };
 
-  const handleCancelRequest = (trackerId) => {
+  const handleCancelRequest = async (trackerId) => {
     const tracker = activeTrackers.find(t => t.id === trackerId);
     if (!tracker) return;
 
-    if (window.confirm(t("Are you sure you want to cancel this assistance request?"))) {
-      deleteItem('trackers', trackerId);
-      if (tracker.repairId) {
-        deleteItem('repairs', tracker.repairId);
+    if (window.confirm(t('Are you sure you want to cancel this assistance request?'))) {
+      try {
+        await api.updateTracker(trackerId, { status: 'cancelled' });
+        // Update RTDB status
+        const trackerRTDBRef = ref(rtdb, `liveTrackers/${trackerId}`);
+        await update(trackerRTDBRef, { status: 'cancelled', timestamp: new Date().toISOString() });
+      } catch (e) {
+        console.warn('[MapTracker] API cancel tracker failed', e);
       }
-      addNotification(t("Request cancelled."), 'info');
+      deleteItem('trackers', trackerId);
+      addNotification(t('Request cancelled.'), 'info');
     }
   };
 
-  const handleStartJourney = (trackerId) => {
-    const garageCoords = [9.02, 38.75]; // Ethiopia Garage center
+  const handleStartJourney = async (trackerId) => {
+    const garageCoords = [9.02, 38.75];
+    try {
+      await api.updateTracker(trackerId, { status: 'started', mechanicLocation: garageCoords });
+      // Update RTDB status & coords
+      const trackerRTDBRef = ref(rtdb, `liveTrackers/${trackerId}`);
+      await update(trackerRTDBRef, { 
+        status: 'started', 
+        mechanicLat: garageCoords[0],
+        mechanicLng: garageCoords[1],
+        timestamp: new Date().toISOString() 
+      });
+    } catch (e) {
+      console.warn('[MapTracker] API handleStartJourney failed', e);
+    }
     updateItem('trackers', trackerId, {
       status: 'started',
       mechanicLocation: garageCoords,
       journeyStartTime: new Date().toISOString()
     });
-    addNotification(t("Journey started! Tracking is live."), 'info');
+    addNotification(t('Journey started! Tracking is live.'), 'info');
     setSimulating(true);
   };
 
-  const handleArrived = (trackerId) => {
+  const handleArrived = async (trackerId) => {
     const tracker = activeTrackers.find(t => t.id === trackerId);
     if (!tracker) return;
 
+    try {
+      await api.updateTracker(trackerId, { status: 'arrived', mechanicLocation: tracker.customerLocation });
+      // Update RTDB status & coords
+      if (tracker.customerLocation) {
+        const trackerRTDBRef = ref(rtdb, `liveTrackers/${trackerId}`);
+        await update(trackerRTDBRef, { 
+          status: 'arrived', 
+          mechanicLat: tracker.customerLocation[0],
+          mechanicLng: tracker.customerLocation[1],
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.warn('[MapTracker] API handleArrived failed', e);
+    }
     updateItem('trackers', trackerId, {
       status: 'arrived',
       mechanicLocation: tracker.customerLocation
     });
-
-    // Update Repair Status to In-Progress
     if (tracker.repairId) {
       updateItem('repairs', tracker.repairId, { status: 'in-progress' });
     }
-
-    addNotification(t("Mechanic has arrived at your location!"), 'success', tracker.customerId);
+    addNotification(t('Mechanic has arrived at your location!'), 'success', tracker.customerId);
     setSimulating(false);
   };
 
-  const handleCompleteRepair = (trackerId) => {
+  const handleCompleteRepair = async (trackerId) => {
+    try {
+      await api.updateTracker(trackerId, { status: 'completed' });
+      // Update RTDB status
+      const trackerRTDBRef = ref(rtdb, `liveTrackers/${trackerId}`);
+      await update(trackerRTDBRef, { status: 'completed', timestamp: new Date().toISOString() });
+    } catch (e) {
+      console.warn('[MapTracker] API completeRepair failed', e);
+    }
     updateItem('trackers', trackerId, { status: 'completed' });
-    addNotification(t("Repair completed successfully."), 'success');
+    addNotification(t('Repair completed successfully.'), 'success');
   };
 
-  const handleAssignMechanic = (trackerId, mechanicId) => {
-    const mechanicStart = [9.03, 38.74]; // Ethiopia Garage center
+  const handleAssignMechanic = async (trackerId, mechanicId) => {
+    const mechanicStart = [9.03, 38.74];
+    try {
+      await api.updateTracker(trackerId, { mechanicId, status: 'assigned', mechanicLocation: mechanicStart });
+      // Update RTDB status & coords
+      const trackerRTDBRef = ref(rtdb, `liveTrackers/${trackerId}`);
+      await update(trackerRTDBRef, { 
+        status: 'assigned', 
+        mechanicId,
+        mechanicLat: mechanicStart[0],
+        mechanicLng: mechanicStart[1],
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('[MapTracker] API assignMechanic failed', e);
+    }
     updateItem('trackers', trackerId, {
       mechanicId,
       status: 'assigned',
       mechanicLocation: mechanicStart
     });
-
-    // Also update the repair record to match
     const tracker = activeTrackers.find(t => t.id === trackerId);
-    if (tracker && tracker.repairId) {
+    if (tracker?.repairId) {
       updateItem('repairs', tracker.repairId, { mechanicId });
     }
-
-    addNotification(t("Mechanic assigned to roadside job."), 'success');
+    addNotification(t('Mechanic assigned to roadside job.'), 'success');
   };
 
   // Simulate movement automatically (Driven by Mechanic's tab)
   useEffect(() => {
     if (currentUser?.role !== 'mechanic') return;
 
-    // Find my active started jobs
     const activeJobs = activeTrackers.filter(t => t.mechanicId === currentUser.id && t.status === 'started');
     if (activeJobs.length === 0) {
       if (simulating) setSimulating(false);
@@ -317,7 +382,7 @@ const MapTracker = () => {
     setSimulating(true);
 
     const interval = setInterval(() => {
-      activeJobs.forEach(job => {
+      activeJobs.forEach(async (job) => {
         const { customerLocation, mechanicLocation } = job;
         if (!customerLocation || !mechanicLocation) return;
 
@@ -325,25 +390,109 @@ const MapTracker = () => {
         const lngDiff = customerLocation[1] - mechanicLocation[1];
         const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
 
-        // If arrived (tolerance)
         if (distance < 0.0005) {
           handleArrived(job.id);
           return;
         }
 
-        // Move 2% per tick (every 1s) for much smoother motion
         const step = 0.02;
         const newLocation = [
           mechanicLocation[0] + latDiff * step,
           mechanicLocation[1] + lngDiff * step
         ];
 
+        // Update local state instantly
         updateItem('trackers', job.id, { mechanicLocation: newLocation });
+
+        // Write to Firebase RTDB so customer gets it instantly
+        try {
+          const trackerRTDBRef = ref(rtdb, `liveTrackers/${job.id}`);
+          update(trackerRTDBRef, {
+            mechanicLat: newLocation[0],
+            mechanicLng: newLocation[1],
+            timestamp: new Date().toISOString()
+          });
+        } catch (e) {
+          console.warn('[MapTracker] Firebase mechanic location update failed', e);
+        }
+
+        // Broadcast mechanic's real-time position via WebSocket/REST
+        try {
+          const ws = wsRef?.current;
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'mechanic_location_update',
+              trackerId: job.id,
+              lat: newLocation[0],
+              lng: newLocation[1]
+            }));
+          } else {
+            // Fallback: persist to backend REST
+            await api.updateTracker(job.id, { mechanicLocation: newLocation });
+          }
+        } catch (e) {
+          console.warn('[MapTracker] mechanic_location_update failed', e);
+        }
       });
     }, 1000);
 
     return () => clearInterval(interval);
   }, [activeTrackers, updateItem, simulating, currentUser?.id]);
+
+  // ── Customer GPS heartbeat: continuously stream live position to all watchers ──
+  useEffect(() => {
+    if (currentUser?.role !== 'customer') return;
+
+    const myActiveTracker = myTrackers.find(t =>
+      String(t.customerId) === String(currentUser.id) &&
+      !['completed', 'cancelled'].includes(t.status)
+    );
+    if (!myActiveTracker) return;
+
+    const interval = setInterval(() => {
+      if (!('geolocation' in navigator)) return;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          // Write to Firebase RTDB so Admin/Mechanic gets it instantly
+          try {
+            const trackerRTDBRef = ref(rtdb, `liveTrackers/${myActiveTracker.id}`);
+            update(trackerRTDBRef, {
+              lat,
+              lng,
+              timestamp: new Date().toISOString()
+            });
+          } catch (e) {
+            console.warn('[MapTracker] Firebase customer location update failed', e);
+          }
+
+          // Send via WebSocket first (fastest)
+          const ws = wsRef?.current;
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'location_update',
+              trackerId: myActiveTracker.id,
+              lat, lng,
+              speed: position.coords.speed || 0,
+              heading: position.coords.heading || 0
+            }));
+          } else {
+            // Fallback to REST if WS not connected
+            api.updateTracker(myActiveTracker.id, { customerLocation: [lat, lng] }).catch(() => {});
+          }
+
+          // Also update local state so the customer sees their own dot move
+          updateItem('trackers', myActiveTracker.id, { customerLocation: [lat, lng] });
+        },
+        (err) => console.warn('[GPS Heartbeat]', err),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 2000 }
+      );
+    }, 3000); // every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [myTrackers, currentUser?.id, currentUser?.role, updateItem, wsRef]);
 
   // Calculate ETA mock purely based on distance
   const calculateETA = (tracker) => {
@@ -390,19 +539,39 @@ const MapTracker = () => {
           )}
 
           {isSelectingLocation && (
-            <div className="pinning-controls">
-              <span className="pinning-label">
-                <MapPin size={16} /> {pinningLocation ? t("Location Selected!") : t("Click on map to pin location")}
-              </span>
+            <div className="pinning-controls" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              {isLocating ? (
+                <span className="pinning-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: '#f59e0b', display: 'inline-block',
+                    animation: 'pulse 1s infinite'
+                  }} />
+                  {t('Detecting your GPS location...')}
+                </span>
+              ) : (
+                <span className="pinning-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: '#22c55e', display: 'inline-block',
+                    animation: 'pulse 1.5s infinite'
+                  }} />
+                  <MapPin size={15} />
+                  {pinningLocation
+                    ? `${t('Location ready')}${gpsAccuracy ? ` (±${gpsAccuracy}m)` : ''} — ${t('tap map to adjust')}`
+                    : t('Tap map to pick manually')}
+                </span>
+              )}
               <button
                 className="btn-primary"
                 onClick={handleRequestAssistance}
                 disabled={!pinningLocation || isLocating}
+                style={{ minWidth: 150 }}
               >
-                {t("Confirm Location")}
+                <CheckCircle2 size={16} /> {t('Confirm Location')}
               </button>
-              <button className="btn-outline" onClick={() => setIsSelectingLocation(false)}>
-                {t("Cancel")}
+              <button className="btn-outline" onClick={() => { stopGpsWatch(); setIsSelectingLocation(false); setPinningLocation(null); }}>
+                {t('Cancel')}
               </button>
             </div>
           )}

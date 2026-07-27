@@ -3,16 +3,16 @@
 .loading-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999; /* above everything */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 20px;
-  background: rgba(10, 12, 20, 0.82);
+  background: rgba(10, 12, 20, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  animation: overlay-fade-in 0.25s ease;
+  animation: overlay-fade-in 0.2s ease;
 }
 
 @keyframes overlay-fade-in {
@@ -20,7 +20,7 @@
   to   { opacity: 1; }
 }
 
-/* Spinner ring */
+/* ── Spinner ──────────────────────────────────────────────────────── */
 .loading-overlay__spinner {
   width: 56px;
   height: 56px;
@@ -35,7 +35,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Brand logo inside spinner area */
 .loading-overlay__logo {
   position: absolute;
   width: 24px;
@@ -53,14 +52,14 @@
   justify-content: center;
 }
 
-/* Message text */
+/* ── Message text ─────────────────────────────────────────────────── */
 .loading-overlay__message {
   font-size: 0.95rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
   letter-spacing: 0.02em;
   text-align: center;
-  max-width: 240px;
+  max-width: 260px;
   line-height: 1.5;
 }
 
@@ -69,16 +68,17 @@
   animation: dots 1.4s steps(4, end) infinite;
   width: 1.5em;
   text-align: left;
+  overflow: hidden;
+  vertical-align: bottom;
 }
 
 @keyframes dots {
-  0%, 20%  { content: ""; }
-  40%      { content: "."; }
-  60%      { content: ".."; }
-  80%, 100%{ content: "..."; }
+  0%, 20%   { clip-path: inset(0 100% 0 0); }
+  40%        { clip-path: inset(0 66% 0 0); }
+  60%        { clip-path: inset(0 33% 0 0); }
+  80%, 100%  { clip-path: inset(0 0% 0 0); }
 }
 
-/* Sub-label beneath message */
 .loading-overlay__sub {
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.35);
@@ -86,7 +86,7 @@
   text-transform: uppercase;
 }
 
-/* Progress bar variant (optional) */
+/* ── Progress bar variant ─────────────────────────────────────────── */
 .loading-overlay__bar {
   width: 180px;
   height: 3px;
@@ -107,4 +107,91 @@
 @keyframes bar-slide {
   0%   { background-position: 200% center; }
   100% { background-position: -200% center; }
+}
+
+/* ── Error / Connection Problem state ─────────────────────────────── */
+.loading-overlay__error-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 380px;
+  text-align: center;
+  padding: 0 24px;
+  animation: overlay-fade-in 0.3s ease;
+}
+
+.loading-overlay__error-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  margin-bottom: 4px;
+}
+
+.loading-overlay__error-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.loading-overlay__error-msg {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.loading-overlay__error-hint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.loading-overlay__error-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.loading-overlay__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.loading-overlay__btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.loading-overlay__btn:active {
+  transform: translateY(0);
+}
+
+.loading-overlay__btn--primary {
+  background: #6366f1;
+  color: #fff;
+}
+
+.loading-overlay__btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }

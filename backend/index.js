@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+// Reload trigger v7
 
 const authRoutes = require('./routes/auth');
 const subscriptionRoutes = require('./routes/subscriptions');
@@ -27,6 +28,7 @@ const invoiceRoutes = require('./routes/invoices');
 const paymentAccountRoutes = require('./routes/paymentAccounts');
 const bonusRoutes = require('./routes/bonuses');
 const financialReportRoutes = require('./routes/financialReports');
+const userRoutes = require('./routes/users');
 
 const { globalErrorHandler } = require('./middleware/errorHandler');
 
@@ -79,6 +81,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payment-accounts', paymentAccountRoutes);
 app.use('/api/bonuses', bonusRoutes);
 app.use('/api/financial-reports', financialReportRoutes);
+app.use('/api/users', userRoutes);
 
 // Global error handler — logs full error server-side, returns safe generic message to client
 app.use(globalErrorHandler);
