@@ -4936,3 +4936,2674 @@ Please make sure your database server is running at `aws-0-eu-west-1.pooler.supa
     at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
     at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
     at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:07:32.181Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:07:39.231Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:07:57.464Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:08:39.137Z [GET /auth/garages] PrismaClientInitializationError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:255:41
+
+  252 // GET /api/auth/garages - Public: list all active garages for registration
+  253 router.get('/garages', async (req, res) => {
+  254   try {
+→ 255     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:255:21
+2026-07-28T17:09:53.454Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:12:14.937Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:12:27.311Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:13:25.778Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:18:45.463Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:26:23.794Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:31:14.011Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:35:13.929Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:35:21.195Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:35:27.477Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:35:27.490Z [GET /inventory] PrismaClientInitializationError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-28T17:35:27.508Z [GET /staff] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-28T17:35:27.530Z [GET /appointments] PrismaClientInitializationError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-28T17:35:27.546Z [GET /customers] PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:34
+
+  12  * Always resolve garageId from the DB — never trust a stale JWT.
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:27:22
+2026-07-28T17:35:27.551Z [GET /vehicles] PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:34
+
+  12  * JWT tokens can be stale (issued before garage was linked).
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:121:22
+2026-07-28T17:35:29.633Z [GET /users/garage-contacts] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:37
+
+  14 try {
+  15   const { garageId } = req.user;
+  16 
+→ 17   const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:19
+2026-07-28T17:35:41.170Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:35:55.326Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:40:16.993Z [POST /auth/register] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:20:40
+
+  17 
+  18 const finalEmail = email ? email.trim() : `user_${phone}@temp.com`;
+  19 
+→ 20 const existing = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:20:22
+2026-07-28T17:43:57.949Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:53:25.148Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:36
+
+  189 }
+  190 // ──────────────────────────────────────────────────────────────────────────
+  191 
+→ 192 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:192:18
+2026-07-28T17:56:14.396Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:56:14.403Z [GET /inventory] PrismaClientInitializationError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-28T17:56:14.423Z [GET /staff] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-28T17:56:14.435Z [GET /appointments] PrismaClientInitializationError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-28T17:56:14.443Z [GET /vehicles] PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:34
+
+  12  * JWT tokens can be stale (issued before garage was linked).
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:121:22
+2026-07-28T17:56:14.453Z [GET /customers] PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:34
+
+  12  * Always resolve garageId from the DB — never trust a stale JWT.
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:27:22
+2026-07-28T17:56:19.503Z [GET /material-requests] PrismaClientInitializationError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-28T17:56:19.514Z [GET /super-admin/users] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-28T17:56:19.520Z [GET /super-admin/payment-requests] PrismaClientInitializationError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-28T17:56:19.526Z [GET /super-admin/clients] PrismaClientInitializationError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-28T17:56:19.535Z [GET /super-admin/platform-stats] PrismaClientInitializationError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-28T17:56:19.541Z [GET /settings] PrismaClientInitializationError: 
+Invalid `prisma.platformSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:50
+
+  20 // GET /api/settings
+  21 router.get('/', async (req, res) => {
+  22   try {
+→ 23     let settings = await prisma.platformSettings.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:20
+2026-07-28T17:56:24.578Z [GET /super-admin/users] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-28T17:56:24.584Z [GET /super-admin/payment-requests] PrismaClientInitializationError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-28T17:56:24.586Z [GET /super-admin/clients] PrismaClientInitializationError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-28T17:56:24.597Z [GET /users/garage-contacts] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:37
+
+  14 try {
+  15   const { garageId } = req.user;
+  16 
+→ 17   const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:19
+2026-07-28T17:56:24.602Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:56:24.605Z [GET /super-admin/platform-stats] PrismaClientInitializationError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-28T17:56:29.630Z [GET /super-admin/users] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-28T17:56:29.635Z [GET /super-admin/payment-requests] PrismaClientInitializationError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-28T17:56:29.640Z [GET /super-admin/clients] PrismaClientInitializationError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-28T17:56:29.652Z [GET /super-admin/platform-stats] PrismaClientInitializationError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-28T17:56:34.678Z [GET /super-admin/users] PrismaClientInitializationError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-28T17:56:34.684Z [GET /super-admin/payment-requests] PrismaClientInitializationError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-28T17:56:34.689Z [GET /super-admin/clients] PrismaClientInitializationError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-28T17:56:34.699Z [GET /super-admin/platform-stats] PrismaClientInitializationError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-28T17:56:44.443Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:56:55.735Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:57:14.448Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:57:25.767Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:57:44.446Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:58:58.780Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T17:59:58.107Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-28T18:00:58.770Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T04:20:51.244Z [GET /appointments] PrismaClientValidationError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany({
+          where: {
+        +   garageId: {
+        +     equals: String | StringFieldRefInput,
+        +     in: String[] | ListStringFieldRefInput,
+        +     notIn: String[] | ListStringFieldRefInput,
+        +     lt: String | StringFieldRefInput,
+        +     lte: String | StringFieldRefInput,
+        +     gt: String | StringFieldRefInput,
+        +     gte: String | StringFieldRefInput,
+        +     contains: String | StringFieldRefInput,
+        +     startsWith: String | StringFieldRefInput,
+        +     endsWith: String | StringFieldRefInput,
+        +     mode: QueryMode,
+        +     not: String | NestedStringFilter
+        +   }
+          },
+          include: {
+            vehicle: true,
+            customer: true
+          }
+        })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T04:20:51.254Z [GET /material-requests] PrismaClientValidationError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany({
+       where: {
+     +   garageId: {
+     +     equals: String | StringFieldRefInput,
+     +     in: String[] | ListStringFieldRefInput,
+     +     notIn: String[] | ListStringFieldRefInput,
+     +     lt: String | StringFieldRefInput,
+     +     lte: String | StringFieldRefInput,
+     +     gt: String | StringFieldRefInput,
+     +     gte: String | StringFieldRefInput,
+     +     contains: String | StringFieldRefInput,
+     +     startsWith: String | StringFieldRefInput,
+     +     endsWith: String | StringFieldRefInput,
+     +     mode: QueryMode,
+     +     not: String | NestedStringFilter
+     +   }
+       },
+       include: {
+         part: true,
+         repair: {
+           include: {
+             vehicle: true
+           }
+         },
+         mechanic: true
+       },
+       orderBy: {
+         timestamp: "desc"
+       }
+     })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T04:20:56.072Z [GET /material-requests] PrismaClientValidationError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany({
+       where: {
+     +   garageId: {
+     +     equals: String | StringFieldRefInput,
+     +     in: String[] | ListStringFieldRefInput,
+     +     notIn: String[] | ListStringFieldRefInput,
+     +     lt: String | StringFieldRefInput,
+     +     lte: String | StringFieldRefInput,
+     +     gt: String | StringFieldRefInput,
+     +     gte: String | StringFieldRefInput,
+     +     contains: String | StringFieldRefInput,
+     +     startsWith: String | StringFieldRefInput,
+     +     endsWith: String | StringFieldRefInput,
+     +     mode: QueryMode,
+     +     not: String | NestedStringFilter
+     +   }
+       },
+       include: {
+         part: true,
+         repair: {
+           include: {
+             vehicle: true
+           }
+         },
+         mechanic: true
+       },
+       orderBy: {
+         timestamp: "desc"
+       }
+     })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T04:20:56.395Z [GET /appointments] PrismaClientValidationError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany({
+          where: {
+        +   garageId: {
+        +     equals: String | StringFieldRefInput,
+        +     in: String[] | ListStringFieldRefInput,
+        +     notIn: String[] | ListStringFieldRefInput,
+        +     lt: String | StringFieldRefInput,
+        +     lte: String | StringFieldRefInput,
+        +     gt: String | StringFieldRefInput,
+        +     gte: String | StringFieldRefInput,
+        +     contains: String | StringFieldRefInput,
+        +     startsWith: String | StringFieldRefInput,
+        +     endsWith: String | StringFieldRefInput,
+        +     mode: QueryMode,
+        +     not: String | NestedStringFilter
+        +   }
+          },
+          include: {
+            vehicle: true,
+            customer: true
+          }
+        })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T04:20:57.426Z [GET /inventory] PrismaClientValidationError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany({
+          where: {
+        +   garageId: {
+        +     equals: String | StringFieldRefInput,
+        +     in: String[] | ListStringFieldRefInput,
+        +     notIn: String[] | ListStringFieldRefInput,
+        +     lt: String | StringFieldRefInput,
+        +     lte: String | StringFieldRefInput,
+        +     gt: String | StringFieldRefInput,
+        +     gte: String | StringFieldRefInput,
+        +     contains: String | StringFieldRefInput,
+        +     startsWith: String | StringFieldRefInput,
+        +     endsWith: String | StringFieldRefInput,
+        +     mode: QueryMode,
+        +     not: String | NestedStringFilter
+        +   }
+          }
+        })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-29T04:48:00.972Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T05:25:24.937Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:40:03.441Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:40:11.384Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:40:26.956Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:40:42.195Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:40:56.952Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:41:50.940Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:42:55.180Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:43:50.928Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:54:26.852Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.invoice.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:43
+
+  120   orderBy: { entryDate: 'desc' }
+  121 });
+  122 
+→ 123 const invoices = await prisma.invoice.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:22
+2026-07-29T07:54:31.875Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:54:37.629Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:54:50.936Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:54:52.932Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:55:07.627Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:55:22.945Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:57:37.973Z [GET /repairs] PrismaClientInitializationError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T07:58:04.294Z [GET /appointments] PrismaClientKnownRequestError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T08:03:15.824Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.invoice.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:43
+
+  120   orderBy: { entryDate: 'desc' }
+  121 });
+  122 
+→ 123 const invoices = await prisma.invoice.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:22
+2026-07-29T08:03:20.844Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:04:18.036Z [GET /auth/garages] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:260:41
+
+  257 // GET /api/auth/garages - Public: list all active garages for registration
+  258 router.get('/garages', async (req, res) => {
+  259   try {
+→ 260     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:260:21
+2026-07-29T08:17:03.159Z [POST /auth/login] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:36
+
+  194 }
+  195 // ──────────────────────────────────────────────────────────────────────────
+  196 
+→ 197 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:18
+2026-07-29T08:20:42.538Z [POST /auth/register] PrismaClientKnownRequestError: 
+Invalid `tx.user.create()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:98:31
+
+  95 
+  96 const user = await prisma.$transaction(async (tx) => {
+  97   // 1. Create User
+→ 98   const u = await tx.user.create(
+Transaction API error: Transaction already closed: A query cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms, however 6877 ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:98:17
+    at async Proxy._transactionWithCallback (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:8000)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:96:18
+2026-07-29T08:20:57.500Z [GET /customers] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:34
+
+  12  * Always resolve garageId from the DB — never trust a stale JWT.
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:27:22
+2026-07-29T08:20:57.516Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:20:57.531Z [GET /inventory] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-29T08:20:57.545Z [GET /staff] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-29T08:20:57.555Z [GET /appointments] PrismaClientKnownRequestError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T08:21:02.538Z [GET /settings] PrismaClientKnownRequestError: 
+Invalid `prisma.platformSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:50
+
+  20 // GET /api/settings
+  21 router.get('/', async (req, res) => {
+  22   try {
+→ 23     let settings = await prisma.platformSettings.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:20
+2026-07-29T08:21:02.584Z [GET /material-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T08:21:02.633Z [GET /super-admin/users] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-29T08:21:02.645Z [GET /super-admin/clients] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-29T08:21:02.654Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:06.027Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:202:24
+
+  199 prisma.repair.count(),
+  200 prisma.customer.count(),
+  201 prisma.vehicle.count(),
+→ 202 prisma.inventory.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 4)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:07.643Z [GET /users/garage-contacts] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:37
+
+  14 try {
+  15   const { garageId } = req.user;
+  16 
+→ 17   const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:19
+2026-07-29T08:21:11.031Z [GET /super-admin/clients] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-29T08:21:11.040Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:11.052Z [GET /super-admin/users] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-29T08:21:12.603Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:17.210Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:21:19.194Z [GET /vehicles] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:34
+
+  12  * JWT tokens can be stale (issued before garage was linked).
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:121:22
+2026-07-29T08:21:19.413Z [GET /customers] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:34
+
+  12  * Always resolve garageId from the DB — never trust a stale JWT.
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:27:22
+2026-07-29T08:21:19.429Z [GET /material-requests] PrismaClientValidationError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany({
+       where: {
+     +   garageId: {
+     +     equals: String | StringFieldRefInput,
+     +     in: String[] | ListStringFieldRefInput,
+     +     notIn: String[] | ListStringFieldRefInput,
+     +     lt: String | StringFieldRefInput,
+     +     lte: String | StringFieldRefInput,
+     +     gt: String | StringFieldRefInput,
+     +     gte: String | StringFieldRefInput,
+     +     contains: String | StringFieldRefInput,
+     +     startsWith: String | StringFieldRefInput,
+     +     endsWith: String | StringFieldRefInput,
+     +     mode: QueryMode,
+     +     not: String | NestedStringFilter
+     +   }
+       },
+       include: {
+         part: true,
+         repair: {
+           include: {
+             vehicle: true
+           }
+         },
+         mechanic: true
+       },
+       orderBy: {
+         timestamp: "desc"
+       }
+     })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T08:21:19.490Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:21:21.049Z [GET /staff] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-29T08:21:21.060Z [GET /appointments] PrismaClientKnownRequestError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T08:21:21.074Z [GET /inventory] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-29T08:21:24.223Z [GET /settings] PrismaClientKnownRequestError: 
+Invalid `prisma.platformSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:50
+
+  20 // GET /api/settings
+  21 router.get('/', async (req, res) => {
+  22   try {
+→ 23     let settings = await prisma.platformSettings.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:20
+2026-07-29T08:21:24.514Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:26.109Z [GET /super-admin/clients] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-29T08:21:26.120Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:202:24
+
+  199 prisma.repair.count(),
+  200 prisma.customer.count(),
+  201 prisma.vehicle.count(),
+→ 202 prisma.inventory.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 4)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:31.115Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:31.127Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:21:31.139Z [GET /users/garage-contacts] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:37
+
+  14 try {
+  15   const { garageId } = req.user;
+  16 
+→ 17   const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\users.js:17:19
+2026-07-29T08:21:34.231Z [GET /super-admin/clients] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-29T08:21:34.530Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:199:21
+
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+  198   prisma.garage.count(),
+→ 199   prisma.repair.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 1)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:39.242Z [GET /super-admin/users] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-29T08:21:39.537Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:21:39.547Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:41.113Z [GET /vehicles] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:34
+
+  12  * JWT tokens can be stale (issued before garage was linked).
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\vehicles.js:121:22
+2026-07-29T08:21:42.046Z [GET /appointments] PrismaClientValidationError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany({
+          where: {
+        +   garageId: {
+        +     equals: String | StringFieldRefInput,
+        +     in: String[] | ListStringFieldRefInput,
+        +     notIn: String[] | ListStringFieldRefInput,
+        +     lt: String | StringFieldRefInput,
+        +     lte: String | StringFieldRefInput,
+        +     gt: String | StringFieldRefInput,
+        +     gte: String | StringFieldRefInput,
+        +     contains: String | StringFieldRefInput,
+        +     startsWith: String | StringFieldRefInput,
+        +     endsWith: String | StringFieldRefInput,
+        +     mode: QueryMode,
+        +     not: String | NestedStringFilter
+        +   }
+          },
+          include: {
+            vehicle: true,
+            customer: true
+          }
+        })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T08:21:42.061Z [GET /staff] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-29T08:21:42.069Z [GET /inventory] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-29T08:21:42.077Z [GET /customers] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:34
+
+  12  * Always resolve garageId from the DB — never trust a stale JWT.
+  13  */
+  14 async function resolveGarageId(userId) {
+→ 15   const user = await prisma.user.findUnique(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async resolveGarageId (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:15:16)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\customers.js:27:22
+2026-07-29T08:21:44.559Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:48.447Z [GET /material-requests] PrismaClientValidationError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany({
+       where: {
+     +   garageId: {
+     +     equals: String | StringFieldRefInput,
+     +     in: String[] | ListStringFieldRefInput,
+     +     notIn: String[] | ListStringFieldRefInput,
+     +     lt: String | StringFieldRefInput,
+     +     lte: String | StringFieldRefInput,
+     +     gt: String | StringFieldRefInput,
+     +     gte: String | StringFieldRefInput,
+     +     contains: String | StringFieldRefInput,
+     +     startsWith: String | StringFieldRefInput,
+     +     endsWith: String | StringFieldRefInput,
+     +     mode: QueryMode,
+     +     not: String | NestedStringFilter
+     +   }
+       },
+       include: {
+         part: true,
+         repair: {
+           include: {
+             vehicle: true
+           }
+         },
+         mechanic: true
+       },
+       orderBy: {
+         timestamp: "desc"
+       }
+     })
+
+Argument `garageId` must not be null.
+    at wn (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T08:21:49.264Z [GET /super-admin/users] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-29T08:21:49.563Z [GET /super-admin/clients] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:41
+
+  156 // GET /api/super-admin/clients - All unique garages
+  157 router.get('/clients', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  158   try {
+→ 159     const garages = await prisma.garage.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:159:21
+2026-07-29T08:21:49.576Z [GET /super-admin/payment-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:50
+
+   8 // GET /api/super-admin/payment-requests - All pending payment requests
+   9 router.get('/payment-requests', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  10   try {
+→ 11     const requests = await prisma.paymentRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:11:22
+2026-07-29T08:21:51.146Z [GET /settings] PrismaClientKnownRequestError: 
+Invalid `prisma.platformSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:50
+
+  20 // GET /api/settings
+  21 router.get('/', async (req, res) => {
+  22   try {
+→ 23     let settings = await prisma.platformSettings.findUnique(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:20
+2026-07-29T08:21:54.576Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.customer.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:200:23
+
+  197 ] = await Promise.all([
+  198   prisma.garage.count(),
+  199   prisma.repair.count(),
+→ 200   prisma.customer.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 2)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:58.481Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:208:29
+
+  205   where: { role: 'admin' },
+  206   select: { id: true, status: true, expiryDate: true, createdAt: true }
+  207 }),
+→ 208 prisma.paymentRequest.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 7)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:21:58.517Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:22:01.178Z [POST /auth/login] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:36
+
+  194 }
+  195 // ──────────────────────────────────────────────────────────────────────────
+  196 
+→ 197 const user = await prisma.user.findFirst(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:18
+2026-07-29T08:22:02.724Z [GET /super-admin/users] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:37
+
+  79 // GET /api/super-admin/users - All admin users
+  80 router.get('/users', authenticate, requireRole('superadmin', 'coder'), async (req, res) => {
+  81   try {
+→ 82     const users = await prisma.user.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:82:19
+2026-07-29T08:22:06.186Z [GET /super-admin/platform-stats] PrismaClientKnownRequestError: 
+Invalid `prisma.garage.count()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:198:21
+
+  195   adminUsers,
+  196   allPaymentRequests
+  197 ] = await Promise.all([
+→ 198   prisma.garage.count(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async Promise.all (index 0)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\superAdmin.js:197:9
+2026-07-29T08:22:36.549Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.invoice.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:43
+
+  120   orderBy: { entryDate: 'desc' }
+  121 });
+  122 
+→ 123 const invoices = await prisma.invoice.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:123:22
+2026-07-29T08:22:41.574Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:25:12.138Z [GET /inventory] PrismaClientKnownRequestError: 
+Invalid `prisma.inventory.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:42
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const items = await prisma.inventory.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\inventory.js:9:19
+2026-07-29T08:25:12.149Z [GET /staff] PrismaClientKnownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:37
+
+  20 // GET /api/staff - Get all staff for the garage
+  21 router.get('/', authenticate, async (req, res) => {
+  22   try {
+→ 23     const users = await prisma.user.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\staff.js:23:19
+2026-07-29T08:25:12.165Z [GET /repairs] PrismaClientKnownRequestError: 
+Invalid `prisma.repair.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:41
+
+  109   whereClause.status = { in: ['completed', 'delivered'] };
+  110 }
+  111 
+→ 112 const repairs = await prisma.repair.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\repairs.js:112:21
+2026-07-29T08:25:12.184Z [GET /appointments] PrismaClientKnownRequestError: 
+Invalid `prisma.appointment.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:44
+
+  6 
+  7 router.get('/', authenticate, async (req, res) => {
+  8   try {
+→ 9     const appts = await prisma.appointment.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\appointments.js:9:19
+2026-07-29T08:25:17.211Z [GET /trackers/active] PrismaClientKnownRequestError: 
+Invalid `prisma.tracker.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\trackers.js:28:43
+
+  25   return res.status(403).json({ error: 'Access denied: Unknown role' });
+  26 }
+  27 
+→ 28 const trackers = await prisma.tracker.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\trackers.js:28:22
+2026-07-29T08:25:17.217Z [GET /material-requests] PrismaClientKnownRequestError: 
+Invalid `prisma.materialRequest.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:51
+
+  14   whereClause.mechanicId = req.user.id;
+  15 }
+  16 
+→ 17 const requests = await prisma.materialRequest.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\materialRequests.js:17:22
+2026-07-29T08:25:17.223Z [GET /settings] PrismaClientKnownRequestError: 
+Invalid `prisma.platformSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:50
+
+  20 // GET /api/settings
+  21 router.get('/', async (req, res) => {
+  22   try {
+→ 23     let settings = await prisma.platformSettings.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:23:20
+2026-07-29T08:25:17.228Z [GET /invoices] PrismaClientKnownRequestError: 
+Invalid `prisma.invoice.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\invoices.js:47:39
+
+  44     orderBy: { date: 'desc' }
+  45   });
+  46 } else {
+→ 47   invoices = await prisma.invoice.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\invoices.js:47:18
+2026-07-29T08:25:22.244Z [GET /settings/billing] PrismaClientKnownRequestError: 
+Invalid `prisma.garageBillingSettings.findUnique()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:105:55
+
+  102 const garageId = req.user.garageId;
+  103 if (!garageId) return res.status(400).json({ error: 'No garage associated with account' });
+  104 
+→ 105 let settings = await prisma.garageBillingSettings.findUnique(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\settings.js:105:20
+2026-07-29T08:25:22.263Z [GET /bonuses] PrismaClientKnownRequestError: 
+Invalid `prisma.bonus.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\bonuses.js:33:36
+
+  30     orderBy: { date: 'desc' }
+  31   });
+  32 } else {
+→ 33   bonuses = await prisma.bonus.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\bonuses.js:33:17
+2026-07-29T08:25:22.274Z [GET /payment-accounts] PrismaClientKnownRequestError: 
+Invalid `prisma.paymentAccount.findMany()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\paymentAccounts.js:26:50
+
+  23   return res.status(400).json({ error: 'No garage associated with this account' });
+  24 }
+  25 
+→ 26 const accounts = await prisma.paymentAccount.findMany(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\paymentAccounts.js:26:22
+2026-07-29T08:32:12.958Z [POST /auth/login] PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:36
+
+  194 }
+  195 // ──────────────────────────────────────────────────────────────────────────
+  196 
+→ 197 const user = await prisma.user.findFirst(
+Can't reach database server at `aws-0-eu-west-1.pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-eu-west-1.pooler.supabase.com:6543`.
+    at $n.handleRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\hp\OneDrive\Desktop\GARAGE\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\hp\OneDrive\Desktop\GARAGE\backend\routes\auth.js:197:18

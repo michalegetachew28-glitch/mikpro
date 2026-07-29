@@ -143,6 +143,11 @@ router.post('/register', async (req, res) => {
     res.status(201).json({ user: userWithoutPassword, token });
 
   } catch (err) {
+    // Prisma unique constraint violation (e.g. duplicate email or phone)
+    if (err.code === 'P2002') {
+      const field = err.meta?.target?.join(', ') || 'email or phone';
+      return res.status(409).json({ error: `A user with this ${field} already exists.` });
+    }
     handleRouteError(err, 'POST /auth/register', res);
   }
 });

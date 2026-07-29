@@ -50,14 +50,12 @@ function handleRouteError(err, label, res) {
 
   if (isDbOrNetworkError(err)) {
     return res.status(503).json({
-      success: false,
-      message: 'Network connection is unstable. Please try again. ERROR: ' + err.message,
+      error: 'Network connection is unstable. Please try again.',
     });
   }
 
   return res.status(500).json({
-    success: false,
-    message: 'Something went wrong. Please try again. ERROR: ' + err.message,
+    error: 'Something went wrong. Please try again.',
   });
 }
 
@@ -69,14 +67,12 @@ function globalErrorHandler(err, req, res, next) { // eslint-disable-line no-unu
 
   if (isDbOrNetworkError(err)) {
     return res.status(503).json({
-      success: false,
-      message: 'Network connection is unstable. Please try again.',
+      error: 'Network connection is unstable. Please try again.',
     });
   }
 
   return res.status(500).json({
-    success: false,
-    message: 'Something went wrong. Please try again.',
+    error: 'Something went wrong. Please try again.',
   });
 }
 

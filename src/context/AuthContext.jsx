@@ -407,13 +407,18 @@ export const AuthProvider = ({ children }) => {
           if (err.message && (err.message.includes('suspended') || err.message.includes('Suspended'))) {
             return { success: false, message: 'Your account has been suspended. Please contact your administrator.' };
           }
-          // Backend is completely unreachable (e.g. network down)
-          if (err.message === 'Failed to fetch') {
+          // Backend is completely unreachable (e.g. network down or timeout)
+          if (err.message === 'Failed to fetch' || err.name === 'AbortError') {
             // Only fall back for the coder (devroot) account which is not in the DB
             if (identifier === '987360873' || identifier === '251987360873' || identifier === 'coder@garage.com') {
               return login(identifier, password);
             }
-            return { success: false, message: 'Cannot connect to the server. Please check your internet connection and try again.' };
+            return {
+              success: false,
+              message: err.name === 'AbortError'
+                ? 'Server connection timed out (30s). Please check your connection or database status and try again.'
+                : 'Cannot connect to the server. Please check your internet connection and try again.'
+            };
           }
           return { success: false, message: err.message || 'Login failed. Please try again.' };
         }

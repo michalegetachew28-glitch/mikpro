@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { Wrench, Globe, MessageSquare, ChevronRight, ChevronLeft, Search, MapPin, Phone, CheckCircle2, Building2 } from 'lucide-react';
+import {
+  Wrench, Globe, MessageSquare, ChevronRight, ChevronLeft,
+  Search, MapPin, Phone, CheckCircle2, Building2,
+} from 'lucide-react';
 import PhoneInput from './PhoneInput';
 import { api } from '../services/api';
 import './Login.css';
@@ -13,7 +16,7 @@ const SIGNUP_STEP = { ROLE: 0, GARAGE: 1, SERVICES: 2, FORM: 3 };
 const Login = () => {
   const { loginAsync, registerAsync, getAccounts, resetPassword, requestPasswordReset, verifyResetOtp } = useAuth();
   const { t, language, setLanguage } = useAppContext();
-  const [tab, setTab] = useState('login'); // 'login' | 'signup'
+  const [tab, setTab] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +56,7 @@ const Login = () => {
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPhoneValid, setSignupPhoneValid] = useState(true);
 
-  // Persistence
+  // ── Effects ──────────────────────────────────────────────
   useEffect(() => {
     const savedId = localStorage.getItem('garage_remembered_id');
     const savedMethod = localStorage.getItem('garage_remembered_method') || 'email';
@@ -73,7 +76,6 @@ const Login = () => {
     }
   }, [resendCooldown]);
 
-  // Load garages whenever user switches to garage selection step
   useEffect(() => {
     if (signupStep === SIGNUP_STEP.GARAGE && signupRole !== 'admin') {
       setGaragesLoading(true);
@@ -90,16 +92,15 @@ const Login = () => {
     (g.address || '').toLowerCase().includes(garageSearch.toLowerCase())
   );
 
-  // ───────────────── LOGIN ─────────────────
+  // ── Handlers ─────────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     const finalIdentifier = loginEmail || loginPhone;
-    if (!finalIdentifier) { setError(t("Please provide your email or phone number.")); setLoading(false); return; }
-    if (!password) { setError(t("Password is required.")); setLoading(false); return; }
-    if (loginPhone && !isPhoneValid) { setError(t("Please enter a valid Ethiopian phone number (e.g. 09... or 07...)")); setLoading(false); return; }
-
+    if (!finalIdentifier) { setError(t('Please provide your email or phone number.')); setLoading(false); return; }
+    if (!password) { setError(t('Password is required.')); setLoading(false); return; }
+    if (loginPhone && !isPhoneValid) { setError(t('Please enter a valid Ethiopian phone number (e.g. 09... or 07...)')); setLoading(false); return; }
     try {
       const result = await loginAsync(finalIdentifier, password);
       if (!result.success) {
@@ -126,17 +127,12 @@ const Login = () => {
     } finally { setLoading(false); }
   };
 
-  // ───────────────── SIGNUP ─────────────────
   const handleSignupNext = () => {
     setError('');
     if (signupStep === SIGNUP_STEP.ROLE) {
-      if (signupRole === 'admin') {
-        setSignupStep(SIGNUP_STEP.FORM); // admin skips garage selection
-      } else {
-        setSignupStep(SIGNUP_STEP.GARAGE);
-      }
+      setSignupStep(signupRole === 'admin' ? SIGNUP_STEP.FORM : SIGNUP_STEP.GARAGE);
     } else if (signupStep === SIGNUP_STEP.GARAGE) {
-      if (!selectedGarageId) { setError(t("Please select a garage to continue.")); return; }
+      if (!selectedGarageId) { setError(t('Please select a garage to continue.')); return; }
       setSignupStep(SIGNUP_STEP.SERVICES);
     } else if (signupStep === SIGNUP_STEP.SERVICES) {
       setSignupStep(SIGNUP_STEP.FORM);
@@ -160,8 +156,7 @@ const Login = () => {
     if (!signupPhoneValid) { setError('Please enter a valid phone number.'); return; }
     if (password.length < 6) { setError(t('passwordMinChar')); return; }
     if (password !== confirmPassword) { setError(t('passwordsDoNotMatch')); return; }
-    if (signupRole !== 'admin' && !selectedGarageId) { setError(t("Please select a garage.")); return; }
-
+    if (signupRole !== 'admin' && !selectedGarageId) { setError(t('Please select a garage.')); return; }
     setLoading(true);
     try {
       const result = await registerAsync(
@@ -183,7 +178,7 @@ const Login = () => {
     const result = requestPasswordReset(identifier);
     if (result.success) {
       setVerificationCode(result.code);
-      setError(`Verification code sent! Expires in 5m.`);
+      setError('Verification code sent! Expires in 5m.');
       setResendCooldown(60);
       setShowSmsToast(true);
       setTimeout(() => setShowSmsToast(false), 8000);
@@ -202,211 +197,257 @@ const Login = () => {
     } else { setError(result.message); }
   };
 
-  const toggleLanguage = () => setLanguage(t("am"));
-  const resetSignup = () => { setSignupStep(SIGNUP_STEP.ROLE); setSelectedGarageId(''); setGarageSearch(''); setSignupRole('customer'); setError(''); };
+  const toggleLanguage = () => setLanguage(t('am'));
+  const resetSignup = () => {
+    setSignupStep(SIGNUP_STEP.ROLE);
+    setSelectedGarageId('');
+    setGarageSearch('');
+    setSignupRole('customer');
+    setError('');
+  };
 
-  // ────────────────────────────────────
-  // Signup step indicators
-  const stepLabels = signupRole === 'admin'
-    ? ['Role', 'Account']
-    : ['Role', 'Garage', 'Services', 'Account'];
-  const stepCount = signupRole === 'admin' ? 2 : 4;
+  // Step labels for progress bar
+  const stepLabels = signupRole === 'admin' ? ['Role', 'Account'] : ['Role', 'Garage', 'Services', 'Account'];
   const currentStepDisplay = signupRole === 'admin'
     ? (signupStep === SIGNUP_STEP.ROLE ? 1 : 2)
     : signupStep + 1;
 
+  const isWide = tab === 'signup' && signupStep !== SIGNUP_STEP.ROLE;
 
+  // ── Render ────────────────────────────────────────────────
   return (
-    <div className="auth-page">
-      <div className={`auth-card ${tab === 'signup' && signupStep !== SIGNUP_STEP.ROLE ? 'auth-card--wide' : ''}`}>
-        {/* Language Toggle */}
-        <div className="auth-lang-toggle">
-          <button className="language-toggle" onClick={toggleLanguage}>
-            <Globe size={18} />
-            <span>{t(t("amharic"))}</span>
+    <div className="lp-root">
+      <div className={`lp-card${isWide ? ' lp-card--wide' : ''}`}>
+
+        {/* ── Header: Logo + Lang ── */}
+        <div className="lp-header">
+          <div className="lp-logo">
+            <div className="lp-logo-icon"><Wrench size={22} /></div>
+            <span className="lp-logo-text">MechPro</span>
+          </div>
+          <button className="lp-lang-btn" onClick={toggleLanguage}>
+            <Globe size={15} />
+            <span>{t(t('amharic'))}</span>
           </button>
         </div>
 
-        {/* Logo */}
-        <div className="auth-logo">
-          <div className="auth-logo-icon"><Wrench size={26} /></div>
-          <h1>MechPro</h1>
-        </div>
-
-        {/* Tabs */}
-        <div className="auth-tabs">
+        {/* ── Tab switcher ── */}
+        <div className="lp-tabs">
           <button
-            className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
+            className={`lp-tab${tab === 'login' ? ' active' : ''}`}
             onClick={() => { setTab('login'); setError(''); resetSignup(); }}
           >
             {t('signIn')}
           </button>
           <button
-            className={`auth-tab ${tab === 'signup' ? 'active' : ''}`}
+            className={`lp-tab${tab === 'signup' || tab === 'forgot' ? ' active' : ''}`}
             onClick={() => { setTab('signup'); setError(''); resetSignup(); }}
           >
             {t('createAccount')}
           </button>
         </div>
 
-        {/* ══════════════ LOGIN ══════════════ */}
-        {tab === 'login' ? (
+        {/* ══════════════════ LOGIN ══════════════════ */}
+        {tab === 'login' && (
           <>
-            <button
-              type="button"
-              onClick={handlePlatformOwnerLogin}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                width: '100%', padding: '13px 20px', marginBottom: '18px',
-                background: 'linear-gradient(135deg, #6366f1, #818cf8)',
-                border: 'none', borderRadius: '12px', color: '#fff',
-                fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer',
-                letterSpacing: '0.01em', boxShadow: '0 4px 20px rgba(99,102,241,0.45)',
-                transition: 'transform 0.15s, box-shadow 0.15s', fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(99,102,241,0.55)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(99,102,241,0.45)'; }}
-            >
-              <span style={{ fontSize: '1.1rem' }}>⚡</span>
+            {/* Platform owner quick-access */}
+            <button className="lp-platform-btn" onClick={handlePlatformOwnerLogin} disabled={loading}>
+              <span className="lp-lightning">⚡</span>
               Enter Platform Owner Portal
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, opacity: 0.45 }}>
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>or sign in as a garage user</span>
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+
+            <div className="lp-or">
+              <div className="lp-or-line" />
+              <span className="lp-or-text">or sign in as a garage user</span>
+              <div className="lp-or-line" />
             </div>
-            <p className="auth-subtitle">{t('loginSubtitle')}</p>
-            <form className="auth-form" onSubmit={handleLogin}>
-              <div className="auth-form-group">
+
+            <p className="lp-subtitle">{t('loginSubtitle')}</p>
+
+            <form className="lp-form" onSubmit={handleLogin}>
+              <div className="lp-field">
                 <label>{t('email')}</label>
                 <input
-                  className="auth-input"
+                  className="lp-input"
                   type="email"
+                  placeholder="you@example.com"
                   value={loginEmail}
                   onChange={e => { setLoginEmail(e.target.value); if (e.target.value) setLoginPhone(''); }}
-                  placeholder="you@example.com"
                 />
               </div>
-              <div className="auth-divider"><span>{t("OR")}</span></div>
-              <div className="auth-form-group">
+
+              <div className="lp-field-divider"><span>{t('OR')}</span></div>
+
+              <div className="lp-field">
                 <label>{t('phone')}</label>
-                <PhoneInput
-                  value={loginPhone}
-                  onChange={(val, valid) => { setLoginPhone(val); if (val) setLoginEmail(''); setIsPhoneValid(valid); }}
+                <div className="lp-phone-wrap">
+                  <PhoneInput
+                    value={loginPhone}
+                    onChange={(val, valid) => { setLoginPhone(val); if (val) setLoginEmail(''); setIsPhoneValid(valid); }}
+                  />
+                </div>
+              </div>
+
+              <div className="lp-field">
+                <label>{t('password')}</label>
+                <input
+                  className="lp-input"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
                 />
               </div>
-              <div className="auth-form-group">
-                <label>{t('password')}</label>
-                <input className="auth-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required autoComplete="current-password" />
-              </div>
-              <div className="auth-options">
-                <label className="remember-me">
+
+              <div className="lp-options">
+                <label className="lp-remember">
                   <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
-                  <span>{t("Remember me")}</span>
+                  <span>{t('Remember me')}</span>
                 </label>
-                <button type="button" className="btn-text-small" style={{ fontSize: '0.8rem', opacity: 0.8 }} onClick={() => { setTab('forgot'); setError(''); }}>
-                  {t("Forgot Password?")}
+                <button
+                  type="button"
+                  className="lp-forgot-btn"
+                  onClick={() => { setTab('forgot'); setError(''); }}
+                >
+                  {t('Forgot Password?')}
                 </button>
               </div>
-              {error && <div className="auth-error">{error}</div>}
-              <button type="submit" className="auth-submit-btn" disabled={loading}>
-                {loading ? <span className="loader-spinner xsmall"></span> : (t('signIn') + ' →')}
+
+              {error && <div className="lp-alert">{error}</div>}
+
+              <button type="submit" className="lp-submit" disabled={loading}>
+                {loading ? <span className="loader-spinner xsmall" /> : `${t('signIn')} →`}
               </button>
             </form>
           </>
+        )}
 
-        ) : tab === 'forgot' ? (
-          /* ══════════════ FORGOT PASSWORD ══════════════ */
+        {/* ══════════════════ FORGOT PASSWORD ══════════════════ */}
+        {tab === 'forgot' && (
           <>
-            <p className="auth-subtitle">{t("Securely reset your password using your recovery contact")}</p>
-            <form className="auth-form" onSubmit={handleReset}>
-              <div className="auth-form-group">
+            <p className="lp-subtitle">{t('Securely reset your password using your recovery contact')}</p>
+            <form className="lp-form" onSubmit={handleReset}>
+              {/* Email + Send code */}
+              <div className="lp-field">
                 <label>{t('email')}</label>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <input className="auth-input" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => { setLoginEmail(e.target.value); if (e.target.value) setLoginPhone(''); }} disabled={verificationCode && !error.includes('expired')} />
+                <div className="lp-code-row">
+                  <input
+                    className="lp-input"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={loginEmail}
+                    onChange={e => { setLoginEmail(e.target.value); if (e.target.value) setLoginPhone(''); }}
+                    disabled={verificationCode && !error.includes('expired')}
+                  />
                   {(!verificationCode || error.includes('expired')) && (
                     <button type="button" className="btn-primary-small" disabled={resendCooldown > 0} onClick={handleSendOtp}>
-                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : t("Send Code")}
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : t('Send Code')}
                     </button>
                   )}
                 </div>
               </div>
-              <div className="auth-divider"><span>{t("OR")}</span></div>
-              <div className="auth-form-group">
+
+              <div className="lp-field-divider"><span>{t('OR')}</span></div>
+
+              {/* Phone + Send code */}
+              <div className="lp-field">
                 <label>{t('phone')}</label>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <PhoneInput value={loginPhone} onChange={(val, valid) => { setLoginPhone(val); if (val) setLoginEmail(''); setIsPhoneValid(valid); }} />
+                <div className="lp-code-row">
+                  <div className="lp-phone-wrap" style={{ flex: 1 }}>
+                    <PhoneInput
+                      value={loginPhone}
+                      onChange={(val, valid) => { setLoginPhone(val); if (val) setLoginEmail(''); setIsPhoneValid(valid); }}
+                    />
                   </div>
                   {(!verificationCode || error.includes('expired')) && (
-                    <button type="button" className="btn-primary-small" style={{ height: '52px', marginTop: '0' }} disabled={resendCooldown > 0 || !isPhoneValid} onClick={handleSendOtp}>
-                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : t("Send Code")}
+                    <button type="button" className="btn-primary-small" disabled={resendCooldown > 0 || !isPhoneValid} onClick={handleSendOtp}>
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : t('Send Code')}
                     </button>
                   )}
                 </div>
               </div>
-              {(verificationCode && !error.includes('Verified')) && (
-                <div className="auth-form-group">
-                  <label>{t("Verification Code")}</label>
-                  <input className="auth-input" type="text" placeholder="______" maxLength="6" required value={userCodeInput} onChange={e => {
-                    const val = e.target.value; setUserCodeInput(val);
-                    if (val.length === 6) {
-                      const finalIdentifier = loginEmail || loginPhone;
-                      const res = verifyResetOtp(finalIdentifier, val);
-                      if (res.success) { setError('Verified! Create your new password.'); setPassword(''); } else setError(res.message);
-                    }
-                  }} />
+
+              {/* OTP input */}
+              {verificationCode && !error.includes('Verified') && (
+                <div className="lp-field">
+                  <label>{t('Verification Code')}</label>
+                  <input
+                    className="lp-input"
+                    type="text"
+                    placeholder="______"
+                    maxLength="6"
+                    required
+                    value={userCodeInput}
+                    onChange={e => {
+                      const val = e.target.value; setUserCodeInput(val);
+                      if (val.length === 6) {
+                        const finalIdentifier = loginEmail || loginPhone;
+                        const res = verifyResetOtp(finalIdentifier, val);
+                        if (res.success) { setError('Verified! Create your new password.'); setPassword(''); }
+                        else setError(res.message);
+                      }
+                    }}
+                  />
                 </div>
               )}
+
+              {/* New password fields */}
               {error.includes('Verified') && (
                 <>
-                  <div className="auth-form-group">
-                    <label>{t("New Password")}</label>
-                    <input className="auth-input" type="password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
+                  <div className="lp-field">
+                    <label>{t('New Password')}</label>
+                    <input className="lp-input" type="password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
                   </div>
-                  <div className="auth-form-group">
-                    <label>{t("Confirm New Password")}</label>
-                    <input className="auth-input" type="password" placeholder="••••••••" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                  <div className="lp-field">
+                    <label>{t('Confirm New Password')}</label>
+                    <input className="lp-input" type="password" placeholder="••••••••" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
                   </div>
                 </>
               )}
+
               {error && !error.includes('Enter code') && (
-                <div className={`auth-error ${error.includes('Verified') || error.includes('sent') ? 'success' : ''}`}>
-                  {error.includes('sent') ? <div style={{display:'flex',flexDirection:'column',gap:5}}><strong>{t("CODE SENT")}</strong><span>{error}</span></div> : error}
+                <div className={`lp-alert${error.includes('Verified') || error.includes('sent') ? ' success' : ''}`}>
+                  {error.includes('sent')
+                    ? <><strong>{t('CODE SENT')}</strong><br />{error}</>
+                    : error}
                 </div>
               )}
-              {error.includes('Verified') && <button type="submit" className="auth-submit-btn">{t("Save New Password")}</button>}
-              <button type="button" className="btn-text" style={{ width: '100%', marginTop: 10 }} onClick={() => { setTab('login'); setLoginEmail(''); setLoginPhone(''); setPassword(''); setError(''); }}>
+
+              {error.includes('Verified') && (
+                <button type="submit" className="lp-submit">{t('Save New Password')}</button>
+              )}
+
+              <button
+                type="button"
+                className="lp-cancel-btn"
+                onClick={() => { setTab('login'); setLoginEmail(''); setLoginPhone(''); setPassword(''); setError(''); }}
+              >
                 {t('cancel')}
               </button>
             </form>
           </>
+        )}
 
-        ) : (
-          /* ══════════════ SIGNUP - MULTI STEP ══════════════ */
+        {/* ══════════════════ SIGNUP — MULTI STEP ══════════════════ */}
+        {tab === 'signup' && (
           <>
-            {/* Step indicators */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 20 }}>
+            {/* Progress step bar */}
+            <div className="lp-steps">
               {stepLabels.map((label, i) => {
                 const isActive = i === currentStepDisplay - 1;
-                const isDone = i < currentStepDisplay - 1;
+                const isDone   = i < currentStepDisplay - 1;
                 return (
                   <React.Fragment key={i}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.25s',
-                        background: isDone ? 'var(--success)' : isActive ? 'var(--primary)' : 'var(--bg-main)',
-                        color: (isDone || isActive) ? '#fff' : 'var(--text-secondary)',
-                        border: isActive ? '2px solid var(--primary)' : '2px solid var(--border)',
-                        boxShadow: isActive ? '0 0 0 4px rgba(99,102,241,0.18)' : 'none'
-                      }}>
+                    <div className="lp-step-item">
+                      <div className={`lp-step-bubble${isDone ? ' done' : ''}${isActive ? ' current' : ''}`}>
                         {isDone ? '✓' : i + 1}
                       </div>
-                      <span style={{ fontSize: '0.65rem', opacity: isActive ? 1 : 0.5, fontWeight: isActive ? 700 : 400 }}>{label}</span>
+                      <span className={`lp-step-label${isActive ? ' current' : ''}`}>{label}</span>
                     </div>
                     {i < stepLabels.length - 1 && (
-                      <div style={{ width: 24, height: 2, borderRadius: 2, marginBottom: 14, background: i < currentStepDisplay - 1 ? 'var(--success)' : 'var(--border)', transition: 'background 0.3s' }} />
+                      <div className={`lp-step-connector${i < currentStepDisplay - 1 ? ' done' : ''}`} />
                     )}
                   </React.Fragment>
                 );
@@ -415,52 +456,43 @@ const Login = () => {
 
             {/* ── STEP 0: Role ── */}
             {signupStep === SIGNUP_STEP.ROLE && (
-              <div>
-                <p className="auth-subtitle" style={{ textAlign: 'center' }}>{t('Who are you?')}</p>
-                <div style={{ display: 'flex', gap: 12, marginBottom: 24, marginTop: 8 }}>
+              <>
+                <p className="lp-subtitle">{t('Who are you?')}</p>
+                <div className="lp-roles">
                   {[
-                    { value: 'customer', label: t('customer') || 'Customer', icon: '👤', desc: 'Book services & track vehicles' },
-                    { value: 'admin', label: t('garageOwner') || 'Garage Owner', icon: '🏢', desc: 'Manage your own garage' },
+                    { value: 'customer', label: t('customer') || 'Customer',       icon: '👤', desc: 'Book services & track vehicles' },
+                    { value: 'admin',    label: t('garageOwner') || 'Garage Owner', icon: '🏢', desc: 'Manage your own garage' },
                   ].map(r => (
                     <button
                       key={r.value}
                       type="button"
+                      className={`lp-role-btn${signupRole === r.value ? ' active' : ''}`}
                       onClick={() => setSignupRole(r.value)}
-                      style={{
-                        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '18px 12px',
-                        borderRadius: 14, border: signupRole === r.value ? '2px solid var(--primary)' : '2px solid var(--border)',
-                        background: signupRole === r.value ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'var(--bg-main)',
-                        color: signupRole === r.value ? 'var(--primary)' : 'var(--text-secondary)',
-                        cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
-                        boxShadow: signupRole === r.value ? '0 0 0 4px rgba(99,102,241,0.12)' : 'none'
-                      }}
                     >
-                      <span style={{ fontSize: '1.8rem' }}>{r.icon}</span>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.label}</span>
-                      <span style={{ fontSize: '0.72rem', opacity: 0.65, textAlign: 'center' }}>{r.desc}</span>
+                      <span className="lp-role-icon">{r.icon}</span>
+                      <span className="lp-role-label">{r.label}</span>
+                      <span className="lp-role-desc">{r.desc}</span>
                     </button>
                   ))}
                 </div>
-                {error && <div className="auth-error">{error}</div>}
-                <button className="auth-submit-btn" onClick={handleSignupNext} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {error && <div className="lp-alert" style={{ marginBottom: 12 }}>{error}</div>}
+                <button className="lp-submit" onClick={handleSignupNext}>
                   {t('Continue')} <ChevronRight size={18} />
                 </button>
-              </div>
+              </>
             )}
 
             {/* ── STEP 1: Garage Selection ── */}
             {signupStep === SIGNUP_STEP.GARAGE && (
-              <div>
-                <p className="auth-subtitle" style={{ textAlign: 'center', marginBottom: 14 }}>
-                  {t('Select your garage')}
-                </p>
+              <>
+                <p className="lp-subtitle">{t('Select your garage')}</p>
 
                 {/* Search */}
-                <div style={{ position: 'relative', marginBottom: 16 }}>
-                  <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.45, pointerEvents: 'none' }} />
+                <div className="lp-search-wrap">
+                  <Search size={15} className="lp-search-icon" />
                   <input
-                    className="auth-input"
-                    style={{ paddingLeft: 38, margin: 0 }}
+                    className="lp-input"
+                    style={{ paddingLeft: 36 }}
                     type="text"
                     placeholder="Search garage by name or location..."
                     value={garageSearch}
@@ -468,88 +500,59 @@ const Login = () => {
                   />
                 </div>
 
-                {/* Loading */}
                 {garagesLoading && (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-secondary)' }}>
-                    <span className="loader-spinner xsmall" style={{ display: 'inline-block', marginBottom: 8 }}></span>
-                    <p style={{ margin: 0, fontSize: '0.85rem' }}>Loading garages...</p>
+                  <div className="lp-loading">
+                    <span className="loader-spinner xsmall" style={{ display: 'inline-block', marginBottom: 6 }} />
+                    <p style={{ margin: 0 }}>Loading garages…</p>
                   </div>
                 )}
 
-                {/* Error */}
                 {garagesError && !garagesLoading && (
-                  <div style={{ textAlign: 'center', padding: 20, background: 'rgba(239,68,68,0.08)', borderRadius: 12, border: '1px solid rgba(239,68,68,0.2)' }}>
-                    <p style={{ color: 'var(--danger)', margin: 0, fontSize: '0.85rem' }}>⚠ {garagesError}</p>
-                    <button className="btn-text" style={{ marginTop: 8, fontSize: '0.8rem' }} onClick={() => {
-                      setGaragesLoading(true); setGaragesError('');
-                      api.getActiveGarages().then(d => setGarages(Array.isArray(d) ? d : [])).catch(e => setGaragesError(e.message)).finally(() => setGaragesLoading(false));
-                    }}>Retry</button>
+                  <div className="lp-error-box">
+                    ⚠ {garagesError}
+                    <br />
+                    <button className="lp-cancel-btn" style={{ margin: '6px auto 0', display: 'inline-block', width: 'auto', padding: '4px 10px' }}
+                      onClick={() => {
+                        setGaragesLoading(true); setGaragesError('');
+                        api.getActiveGarages().then(d => setGarages(Array.isArray(d) ? d : [])).catch(e => setGaragesError(e.message)).finally(() => setGaragesLoading(false));
+                      }}>Retry</button>
                   </div>
                 )}
 
-                {/* Empty */}
                 {!garagesLoading && !garagesError && filteredGarages.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '28px 20px', opacity: 0.55 }}>
-                    <Building2 size={36} style={{ marginBottom: 8, opacity: 0.4 }} />
-                    <p style={{ margin: 0, fontSize: '0.85rem' }}>{garageSearch ? 'No garages match your search.' : 'No active garages available.'}</p>
+                  <div className="lp-empty">
+                    <Building2 size={34} style={{ marginBottom: 8, opacity: 0.35 }} />
+                    <p style={{ margin: 0 }}>{garageSearch ? 'No garages match your search.' : 'No active garages available.'}</p>
                   </div>
                 )}
 
-                {/* Garage Cards */}
-                {!garagesLoading && !garagesError && (
-                  <div style={{ display: 'grid', gap: 12, maxHeight: 340, overflowY: 'auto', paddingRight: 4 }}>
+                {!garagesLoading && !garagesError && filteredGarages.length > 0 && (
+                  <div className="lp-garage-list">
                     {filteredGarages.map(g => {
-                      const isSelected = selectedGarageId === g.id;
+                      const sel = selectedGarageId === g.id;
                       return (
                         <div
                           key={g.id}
+                          className={`lp-garage-card${sel ? ' selected' : ''}`}
                           onClick={() => setSelectedGarageId(g.id)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-                            borderRadius: 14, cursor: 'pointer', transition: 'all 0.2s',
-                            border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border)',
-                            background: isSelected ? 'var(--primary-subtle, rgba(99,102,241,0.08))' : 'var(--bg-main)',
-                            boxShadow: isSelected ? '0 0 0 4px rgba(99,102,241,0.1)' : 'none',
-                            transform: isSelected ? 'scale(1.01)' : 'scale(1)',
-                          }}
                         >
-                          {/* Logo or Initials */}
-                          {g.logoUrl ? (
-                            <img src={g.logoUrl} alt={g.name} style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover', flexShrink: 0, border: '2px solid var(--border)' }} />
-                          ) : (
-                            <div style={{
-                              width: 52, height: 52, borderRadius: 10, flexShrink: 0,
-                              background: isSelected ? 'var(--primary)' : 'var(--bg-card)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '1.3rem', fontWeight: 800, color: isSelected ? '#fff' : 'var(--text-secondary)',
-                              border: '2px solid var(--border)', transition: 'all 0.2s'
-                            }}>
-                              {g.name.charAt(0).toUpperCase()}
+                          <div className={`lp-garage-avatar${sel ? ' selected' : ''}`}>
+                            {g.logoUrl
+                              ? <img src={g.logoUrl} alt={g.name} />
+                              : g.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="lp-garage-info">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                              <span className="lp-garage-name">{g.name}</span>
+                              {sel && <CheckCircle2 size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
                             </div>
-                          )}
-
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                              <strong style={{ fontSize: '0.95rem', color: isSelected ? 'var(--primary)' : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {g.name}
-                              </strong>
-                              {isSelected && <CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-                            </div>
-                            {g.description && (
-                              <p style={{ margin: '3px 0', fontSize: '0.78rem', opacity: 0.65, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                                {g.description}
-                              </p>
-                            )}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', marginTop: 4 }}>
+                            {g.description && <p className="lp-garage-desc">{g.description}</p>}
+                            <div className="lp-garage-meta">
                               {g.address && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.73rem', opacity: 0.55 }}>
-                                  <MapPin size={11} /> {g.address}
-                                </span>
+                                <span className="lp-garage-meta-item"><MapPin size={10} />{g.address}</span>
                               )}
                               {g.phone && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.73rem', opacity: 0.55 }}>
-                                  <Phone size={11} /> {g.phone}
-                                </span>
+                                <span className="lp-garage-meta-item"><Phone size={10} />{g.phone}</span>
                               )}
                             </div>
                           </div>
@@ -559,152 +562,147 @@ const Login = () => {
                   </div>
                 )}
 
-                {error && <div className="auth-error" style={{ marginTop: 8 }}>{error}</div>}
+                {error && <div className="lp-alert" style={{ marginTop: 8 }}>{error}</div>}
 
-                <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                  <button type="button" className="btn-secondary" onClick={handleSignupBack} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '11px 16px' }}>
-                    <ChevronLeft size={16} /> {t('Back')}
+                <div className="lp-btn-row" style={{ marginTop: 14 }}>
+                  <button type="button" className="lp-back-btn" onClick={handleSignupBack}>
+                    <ChevronLeft size={16} />{t('Back')}
                   </button>
                   <button
                     type="button"
-                    className="auth-submit-btn"
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: selectedGarageId ? 1 : 0.55 }}
+                    className="lp-submit"
+                    style={{ opacity: selectedGarageId ? 1 : 0.55 }}
                     onClick={handleSignupNext}
                   >
                     {t('Continue')} <ChevronRight size={18} />
                   </button>
                 </div>
-              </div>
+              </>
             )}
 
             {/* ── STEP 2: Services Preview ── */}
             {signupStep === SIGNUP_STEP.SERVICES && selectedGarageObj && (
-              <div>
-                <p className="auth-subtitle" style={{ textAlign: 'center', marginBottom: 14 }}>
-                  {t("Services offered by")}: <strong style={{ color: 'var(--primary)' }}>{selectedGarageObj.name}</strong>
+              <>
+                <p className="lp-subtitle">
+                  {t('Services offered by')}: <strong style={{ color: 'var(--primary)' }}>{selectedGarageObj.name}</strong>
                 </p>
 
-                {/* Garage summary card */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: '2px solid var(--primary)', background: 'var(--primary-subtle, rgba(99,102,241,0.07))', marginBottom: 16 }}>
-                  {selectedGarageObj.logoUrl ? (
-                    <img src={selectedGarageObj.logoUrl} alt={selectedGarageObj.name} style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover', border: '2px solid var(--primary)' }} />
-                  ) : (
-                    <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 800, color: '#fff' }}>
-                      {selectedGarageObj.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                {/* Garage summary */}
+                <div className="lp-services-header">
+                  <div className={`lp-garage-avatar selected`} style={{ width: 46, height: 46 }}>
+                    {selectedGarageObj.logoUrl
+                      ? <img src={selectedGarageObj.logoUrl} alt={selectedGarageObj.name} />
+                      : selectedGarageObj.name.charAt(0).toUpperCase()}
+                  </div>
                   <div>
-                    <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>{selectedGarageObj.name}</strong>
-                    {selectedGarageObj.address && <p style={{ margin: '2px 0 0', fontSize: '0.78rem', opacity: 0.6, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} /> {selectedGarageObj.address}</p>}
-                  </div>
-                </div>
-
-                {/* Services */}
-                <div style={{ borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-main)', overflow: 'hidden' }}>
-                  <div style={{ padding: '10px 16px', background: 'var(--primary)', color: '#fff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    ⭐ {t('Our Services')}
-                  </div>
-                  <div style={{ padding: '14px 16px', maxHeight: 200, overflowY: 'auto' }}>
-                    {selectedGarageObj.services ? (
-                      <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: '0.85rem', lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--text-primary)' }}>
-                        {selectedGarageObj.services}
-                      </pre>
-                    ) : (
-                      <p style={{ margin: 0, opacity: 0.5, fontSize: '0.82rem', textAlign: 'center', padding: '12px 0' }}>
-                        {t('No service list provided by this garage.')}
+                    <strong style={{ color: 'var(--primary)', fontSize: '0.95rem' }}>{selectedGarageObj.name}</strong>
+                    {selectedGarageObj.address && (
+                      <p style={{ margin: '2px 0 0', fontSize: '0.75rem', opacity: 0.55, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={11} />{selectedGarageObj.address}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                  <button type="button" className="btn-secondary" onClick={handleSignupBack} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '11px 16px' }}>
-                    <ChevronLeft size={16} /> {t('Back')}
+                {/* Services */}
+                <div style={{ borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: 4 }}>
+                  <div className="lp-services-title">⭐ {t('Our Services')}</div>
+                  <div className="lp-services-body">
+                    {selectedGarageObj.services
+                      ? <pre className="lp-services-text">{selectedGarageObj.services}</pre>
+                      : <p style={{ margin: 0, opacity: 0.45, fontSize: '0.82rem', textAlign: 'center', padding: '8px 0' }}>{t('No service list provided by this garage.')}</p>
+                    }
+                  </div>
+                </div>
+
+                <div className="lp-btn-row" style={{ marginTop: 14 }}>
+                  <button type="button" className="lp-back-btn" onClick={handleSignupBack}>
+                    <ChevronLeft size={16} />{t('Back')}
                   </button>
-                  <button type="button" className="auth-submit-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={handleSignupNext}>
+                  <button type="button" className="lp-submit" onClick={handleSignupNext}>
                     {t('Continue')} <ChevronRight size={18} />
                   </button>
                 </div>
-              </div>
+              </>
             )}
 
             {/* ── STEP 3 (or 1 for admin): Account Form ── */}
             {signupStep === SIGNUP_STEP.FORM && (
-              <form className="auth-form" onSubmit={handleSignup}>
+              <form className="lp-form" onSubmit={handleSignup}>
                 {/* Selected garage badge */}
                 {signupRole !== 'admin' && selectedGarageObj && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--primary)', background: 'var(--primary-subtle, rgba(99,102,241,0.08))', marginBottom: 4 }}>
-                    <CheckCircle2 size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600 }}>
-                      {selectedGarageObj.name}
-                    </span>
-                    <button type="button" onClick={() => setSignupStep(SIGNUP_STEP.GARAGE)} style={{ marginLeft: 'auto', fontSize: '0.72rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', opacity: 0.7 }}>
-                      Change
-                    </button>
+                  <div className="lp-garage-badge">
+                    <CheckCircle2 size={15} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                    <span className="lp-garage-badge-name">{selectedGarageObj.name}</span>
+                    <button type="button" className="lp-garage-badge-change" onClick={() => setSignupStep(SIGNUP_STEP.GARAGE)}>Change</button>
                   </div>
                 )}
 
-                <div className="auth-form-group">
+                <div className="lp-field">
                   <label>{t('name')}</label>
-                  <input className="auth-input" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" required />
+                  <input className="lp-input" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" required />
                 </div>
 
                 {signupRole === 'admin' && (
-                  <div className="auth-form-group">
+                  <div className="lp-field">
                     <label>{t('garageName')}</label>
-                    <input className="auth-input" type="text" value={garageName} onChange={e => setGarageName(e.target.value)} placeholder="e.g. Addis Garage" required />
+                    <input className="lp-input" type="text" value={garageName} onChange={e => setGarageName(e.target.value)} placeholder="e.g. Addis Garage" required />
                   </div>
                 )}
 
-                <div className="auth-form-group">
-                  <label>{t('email')} ({t("Opt.")})</label>
-                  <input className="auth-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+                <div className="lp-field">
+                  <label>{t('email')} ({t('Opt.')})</label>
+                  <input className="lp-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
                 </div>
 
-                <div className="auth-form-group">
+                <div className="lp-field">
                   <label>{t('phone')} ({t('required')})</label>
-                  <PhoneInput
-                    value={signupPhone}
-                    onChange={(val, valid) => { setSignupPhone(val); setSignupPhoneValid(valid); }}
-                    required={true}
-                  />
+                  <div className="lp-phone-wrap">
+                    <PhoneInput
+                      value={signupPhone}
+                      onChange={(val, valid) => { setSignupPhone(val); setSignupPhoneValid(valid); }}
+                      required={true}
+                    />
+                  </div>
                 </div>
 
-                <div className="auth-form-group">
-                  <label>{t('address')} ({t("Opt.")})</label>
-                  <input className="auth-input" type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="e.g. Bole, Addis Ababa" />
+                <div className="lp-field">
+                  <label>{t('address')} ({t('Opt.')})</label>
+                  <input className="lp-input" type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="e.g. Bole, Addis Ababa" />
                 </div>
 
-                <div className="auth-form-group">
+                <div className="lp-field">
                   <label>{t('password')}</label>
-                  <input className="auth-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required autoComplete="new-password" />
+                  <input className="lp-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required autoComplete="new-password" />
                 </div>
 
-                <div className="auth-form-group">
+                <div className="lp-field">
                   <label>{t('confirmPassword')}</label>
-                  <input className="auth-input" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" required autoComplete="new-password" />
+                  <input className="lp-input" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" required autoComplete="new-password" />
                 </div>
 
-                {error && <div className="auth-error">{error}</div>}
+                {error && <div className="lp-alert">{error}</div>}
 
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button type="button" className="btn-secondary" onClick={handleSignupBack} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '11px 16px' }}>
-                    <ChevronLeft size={16} /> {t('Back')}
+                <div className="lp-btn-row">
+                  <button type="button" className="lp-back-btn" onClick={handleSignupBack}>
+                    <ChevronLeft size={16} />{t('Back')}
                   </button>
-                  <button type="submit" className="auth-submit-btn" style={{ flex: 1 }} disabled={loading}>
-                    {loading ? <span className="loader-spinner xsmall"></span> : (t('createAccount') + ' →')}
+                  <button type="submit" className="lp-submit" disabled={loading}>
+                    {loading ? <span className="loader-spinner xsmall" /> : `${t('createAccount')} →`}
                   </button>
                 </div>
               </form>
             )}
           </>
         )}
+
       </div>
 
+      {/* SMS Toast */}
       {showSmsToast && (
-        <div className="mock-sms-toast">
-          <div className="sms-icon"><MessageSquare size={20} /></div>
-          <div className="sms-content">
+        <div className="lp-sms-toast">
+          <div className="lp-sms-icon"><MessageSquare size={18} /></div>
+          <div className="lp-sms-content">
             <h4>MechPro Messages</h4>
             <p>Your verification code is: <strong>{verificationCode}</strong></p>
           </div>
@@ -715,4 +713,3 @@ const Login = () => {
 };
 
 export default Login;
-
