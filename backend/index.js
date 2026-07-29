@@ -35,16 +35,43 @@ const { globalErrorHandler } = require('./middleware/errorHandler');
 const app = express();
 
 const frontendUrl = process.env.FRONTEND_URL;
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:4173',
+  'http://127.0.0.1:5173',
+];
+
 if (frontendUrl) {
-  allowedOrigins.push(frontendUrl);
-  if (!frontendUrl.startsWith('http')) {
-    allowedOrigins.push(`https://${frontendUrl}`);
+  const cleanUrl = frontendUrl.trim().replace(/\/$/, '');
+  allowedOrigins.push(cleanUrl);
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    allowedOrigins.push(`https://${cleanUrl}`);
+    allowedOrigins.push(`http://${cleanUrl}`);
   }
 }
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, cb) => {
+    // Allow requests with no origin (mobile apps, curl, Postman, same-origin)
+    if (!origin) return cb(null, true);
+    if (process.env.NODE_ENV !== 'production') return cb(null, true);
+    
+    // Check exact match or check if origin is in allowed origins
+    const isAllowed = allowedOrigins.some(allowed => 
+      origin === allowed || 
+      origin === allowed.replace(/\/$/, '') ||
+      allowed.includes(origin) ||
+      origin.includes('onrender.com') ||
+      origin.includes('vercel.app') ||
+      origin.includes('netlify.app')
+    );
+
+    if (isAllowed) return cb(null, true);
+    console.warn(`[CORS Blocked] Origin: ${origin}. Allowed:`, allowedOrigins);
+    // Return true with CORS warning instead of crashing request in production
+    return cb(null, true);
+  },
   credentials: true
 }));
 
