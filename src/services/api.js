@@ -1,5 +1,17 @@
-// Central API service layer - connects frontend to the Node.js/Express backend
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Normalize API_BASE URL so it always ends cleanly with /api (without double slashes)
+const getApiBase = () => {
+  let url = (import.meta.env.VITE_API_URL || '').trim();
+  if (!url) return 'http://localhost:5000/api';
+  // Remove trailing slash
+  url = url.replace(/\/+$/, '');
+  // If the user provided backend host without /api suffix, append /api
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
 
 const getToken = () => localStorage.getItem('garage_token');
 
@@ -32,6 +44,15 @@ const request = async (method, path, body = null, options = {}) => {
       });
     } finally {
       clearTimeout(timeoutId);
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      if (text.trim().startsWith('<')) {
+        throw new Error(`API Configuration Error: Received HTML instead of JSON from ${API_BASE}${path}. Please verify VITE_API_URL in your deployment settings.`);
+      }
+      throw new Error(text || 'Invalid server response');
     }
 
     const data = await res.json();
