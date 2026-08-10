@@ -11,7 +11,7 @@ import GroupCallOverlay from './GroupCallOverlay';
 import './CallOverlay.css';
 
 const CallOverlay = () => {
-  const { callState, activeCall, callSubStatus, acceptCall, endCall } = useAppContext();
+  const { callState, activeCall, callSubStatus, acceptCall, endCall, sendCallWS } = useAppContext();
   const { currentUser } = useAuth();
 
   const [duration, setDuration] = useState(0);
@@ -41,6 +41,7 @@ const CallOverlay = () => {
     callState,
     activeCall,
     currentUser,
+    sendCallWS,
   });
 
   // Attach streams to video/audio elements with track-aware stability
@@ -164,10 +165,12 @@ const CallOverlay = () => {
   useEffect(() => {
     let currentStream = null;
     const startStreaming = async () => {
+      // Do NOT start receiver stream during 'incoming' state.
+      // Only start local media when outgoing 'calling' (caller ringing preview)
+      // or when 'connected' (both sides after answer).
       const shouldStream =
         callState === 'connected' ||
-        callState === 'calling' ||
-        callState === 'incoming';
+        (callState === 'calling' && activeCall?.isOutgoing);
 
       if (shouldStream && !localStream) { // Only start if not already started
         try {
@@ -189,15 +192,22 @@ const CallOverlay = () => {
       }
     };
     startStreaming();
-    
-    return () => {
-      // Only cleanup if we are going to idle
-      if (callState === 'idle' && currentStream) {
-        currentStream.getTracks().forEach(t => t.stop());
+  }, [callState, activeCall?.isOutgoing, activeCall?.type, localStream]);
+
+  // Clean teardown when call ends
+  useEffect(() => {
+    if (callState === 'idle') {
+      if (localStream) {
+        console.log('[CallOverlay] Stopping local stream tracks...');
+        localStream.getTracks().forEach(t => t.stop());
         setLocalStream(null);
       }
-    };
-  }, [callState]); // Remote activeCall from deps to prevent restart on meta changes
+      if (localVideoRef.current) localVideoRef.current.srcObject = null;
+      if (localVideoFullRef.current) localVideoFullRef.current.srcObject = null;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
+    }
+  }, [callState, localStream]);
 
   useEffect(() => {
     if (localStream) {
@@ -264,8 +274,8 @@ const CallOverlay = () => {
             <h1 className="fco-user-name">{activeCall.contact?.name}</h1>
             <p className="fco-incoming-label">Incoming Call...</p>
             <div className="fco-incoming-actions">
-              <button className="ctrl-btn decline" onClick={() => endCall('declined')} title="Decline"><PhoneOff size={28} /></button>
-              <button className="ctrl-btn accept pulse-green" onClick={acceptCall} title="Answer">
+              <button className="ctrl-btn decline" onClick={(e) => { e.stopPropagation(); endCall('declined'); }} title="Decline"><PhoneOff size={28} /></button>
+              <button className="ctrl-btn accept pulse-green" onClick={(e) => { e.stopPropagation(); acceptCall(); }} title="Answer">
                 {isVideo ? <Video size={28} /> : <Phone size={28} />}
               </button>
             </div>
@@ -298,6 +308,7 @@ const CallOverlay = () => {
               ref={remoteVideoRef}
               autoPlay
               playsInline
+              muted
               className={`remote-view ${videoState === 'live' ? 'show' : 'fade'}`}
               style={{ 
                 opacity: videoState === 'live' ? 1 : 0,
@@ -493,8 +504,8 @@ const CallOverlay = () => {
         )}
       </div>
 
-      {/* Hidden audio element for consistent remote audio playback */}
-      <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
+      {/* Audio element for consistent remote audio playback */}
+      <audio ref={remoteAudioRef} autoPlay playsInline style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} />
     </div>
   );
 };

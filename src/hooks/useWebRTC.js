@@ -1,14 +1,7 @@
 /**
  * useWebRTC — Manages a single WebRTC PeerConnection for voice/video calls.
  *
- * Signaling is done via localStorage using the existing 'garage_call_signal' key.
- * Both peers must be open in the same browser (different tabs) for this to work.
- * Cross-device calls require a cloud relay (e.g. Firebase Realtime DB) — future work.
- *
- * Signal types added (extend existing set):
- *   WEBRTC_OFFER   – Caller → Receiver  { sdp }
- *   WEBRTC_ANSWER  – Receiver → Caller  { sdp }
- *   WEBRTC_ICE     – Both ways          { candidate }
+ * Signaling is sent over real-time WebSocket server with fallback to BroadcastChannel and localStorage.
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -17,11 +10,13 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 const BC_NAME = 'garage_call_signals';
 const bc = new BroadcastChannel(BC_NAME);
 
-// Free STUN servers (Google) — no auth needed
+// Free STUN servers (Google & Mozilla) — no auth needed
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun.services.mozilla.com' },
   ],
 };
 
@@ -31,8 +26,9 @@ const ICE_SERVERS = {
  * @param {string|null}      params.callState    – 'calling' | 'incoming' | 'connected' | 'idle'
  * @param {object|null}      params.activeCall   – { contact, isOutgoing, type, ... }
  * @param {object|null}      params.currentUser  – { id, ... }
+ * @param {function}         [params.sendCallWS] – Real-time WebSocket sender helper
  */
-export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
+export function useWebRTC({ localStream, callState, activeCall, currentUser, sendCallWS }) {
   const pcRef = useRef(null);                       // RTCPeerConnection
   const pendingCandidates = useRef([]);             // ICE candidates queued before remote SDP set
   const remoteStreamRef = useRef(new MediaStream()); // Persistent stable stream object
@@ -50,7 +46,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
     video: true
   });
 
-  // ── Helper: send a signal via localStorage Signal Queue ───────────────────
+  // ── Helper: send a signal via WebSocket + BroadcastChannel + localStorage Queue ────
   const sendSignal = useCallback((payload) => {
     if (!currentUser?.id || !activeCall?.contact?.id) return;
 
@@ -63,10 +59,23 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
     };
 
     try {
-      // 1. Send via BroadcastChannel (Near-instant for same machine)
+      // 1. Send via WebSocket if available
+      let sentWS = false;
+      if (typeof sendCallWS === 'function') {
+        const typeMap = {
+          'WEBRTC_OFFER': 'call_webrtc_offer',
+          'WEBRTC_ANSWER': 'call_webrtc_answer',
+          'WEBRTC_ICE': 'call_webrtc_ice',
+          'WEBRTC_MEDIA_STATE': 'call_webrtc_media_state'
+        };
+        const wsType = typeMap[payload.signalType] || payload.signalType;
+        sentWS = sendCallWS({ ...signal, type: wsType });
+      }
+
+      // 2. Send via BroadcastChannel (Near-instant for same machine)
       bc.postMessage(signal);
 
-      // 2. Persist to localStorage (Legacy/Cross-tab fallback)
+      // 3. Persist to localStorage (Legacy/Cross-tab fallback)
       const queueKey = 'garage_signal_queue';
       const existingQueue = JSON.parse(localStorage.getItem(queueKey) || '[]');
       const newQueue = [...existingQueue, signal].slice(-20);
@@ -75,7 +84,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
     } catch (e) {
       console.error("[WebRTC] Signaling failed", e);
     }
-  }, [currentUser?.id, activeCall?.contact?.id]);
+  }, [currentUser?.id, activeCall?.contact?.id, sendCallWS]);
 
   // Perfect Negotiation State
   const makingOffer = useRef(false);
@@ -85,7 +94,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
 
   // ── Create PeerConnection (Singleton pattern for a given call) ─────────────
   const createPC = useCallback(() => {
-    // If PC already exists and isn't closed, we reuse it or handle with care
+    // If PC already exists and isn't closed, we reuse it
     if (pcRef.current && pcRef.current.signalingState !== 'closed') {
       console.log('[WebRTC] Reusing existing PeerConnection');
       return pcRef.current;
@@ -107,8 +116,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
       
       stream.addTrack(event.track);
       
-      // 🚨 CRITICAL: Return a CLONE with a new reference but same tracks 
-      // This ensures CallOverlay useEffect triggers but elements can check track IDs
+      // Return a new MediaStream instance to trigger react bindings
       setRemoteStream(new MediaStream(stream.getTracks()));
 
       const hasVideo = event.track.kind === 'video' || (pcRef.current?.getReceivers().some(r => r.track?.kind === 'video'));
@@ -160,7 +168,6 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
           console.warn('[WebRTC] Connection failed, attempting ICE Restart...');
           try { 
             pc.restartIce();
-            // restartIce will trigger onnegotiationneeded
           } catch (e) { 
             handleConnectionFailure(); 
           }
@@ -192,7 +199,26 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
       makingOffer.current = true;
       console.log('[WebRTC] Creating OFFER');
       setVideoState('connecting');
-      const offer = await pc.createOffer();
+
+      // Attach local tracks before creating offer
+      if (localStream) {
+        const currentSenders = pc.getSenders();
+        localStream.getTracks().forEach(track => {
+          track.enabled = true;
+          const alreadyAdded = currentSenders.find(s => s.track && s.track.kind === track.kind);
+          if (!alreadyAdded) {
+            console.log(`[WebRTC] Adding local track before offer: ${track.kind}`);
+            pc.addTrack(track, localStream);
+          } else if (alreadyAdded.track !== track) {
+            alreadyAdded.replaceTrack(track);
+          }
+        });
+      }
+
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: activeCall?.type === 'video',
+      });
       await pc.setLocalDescription(offer);
 
       sendSignal({
@@ -204,7 +230,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
     } finally {
       makingOffer.current = false;
     }
-  }, [createPC, sendSignal]);
+  }, [createPC, sendSignal, activeCall?.type, localStream]);
 
   const startCall = negotiate;
 
@@ -220,6 +246,11 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
         return;
       }
 
+      if (offerCollision && isPolite) {
+        console.log('[WebRTC] Offer collision detected on polite peer. Rolling back...');
+        await pc.setLocalDescription({ type: 'rollback' }).catch(() => {});
+      }
+
       isSettingRemoteDescription.current = true;
       await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
       isSettingRemoteDescription.current = false;
@@ -229,6 +260,21 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
         await pc.addIceCandidate(new RTCIceCandidate(c)).catch(e => { });
       }
       pendingCandidates.current = [];
+
+      // Add/replace local tracks prior to creating answer
+      if (localStream) {
+        const currentSenders = pc.getSenders();
+        localStream.getTracks().forEach(track => {
+          track.enabled = true;
+          const alreadyAdded = currentSenders.find(s => s.track && s.track.kind === track.kind);
+          if (!alreadyAdded) {
+            console.log(`[WebRTC] Adding local track before answer: ${track.kind}`);
+            pc.addTrack(track, localStream);
+          } else if (alreadyAdded.track !== track) {
+            alreadyAdded.replaceTrack(track);
+          }
+        });
+      }
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -243,7 +289,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
     } finally {
       isSettingRemoteDescription.current = false;
     }
-  }, [createPC, sendSignal, isPolite]);
+  }, [createPC, sendSignal, isPolite, localStream]);
 
   const handleAnswer = useCallback(async (answerSdp) => {
     const pc = pcRef.current;
@@ -281,7 +327,6 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
 
   // ── Media State Signaling ──────────────────────────────────────────────
   const sendMediaState = useCallback((states) => {
-    // states: { audio: boolean, video: boolean }
     sendSignal({
       signalType: 'WEBRTC_MEDIA_STATE',
       mediaStates: states
@@ -297,7 +342,6 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
         const stats = await pc.getStats();
         stats.forEach(report => {
           if (report.type === 'inbound-rtp' && report.kind === 'audio') {
-            // Very simple jitter-based quality estimation
             if (report.jitter > 0.1) setConnectionQuality('poor');
             else if (report.jitter > 0.05) setConnectionQuality('fair');
             else setConnectionQuality('good');
@@ -341,7 +385,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
       stream.removeTrack(t);
     });
 
-    setRemoteStream(stream); 
+    setRemoteStream(new MediaStream()); 
     setVideoState('idle');
     setConnectionQuality('good');
     setIsReconnecting(false);
@@ -351,13 +395,6 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
 
   const processedSignals = useRef(new Set());
 
-  // ── Stable Signal Handler (using Ref to avoid effect re-binds) ─────────────
-  const negotiateRef = useRef(negotiate);
-
-  useEffect(() => {
-    negotiateRef.current = negotiate;
-  }, [negotiate]);
-
   useEffect(() => {
     if (!currentUser?.id || !activeCall) return;
 
@@ -366,8 +403,13 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
       if (processedSignals.current.has(signal.id)) return;
       if (String(signal.to) !== String(currentUser.id)) return;
 
+      const sigType = signal.signalType || (signal.type === 'call_webrtc_offer' ? 'WEBRTC_OFFER' :
+                     (signal.type === 'call_webrtc_answer' ? 'WEBRTC_ANSWER' :
+                     (signal.type === 'call_webrtc_ice' ? 'WEBRTC_ICE' :
+                     (signal.type === 'call_webrtc_media_state' ? 'WEBRTC_MEDIA_STATE' : null))));
+
       // Filter types relevant to WebRTC negotiation
-      const isWebRTC = ['WEBRTC_OFFER', 'WEBRTC_ANSWER', 'WEBRTC_ICE', 'WEBRTC_MEDIA_STATE'].includes(signal.signalType);
+      const isWebRTC = ['WEBRTC_OFFER', 'WEBRTC_ANSWER', 'WEBRTC_ICE', 'WEBRTC_MEDIA_STATE'].includes(sigType);
       if (!isWebRTC) return;
 
       // Ignore signals older than 30 seconds
@@ -378,30 +420,38 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
       }
 
       processedSignals.current.add(signal.id);
-      console.log('[WebRTC] Signal Received:', signal.signalType);
+      console.log('[WebRTC] Signal Received:', sigType);
 
-      if (signal.signalType === 'WEBRTC_OFFER') {
+      if (sigType === 'WEBRTC_OFFER') {
         handleOffer(signal.sdp);
-      } else if (signal.signalType === 'WEBRTC_ANSWER') {
+      } else if (sigType === 'WEBRTC_ANSWER') {
         handleAnswer(signal.sdp);
-      } else if (signal.signalType === 'WEBRTC_ICE') {
+      } else if (sigType === 'WEBRTC_ICE') {
         handleIceCandidate(signal.candidate);
-      } else if (signal.signalType === 'WEBRTC_MEDIA_STATE') {
+      } else if (sigType === 'WEBRTC_MEDIA_STATE') {
         console.log('[WebRTC] Remote media state changed:', signal.mediaStates);
-        setRemoteMediaState(signal.mediaStates);
-        if (signal.mediaStates.video === false) {
-          setVideoState('camera-off');
-        } else {
-          const hasVideo = pcRef.current?.getReceivers().some(r => r.track?.kind === 'video' && !r.track.muted);
-          if (hasVideo) setVideoState('live');
+        if (signal.mediaStates) {
+          setRemoteMediaState(signal.mediaStates);
+          if (signal.mediaStates.video === false) {
+            setVideoState('camera-off');
+          } else {
+            const hasVideo = pcRef.current?.getReceivers().some(r => r.track?.kind === 'video' && !r.track.muted);
+            if (hasVideo) setVideoState('live');
+          }
         }
       }
     };
 
-    // Listen on BroadcastChannel
+    // 1. Listen on BroadcastChannel
     bc.onmessage = (event) => handleIncomingSignal(event.data);
 
-    // Also poll localStorage for cross-tab robustness
+    // 2. Listen for custom window event dispatched by AppContext WS handler
+    const handleWSEvent = (e) => {
+      if (e.detail) handleIncomingSignal(e.detail);
+    };
+    window.addEventListener('garage:webrtc_signal', handleWSEvent);
+
+    // 3. Also poll localStorage for cross-tab robustness
     const pollSignalQueue = () => {
       try {
         const queueJSON = localStorage.getItem('garage_signal_queue');
@@ -422,7 +472,7 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      // bc.close(); // Keep it open for the duration of the hook
+      window.removeEventListener('garage:webrtc_signal', handleWSEvent);
     };
   }, [currentUser?.id, activeCall, handleOffer, handleAnswer, handleIceCandidate]);
 
@@ -440,28 +490,30 @@ export function useWebRTC({ localStream, callState, activeCall, currentUser }) {
   }, [callState, activeCall, localStream, startCall]);
 
   // ── Dynamic Track Management ──────────────────────────────────────────────
-  // This ensures tracks are added/removed even after PC is created
   useEffect(() => {
     const pc = pcRef.current;
     if (!pc || !localStream) return;
 
+    let addedNew = false;
     const currentSenders = pc.getSenders();
-    let changed = false;
     localStream.getTracks().forEach(track => {
+      track.enabled = true;
       const alreadyAdded = currentSenders.find(s => s.track && s.track.kind === track.kind);
       if (!alreadyAdded) {
         console.log(`[WebRTC] Dynamic addTrack: ${track.kind}`);
         pc.addTrack(track, localStream);
-        changed = true;
+        addedNew = true;
       } else if (alreadyAdded.track.id !== track.id) {
         console.log(`[WebRTC] Dynamic replaceTrack: ${track.kind}`);
         alreadyAdded.replaceTrack(track);
-        changed = true;
       }
     });
 
-    // onnegotiationneeded handles the actual signaling
-  }, [localStream, callState]);
+    if (addedNew && pc.signalingState === 'stable') {
+      console.log('[WebRTC] Newly added track requires re-negotiation. Triggering offer...');
+      negotiate();
+    }
+  }, [localStream, callState, negotiate]);
 
   // ── Cleanup when call ends ─────────────────────────────────────────────────
   useEffect(() => {

@@ -2,9 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useAuth } from './AuthContext';
 import { api } from '../services/api';
 import { db, rtdb } from '../services/firebase';
-import { 
-  collection, query, where, onSnapshot, addDoc, 
-  serverTimestamp, orderBy, updateDoc, doc 
+import {
+  collection, query, where, onSnapshot, addDoc,
+  serverTimestamp, orderBy, updateDoc, doc
 } from 'firebase/firestore';
 import { ref, set, onValue, onDisconnect, off, update } from 'firebase/database';
 import { translations } from '../data/translations';
@@ -154,8 +154,8 @@ export const AppProvider = ({ children }) => {
         if (added) {
           // Prevent double-post if InvoiceForm already successfully created it and assigned a real INV- ID.
           if (String(added.id).startsWith('INV-TEMP')) {
-             const resp = await api.createInvoice(added);
-             _setInvoices(prev => prev.map(inv => inv.id === added.id ? resp : inv));
+            const resp = await api.createInvoice(added);
+            _setInvoices(prev => prev.map(inv => inv.id === added.id ? resp : inv));
           }
         }
       } else if (next.length < invoices.length) {
@@ -617,14 +617,14 @@ export const AppProvider = ({ children }) => {
       try {
         console.log(`${DIAG} Syncing core data with backend...`);
         const [v, c, r, i, s, a, st, mr, tr, invs, accounts, bSettings, bns] = await Promise.all([
-          api.getVehicles().catch(() => []),
-          api.getCustomers().catch(() => []),
+          api.getVehicles().catch(err => { console.error(`${DIAG} getVehicles failed`, err); return null; }),
+          api.getCustomers().catch(err => { console.error(`${DIAG} getCustomers failed`, err); return null; }),
           api.getRepairs().catch(() => []),
           api.getInventory().catch(() => []),
           api.getStaff().catch(() => []),
           api.getAppointments().catch(() => []),
           api.getSettings().catch(() => null),
-          api.getMaterialRequests().catch(() => []),
+          api.getMaterialRequests().catch(err => { console.error(`${DIAG} getMaterialRequests failed`, err); return null; }),
           api.getTrackers().catch(() => []),
           api.getInvoices().catch(() => []),
           api.getPaymentAccounts().catch(() => []),
@@ -642,8 +642,9 @@ export const AppProvider = ({ children }) => {
           setGarageUsers((s || []).map(u => ({ ...u, type: u.role === 'customer' ? 'customer' : 'staff' })));
         }
 
-        setVehicles(v || []);
-        setCustomers(c || []);
+        // Only update state when the fetch succeeded (non-null) to avoid wiping existing data
+        if (v !== null) setVehicles(v);
+        if (c !== null) setCustomers(c);
         const newRepairs = (r || []).map(item => ({
           ...item,
           notes: item.description || item.notes || '',
@@ -652,7 +653,7 @@ export const AppProvider = ({ children }) => {
         setRepairs(prev => {
           try {
             if (prev.length === newRepairs.length && JSON.stringify(prev) === JSON.stringify(newRepairs)) return prev;
-          } catch(e) {}
+          } catch (e) { }
           return newRepairs;
         });
         setInventory((i || []).map(item => ({
@@ -662,7 +663,7 @@ export const AppProvider = ({ children }) => {
         })));
         setStaff(s || []);
         setAppointments(a || []);
-        setMaterialRequests(mr || []);
+        if (mr !== null) setMaterialRequests(mr);
 
         _setInvoices(invs || []);
         _setAdminPaymentDetails(accounts || []);
@@ -723,11 +724,30 @@ export const AppProvider = ({ children }) => {
               if (prev.length === mapped.length && JSON.stringify(prev) === JSON.stringify(mapped)) {
                 return prev; // Return exact same reference if content unchanged
               }
-            } catch(e) {}
+            } catch (e) { }
             return mapped;
           });
         }
-      } catch (e) {}
+      } catch (e) { }
+    }, 15000);
+
+    // ── Silent Polling for Material Requests ───────────────────────────────────
+    // Inventory Managers need to see mechanic requests immediately without refresh.
+    // Poll every 15 seconds so new 'pending' requests appear instantly on their page.
+    const mrPollInterval = setInterval(async () => {
+      try {
+        const mr = await api.getMaterialRequests().catch(() => null);
+        if (mr && Array.isArray(mr)) {
+          setMaterialRequests(prev => {
+            try {
+              if (prev.length === mr.length && JSON.stringify(prev) === JSON.stringify(mr)) {
+                return prev; // No change, skip re-render
+              }
+            } catch (e) { }
+            return mr;
+          });
+        }
+      } catch (e) { }
     }, 15000);
 
     return () => {
@@ -737,6 +757,7 @@ export const AppProvider = ({ children }) => {
         off(liveTrackersRef, 'value');
       }
       clearInterval(pollInterval);
+      clearInterval(mrPollInterval);
     };
   }, [currentUser?.id, userPrefix]);
 
@@ -804,6 +825,14 @@ export const AppProvider = ({ children }) => {
         try {
           const msg = JSON.parse(event.data);
 
+          // Dispatch WebRTC & Call signals to AppContext and useWebRTC hook
+          if (msg.type?.startsWith('call_') || msg.type?.startsWith('WEBRTC_') || msg.signalType?.startsWith('CALL_') || msg.signalType?.startsWith('WEBRTC_')) {
+            window.dispatchEvent(new CustomEvent('garage:webrtc_signal', { detail: msg }));
+            if (typeof handleCallSignalRef.current === 'function') {
+              handleCallSignalRef.current(msg);
+            }
+          }
+
           const normalizeTracker = (tr) => ({
             ...tr,
             customerLocation: tr.customerLat != null ? [tr.customerLat, tr.customerLng] : null,
@@ -855,6 +884,18 @@ export const AppProvider = ({ children }) => {
       if (wsRef.current) wsRef.current.close();
     };
   }, [currentUser?.id]);
+
+  const sendCallWS = useCallback((payload) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(JSON.stringify(payload));
+        return true;
+      } catch (e) {
+        console.warn('[WS Send Error]', e);
+      }
+    }
+    return false;
+  }, []);
 
   // Unified persistence effect - prevents fragmented saves and race conditions
   useEffect(() => {
@@ -1001,7 +1042,7 @@ export const AppProvider = ({ children }) => {
         try {
           const parsed = JSON.parse(e.newValue || '[]');
           setInternalMessages(ensureEntityArray(parsed, 'internalMessages'));
-        } catch (err) {}
+        } catch (err) { }
       }
 
       // Real-time Chat Signals (Typing, Seen, Presence)
@@ -1031,7 +1072,7 @@ export const AppProvider = ({ children }) => {
           }
           if (signal.type === 'SEEN') {
             console.log(`${DIAG} SEEN Signal Received:`, signal);
-            const isTargetedToMe = signal.isGroup 
+            const isTargetedToMe = signal.isGroup
               ? groups.some(g => String(g.id) === String(signal.to))
               : signal.to === currentUser?.id;
 
@@ -1042,9 +1083,9 @@ export const AppProvider = ({ children }) => {
                   const belongsToConv = signal.isGroup
                     ? String(m.recipientId) === String(signal.to)
                     : (m.senderId === currentUser.id && m.recipientId === signal.from);
-                  
+
                   const isMyMessageSeenByOther = belongsToConv && m.senderId === currentUser.id && m.status !== 'seen';
-                  
+
                   if (isMyMessageSeenByOther) {
                     changed = true;
                     return { ...m, status: 'seen', read: true, seen_at: signal.time };
@@ -1057,14 +1098,14 @@ export const AppProvider = ({ children }) => {
             }
           }
           if (signal.type === 'MARK_READ_SIGNAL') {
-             const { fromId, toId, isGroup } = signal;
-             setMessages(prev => prev.map(m => {
-                const matchesRecipient = isGroup ? String(m.recipientId) === String(toId) : (String(m.senderId) === String(toId) && String(m.recipientId) === String(fromId));
-                if (matchesRecipient && String(m.senderId) !== String(fromId) && m.status !== 'seen') {
-                   return { ...m, status: 'seen', read: true, seen_at: new Date().toISOString() };
-                }
-                return m;
-             }));
+            const { fromId, toId, isGroup } = signal;
+            setMessages(prev => prev.map(m => {
+              const matchesRecipient = isGroup ? String(m.recipientId) === String(toId) : (String(m.senderId) === String(toId) && String(m.recipientId) === String(fromId));
+              if (matchesRecipient && String(m.senderId) !== String(fromId) && m.status !== 'seen') {
+                return { ...m, status: 'seen', read: true, seen_at: new Date().toISOString() };
+              }
+              return m;
+            }));
           }
           if (signal.type === 'PRESENCE') {
             setUserPresence(prev => ({
@@ -1337,14 +1378,14 @@ export const AppProvider = ({ children }) => {
               const matchesContact = updates.isGroup
                 ? String(item.recipientId) === String(updates.senderId)
                 : (String(item.senderId) === String(updates.senderId) && String(item.recipientId) === String(updates.recipientId)) ||
-                  (String(item.senderId) === String(updates.recipientId) && String(item.recipientId) === String(updates.senderId));
+                (String(item.senderId) === String(updates.recipientId) && String(item.recipientId) === String(updates.senderId));
 
               if (!matchesContact) return item;
 
               const isTargetOfAction = updates.isGroup
                 ? (String(item.senderId) !== String(updates.userId))
                 : (String(item.recipientId) === String(updates.userId || updates.senderId));
-              
+
               if (!isTargetOfAction && updates.status === 'seen') return item;
 
               const currentStatusVal = statusOrder[item.status] ?? -1;
@@ -1508,10 +1549,10 @@ export const AppProvider = ({ children }) => {
     // Security Check: Role-Based Access Control
     const permissions = currentUser?.permissions || [];
     const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
-    
+
     // Allow mechanics to update status even without repairs_manage if they have repairs_view
     const isMechanicWithView = currentUser?.role === 'mechanic' && permissions.includes('repairs_view');
-    
+
     if (collectionName === 'repairs' && !isManagerOrAdmin && !isMechanicWithView) {
       console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot update repairs.`);
       showToast(t("securityDeniedRepairUpdate"), 'danger');
@@ -1522,7 +1563,7 @@ export const AppProvider = ({ children }) => {
       let finalUpdates = { ...newData };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests', 'appointments', 'bonuses', 'paymentAccounts', 'mechanicPaymentDetails'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1585,6 +1626,12 @@ export const AppProvider = ({ children }) => {
               approvedQty: newData.approvedQty !== undefined ? parseInt(newData.approvedQty) : currentItem.approvedQty,
               notes: newData.notes !== undefined ? newData.notes : currentItem.notes
             });
+          } else if (collectionName === 'appointments') {
+            response = await api.updateAppointment(id, newData);
+          } else if (collectionName === 'bonuses') {
+            response = await api.updateBonusStatus(id, newData.status);
+          } else if (collectionName === 'paymentAccounts' || collectionName === 'mechanicPaymentDetails') {
+            response = await api.updatePaymentAccount(id, newData);
           }
 
           if (response) {
@@ -1721,7 +1768,7 @@ export const AppProvider = ({ children }) => {
     // Security Check: Role-Based Access Control
     const permissions = currentUser?.permissions || [];
     const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage') || ['admin', 'manager', 'receptionist', 'coder'].includes(currentUser?.role);
-    
+
     if (collectionName === 'repairs' && !isManagerOrAdmin) {
       console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot create repairs.`);
       showToast(t("securityDeniedRepairCreate"), 'danger');
@@ -1732,7 +1779,7 @@ export const AppProvider = ({ children }) => {
       let finalItem = { ...item };
 
       // API synchronization for backend
-      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests', 'appointments', 'bonuses', 'paymentAccounts', 'mechanicPaymentDetails'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           let response;
@@ -1785,6 +1832,12 @@ export const AppProvider = ({ children }) => {
               requestedQty: parseInt(item.requestedQty || item.quantity || 1, 10),
               notes: item.notes || ''
             });
+          } else if (collectionName === 'appointments') {
+            response = await api.createAppointment(item);
+          } else if (collectionName === 'bonuses') {
+            response = await api.createBonus(item);
+          } else if (collectionName === 'paymentAccounts' || collectionName === 'mechanicPaymentDetails') {
+            response = await api.createPaymentAccount(item);
           }
 
           if (response) {
@@ -1908,7 +1961,7 @@ export const AppProvider = ({ children }) => {
     // Security Check: Role-Based Access Control
     const permissions = currentUser?.permissions || [];
     const isManagerOrAdmin = permissions.includes('all') || permissions.includes('repairs_manage');
-    
+
     if (collectionName === 'repairs' && !isManagerOrAdmin) {
       console.error(`${DIAG} Security Denied: Role "${currentUser?.role}" cannot delete repairs.`);
       showToast(t("securityDeniedRepairDelete"), 'danger');
@@ -1916,7 +1969,7 @@ export const AppProvider = ({ children }) => {
     }
 
     try {
-      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests'].includes(collectionName)) {
+      if (currentUser && ['customers', 'vehicles', 'repairs', 'inventory', 'materialRequests', 'appointments', 'paymentAccounts', 'mechanicPaymentDetails'].includes(collectionName)) {
         setIsSyncing(true);
         try {
           if (collectionName === 'customers') {
@@ -1929,6 +1982,10 @@ export const AppProvider = ({ children }) => {
             await api.deleteInventoryItem(id);
           } else if (collectionName === 'materialRequests') {
             await api.deleteMaterialRequest(id);
+          } else if (collectionName === 'appointments') {
+            await api.deleteAppointment(id);
+          } else if (collectionName === 'paymentAccounts' || collectionName === 'mechanicPaymentDetails') {
+            await api.deletePaymentAccount(id);
           }
         } catch (apiErr) {
           console.error(`[API Delete Error] Failed to delete ${collectionName}`, apiErr);
@@ -2025,28 +2082,53 @@ export const AppProvider = ({ children }) => {
       return existing;
     }
 
-    const subtotal = (req.approvedQty || req.requestedQty) * (part?.price || 0);
-    const tax = subtotal * (billingSettings.taxRate / 100);
-    const total = subtotal + tax;
-    const formatCurrency = (val) => `${billingSettings.currency || 'ETB'} ${Number(val || 0).toLocaleString()}`;
+    // Determine line items: multi-item request or single part
+    let items = [];
+    if (Array.isArray(req.items) && req.items.length > 0) {
+      items = req.items.map(it => ({
+        description: it.name || it.description || 'Material',
+        quantity: parseInt(it.approvedQty ?? it.requestedQty ?? it.quantity ?? 1, 10),
+        price: parseFloat(it.price || 0)
+      }));
+    } else {
+      const qty = parseInt(req.approvedQty ?? req.requestedQty ?? 1, 10);
+      const unitPrice = parseFloat(part?.price || req.unitPrice || 0);
+      items = [
+        {
+          description: part?.name || req.partName || 'Material',
+          quantity: qty,
+          price: unitPrice
+        }
+      ];
+    }
 
+    // Auto-calculate financial totals
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const taxRate = parseFloat(billingSettings?.taxRate ?? 15);
+    const tax = subtotal * (taxRate / 100);
+    const discount = parseFloat(req.discount || 0);
+    const total = subtotal + tax - discount;
+    const formatCurrency = (val) => `${billingSettings?.currency || 'ETB'} ${Number(val || 0).toLocaleString()}`;
+
+    const tempId = `INV-TEMP-${Date.now().toString().slice(-6)}`;
     const newInvoice = {
-      id: `INV-${Date.now().toString().slice(-6)}`,
+      id: tempId,
       customerId: customer.id,
       customerName: customer.name,
       customerPhone: customer.phone,
       customerAddress: customer.address || '',
       vehicleInfo: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'N/A',
-      vehiclePlate: vehicle ? vehicle.plate : 'N/A',
+      vehiclePlate: vehicle ? vehicle.plate || vehicle.plateNumber || 'N/A' : 'N/A',
       date: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days due
-      items: [
-        { description: part?.name || 'Material', quantity: req.approvedQty || req.requestedQty, price: part?.price || 0 }
-      ],
+      items,
+      partsList: items,
       laborCost: 0,
+      partsCost: subtotal,
       subtotal,
       tax,
-      discount: 0,
+      taxRate,
+      discount,
       total,
       status: 'unpaid',
       materialRequestId: req.id,
@@ -2054,7 +2136,7 @@ export const AppProvider = ({ children }) => {
       mechanicId: req.mechanicId || (repairs.find(r => String(r.id) === String(req.repairId))?.mechanicId),
       mechanicName: ensureEntityArray(staff, 'staff').find(s => String(s.id) === String(req.mechanicId || repairs.find(r => String(r.id) === String(req.repairId))?.mechanicId))?.name || '',
       ownerId: currentUser.ownerId,
-      owner_id: currentUser.id, // Explicitly tracking the exact user who created it
+      owner_id: currentUser.id,
       invoice_type: 'inventory',
       managerId: currentUser.id,
       managerName: currentUser.name,
@@ -2062,6 +2144,19 @@ export const AppProvider = ({ children }) => {
     };
 
     setInvoices(prev => [newInvoice, ...prev]);
+
+    // Direct backend database save call to ensure immediate PostgreSQL persistence
+    api.createInvoice({
+      ...newInvoice,
+      orderId: newInvoice.id
+    }).then(created => {
+      if (created && created.id) {
+        _setInvoices(prev => prev.map(inv => inv.id === tempId ? { ...inv, ...created } : inv));
+      }
+    }).catch(err => {
+      console.error("[generateInvoice] API createInvoice failed:", err);
+    });
+
     addNotification(
       `${t('newInvoice')} #${newInvoice.id}: ${formatCurrency(total)}`,
       'info',
@@ -2069,7 +2164,7 @@ export const AppProvider = ({ children }) => {
       '/billing'
     );
     return newInvoice;
-  }, [currentUser, billingSettings, setInvoices, addNotification, t, repairs, invoices, staff]);
+  }, [_setInvoices, setInvoices, currentUser, billingSettings, addNotification, t, repairs, invoices, staff]);
 
   const sendMessage = useCallback(async (recipientId, text, type = 'text', fileName = null, replyToId = null, id = null, thumbnail = null, status = null, metadata = null) => {
     if (!currentUser || !recipientId) return;
@@ -2369,7 +2464,7 @@ export const AppProvider = ({ children }) => {
   const clearMessages = useCallback((contactId) => {
     if (!contactId) return;
     const contactIdStr = String(contactId);
-    setMessages(prev => prev.filter(m => 
+    setMessages(prev => prev.filter(m =>
       !(String(m.senderId) === contactIdStr && String(m.recipientId) === String(currentUser?.id)) &&
       !(String(m.senderId) === String(currentUser?.id) && String(m.recipientId) === contactIdStr) &&
       !(String(m.recipientId) === contactIdStr) // For groups
@@ -2414,7 +2509,7 @@ export const AppProvider = ({ children }) => {
           updates.admins = (g.admins || []).filter(id => String(id) !== String(memberId));
         }
         if (action === 'unban') updates.bannedUsers = (g.bannedUsers || []).filter(id => String(id) !== String(memberId));
-        
+
         broadcastData({ type: 'UPDATE', collection: 'groups', id: groupId, updates, ownerId: currentUser?.ownerId });
         return { ...g, ...updates };
       }
@@ -2456,17 +2551,17 @@ export const AppProvider = ({ children }) => {
     const senderIdStr = String(senderId);
     const isGroup = groups.some(g => String(g.id) === senderIdStr);
     console.log(`${DIAG} markMessagesRead:`, { senderIdStr, isGroup });
-    
+
     setMessages(prev => {
       let changed = false;
       const list = ensureEntityArray(prev, 'markMessagesRead');
       const newList = list.map(m => {
-        const matchesContact = isGroup 
+        const matchesContact = isGroup
           ? (String(m.recipientId) === senderIdStr)
           : (String(m.senderId) === senderIdStr && String(m.recipientId) === String(currentUser.id));
-          
+
         const shouldMarkSeen = matchesContact && String(m.senderId) !== String(currentUser.id) && m.status !== 'seen';
-        
+
         if (shouldMarkSeen) {
           changed = true;
           return { ...m, status: 'seen', read: true, seen_at: new Date().toISOString() };
@@ -2487,9 +2582,9 @@ export const AppProvider = ({ children }) => {
         isGroup: !!isGroup,
         time: now
       };
-      
+
       syncChannel.postMessage(bulkSignal);
-      
+
       localStorage.setItem('garage_realtime_signal', JSON.stringify({
         ...bulkSignal,
         from: String(currentUser.id)
@@ -2549,7 +2644,7 @@ export const AppProvider = ({ children }) => {
 
   const leaveGroupCall = useCallback((groupId) => {
     if (!currentUser || !groupId) return;
-    
+
     setGroupCalls(prev => {
       const call = prev[groupId];
       if (!call) return prev;
@@ -2641,12 +2736,70 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem('garage_realtime_signal');
   }, [currentUser, groups]);
 
+  // ── Ringtone Synthesizer Helpers ─────────────────────────────────────
+  const startRingtone = useCallback(() => {
+    if (ringtoneIntervalRef.current) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      ringtoneCtxRef.current = ctx;
+
+      const playBeepPair = () => {
+        if (!ringtoneCtxRef.current || ringtoneCtxRef.current.state === 'closed') return;
+        try {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(440, ctx.currentTime);
+          osc2.frequency.setValueAtTime(480, ctx.currentTime);
+
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start(ctx.currentTime);
+          osc2.start(ctx.currentTime);
+          osc1.stop(ctx.currentTime + 1.8);
+          osc2.stop(ctx.currentTime + 1.8);
+        } catch (e) { }
+      };
+
+      playBeepPair();
+      ringtoneIntervalRef.current = setInterval(playBeepPair, 2500);
+    } catch (e) {
+      console.warn('[Ringtone] Failed to start audio ringtone', e);
+    }
+  }, []);
+
+  const stopRingtone = useCallback(() => {
+    if (ringtoneIntervalRef.current) {
+      clearInterval(ringtoneIntervalRef.current);
+      ringtoneIntervalRef.current = null;
+    }
+    if (ringtoneCtxRef.current) {
+      try {
+        ringtoneCtxRef.current.close();
+      } catch (e) { }
+      ringtoneCtxRef.current = null;
+    }
+  }, []);
+
   const endCall = useCallback((reason = 'ended') => {
     if (!currentUser) return;
 
+    // Stop audio ringtone immediately
+    stopRingtone();
+
     const callSnap = activeCall;
     const stateSnap = callState;
-    
+
     // Clear all pending timers immediately
     if (ringingTimerRef.current) {
       clearTimeout(ringingTimerRef.current);
@@ -2657,14 +2810,13 @@ export const AppProvider = ({ children }) => {
       callTimeoutRef.current = null;
     }
 
-    // Early exit only if we have NO call context at all.
-    // We allow logging even if the state is already 'idle' if we have a call snapshot.
-    if (!callSnap) {
-      setCallState('idle');
-      setCallSubStatus('idle');
-      setActiveCall(null);
-      return;
-    }
+    // Immediately reset UI call states so overlays disappear without delay
+    setCallState('idle');
+    setCallSubStatus('idle');
+    setActiveCall(null);
+
+    // Early exit if we have NO call context at all
+    if (!callSnap) return;
 
     if (callSnap.groupId) {
       leaveGroupCall(callSnap.groupId);
@@ -2672,14 +2824,9 @@ export const AppProvider = ({ children }) => {
     }
 
     const currentCallId = callSnap.id;
-    if (!currentCallId) {
-      setCallState('idle');
-      setCallSubStatus('idle');
-      setActiveCall(null);
-      return;
-    }
+    if (!currentCallId) return;
 
-    // ── Cross-tab Deduplication Helpers ──────────────────────────────────
+    // ── Cross-tab & Peer Deduplication Helpers ──────────────────────────
     const isLogProcessed = (id) => {
       try {
         const processed = JSON.parse(localStorage.getItem('garage_processed_call_logs') || '[]');
@@ -2696,110 +2843,109 @@ export const AppProvider = ({ children }) => {
     };
 
     // Determine if we should log a system message for this end event
-    // We log for Missed, Declined, or Canceled if not already logged.
-    const isActuallyCanceled = (reason === 'ended' && callSnap.isOutgoing && stateSnap === 'calling') || reason === 'canceled_remote';
+    const isActuallyCanceled = (reason === 'ended' && callSnap.isOutgoing && stateSnap === 'calling') || reason === 'canceled' || reason === 'canceled_remote';
     const isActuallyMissed = reason === 'timeout' || reason === 'timeout_remote';
     const isActuallyDeclined = reason === 'declined' || reason === 'declined_remote';
-    
+
     console.log('[App] endCall Logic:', { reason, isActuallyMissed, isActuallyDeclined, isActuallyCanceled, currentCallId });
 
     const shouldLog = (isActuallyMissed || isActuallyCanceled || isActuallyDeclined) && !isLogProcessed(currentCallId);
 
     if (shouldLog) {
-      // Fallback: If contact is missing but we have IDs, we can still log
       const usersList = [...ensureEntityArray(customers, 'customers'), ...ensureEntityArray(staff, 'staff')];
       const targetContact = callSnap.contact || usersList.find(c => String(c.id) === String(callSnap.isOutgoing ? callSnap.recipientId : (callSnap.senderId || callSnap.contact?.id)));
-      
-      if (!targetContact) {
-        console.warn('[App] endCall: Skipping log, no contact found');
-        return;
-      }
-      markLogProcessed(currentCallId);
-      
-      let logText = '';
-      let logType = 'missed_call';
-      
-      // Attribution: Who is seen as the "sender" of this status update?
-      // Use explicit IDs from Snap to avoid race conditions with currentUser
-      let logSenderId = callSnap.isOutgoing ? callSnap.senderId : callSnap.contact.id;
-      let logSenderName = callSnap.isOutgoing ? (currentUser?.name || 'You') : callSnap.contact.name;
 
-      if (isActuallyMissed) {
-        logText = `Missed ${callSnap.type} call`;
-        logType = 'missed_call';
-      } else if (isActuallyCanceled) {
-        logText = `Canceled ${callSnap.type} call`;
-        logType = 'missed_call'; // Canceled is still under missed_call category for UI
-      } else if (isActuallyDeclined) {
-        logText = `Declined ${callSnap.type} call`;
-        logType = 'declined_call';
-        // Attribution: If I declined it, I am the sender
-        if (reason === 'declined') {
-          logSenderId = currentUser.id;
-          logSenderName = currentUser.name;
-        } else {
-          // The remote person declined it
-          logSenderId = callSnap.contact.id;
-          logSenderName = callSnap.contact.name;
+      if (targetContact) {
+        markLogProcessed(currentCallId);
+
+        let logText = '';
+        let logType = 'missed_call';
+
+        let logSenderId = callSnap.isOutgoing ? (currentUser.id) : targetContact.id;
+        let logSenderName = callSnap.isOutgoing ? (currentUser?.name || 'You') : targetContact.name;
+
+        if (isActuallyMissed) {
+          logText = `Missed ${callSnap.type || 'voice'} call`;
+          logType = 'missed_call';
+        } else if (isActuallyCanceled) {
+          logText = `Canceled ${callSnap.type || 'voice'} call`;
+          logType = 'missed_call';
+        } else if (isActuallyDeclined) {
+          logText = `Declined ${callSnap.type || 'voice'} call`;
+          logType = 'declined_call';
+          if (reason === 'declined') {
+            logSenderId = currentUser.id;
+            logSenderName = currentUser.name;
+          } else {
+            logSenderId = targetContact.id;
+            logSenderName = targetContact.name;
+          }
         }
+
+        const logMsg = {
+          id: `call_log_${currentCallId}`,
+          senderId: String(logSenderId),
+          senderName: logSenderName,
+          recipientId: String(logSenderId === String(currentUser.id) ? targetContact.id : currentUser.id),
+          text: logText,
+          type: logType,
+          callType: callSnap.type || 'audio',
+          time: new Date().toISOString(),
+          read: false,
+          status: 'sent'
+        };
+
+        setMessages(prev => {
+          if (prev.some(m => m.id === logMsg.id)) return prev;
+          return [...prev, logMsg];
+        });
+        syncChannel.postMessage({ type: 'ADD', collection: 'messages', data: logMsg, ownerId: currentUser.ownerId });
       }
-
-      const logMsg = {
-        id: `${logType}_${currentCallId}`,
-        senderId: String(logSenderId),
-        senderName: logSenderName,
-        recipientId: String(logSenderId === currentUser.id ? callSnap.contact.id : currentUser.id),
-        text: logText,
-        type: logType,
-        callType: callSnap.type,
-        time: new Date().toISOString(),
-        read: false,
-        status: 'sent'
-      };
-
-      setMessages(prev => {
-        if (prev.some(m => m.id === logMsg.id)) return prev;
-        return [...prev, logMsg];
-      });
-      syncChannel.postMessage({ type: 'ADD', collection: 'messages', data: logMsg, ownerId: currentUser.ownerId });
     }
 
-    setCallState('idle');
-    setCallSubStatus('idle');
-    setActiveCall(null);
-
-    // Send RTC signaling cleanup
+    // Send RTC signaling cleanup over WebSocket and localStorage
     try {
       let finalSignalType = 'CALL_ENDED';
-      if (reason === 'declined') finalSignalType = 'CALL_REJECTED';
-      else if (reason === 'timeout') finalSignalType = 'CALL_MISSED'; // Distinguish timeout
-      else if (reason === 'canceled' || (reason === 'ended' && callSnap.isOutgoing)) finalSignalType = 'CALL_CANCELLED';
+      let wsType = 'call_end';
+      if (reason === 'declined') { finalSignalType = 'CALL_REJECTED'; wsType = 'call_reject'; }
+      else if (reason === 'timeout') { finalSignalType = 'CALL_MISSED'; wsType = 'call_timeout'; }
+      else if (reason === 'canceled' || (reason === 'ended' && callSnap.isOutgoing)) { finalSignalType = 'CALL_CANCELLED'; wsType = 'call_cancel'; }
+
+      const targetPeerId = callSnap.contact?.id || (callSnap.isOutgoing ? (callSnap.recipientId || callSnap.to) : (callSnap.senderId || callSnap.from));
 
       const cleanupSignal = {
         id: `end_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
         signalType: finalSignalType,
+        type: wsType,
         from: currentUser.id,
-        to: callSnap.contact?.id,
+        to: targetPeerId,
         timestamp: Date.now(),
-        callId: currentCallId // Reference the original call ID
+        callId: currentCallId,
+        reason
       };
+
+      sendCallWS(cleanupSignal);
+
       const queueKey = 'garage_call_queue';
       const q = JSON.parse(localStorage.getItem(queueKey) || '[]');
       localStorage.setItem(queueKey, JSON.stringify([...q, cleanupSignal].slice(-20)));
       localStorage.setItem('garage_call_signal', JSON.stringify(cleanupSignal));
     } catch (e) { }
-  }, [currentUser, activeCall, callState, syncChannel, leaveGroupCall]);
+  }, [currentUser, activeCall, callState, stopRingtone, syncChannel, leaveGroupCall, sendCallWS]);
+
   const initiateCall = useCallback((contact, callType = 'audio') => {
     if (!currentUser || !contact) return;
-    
+
     // Clear any existing timers just in case
     if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
-    
+
     setCallState('calling');
     setCallSubStatus('calling');
     const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const signal = {
       id: callId,
+      callId: callId,
+      type: 'call_invite',
       signalType: 'CALL_INITIATED',
       callType: callType,
       from: currentUser.id,
@@ -2808,26 +2954,32 @@ export const AppProvider = ({ children }) => {
       to: contact.id,
       timestamp: Date.now()
     };
-    
+
     setActiveCall({ contact, isOutgoing: true, type: callType, id: callId });
-    
+
+    // Send over WebSocket immediately
+    sendCallWS(signal);
+
     // Use the ref to ensure we can clear this if call is answered/ended early
     callTimeoutRef.current = setTimeout(() => {
       endCall('timeout');
       callTimeoutRef.current = null;
     }, 60 * 1000);
-    
+
     try {
       const queueKey = 'garage_call_queue';
       const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
       localStorage.setItem(queueKey, JSON.stringify([...queue, signal].slice(-20)));
       localStorage.setItem('garage_call_signal', JSON.stringify(signal));
     } catch (e) { }
-  }, [currentUser, endCall]);
+  }, [currentUser, endCall, sendCallWS]);
 
   const acceptCall = useCallback(() => {
     if (!currentUser || !activeCall) return;
-    
+
+    // Stop ringtone audio immediately
+    stopRingtone();
+
     // CRITICAL: Stop all pending missed call timers when call is answered
     if (ringingTimerRef.current) {
       clearTimeout(ringingTimerRef.current);
@@ -2843,21 +2995,23 @@ export const AppProvider = ({ children }) => {
 
     const signal = {
       id: `acc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      callId: activeCall.id,
+      type: 'call_accept',
       signalType: 'CALL_ACCEPTED',
       from: currentUser.id,
       to: activeCall.contact.id,
       timestamp: Date.now()
     };
-    
+
+    sendCallWS(signal);
+
     try {
       const queueKey = 'garage_call_queue';
       const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
       localStorage.setItem(queueKey, JSON.stringify([...queue, signal].slice(-20)));
       localStorage.setItem('garage_call_signal', JSON.stringify(signal));
     } catch (e) { }
-  }, [currentUser, activeCall]);
-
-
+  }, [currentUser, activeCall, stopRingtone, sendCallWS]);
 
   const blockUser = useCallback((userId) => {
     if (!userId) return;
@@ -2888,7 +3042,7 @@ export const AppProvider = ({ children }) => {
   }, [staff, customers, groups, activeChatContact?.id]);
 
   const processedCallSignals = useRef(new Set()); // Fallback for rapid local events
-  
+
   // Shared registry to prevent multi-tab race conditions
   const checkSignalProcessed = (id) => {
     try {
@@ -2904,14 +3058,36 @@ export const AppProvider = ({ children }) => {
   };
   const ringingTimerRef = useRef(null);
   const callTimeoutRef = useRef(null);
+  const handleCallSignalRef = useRef(null);
+
+  // Ringtone synthesizer loop
+  const ringtoneCtxRef = useRef(null);
+  const ringtoneIntervalRef = useRef(null);
+
+  useEffect(() => {
+    if (callState === 'incoming') {
+      startRingtone();
+    } else {
+      stopRingtone();
+    }
+    return () => stopRingtone();
+  }, [callState, startRingtone, stopRingtone]);
 
   useEffect(() => {
     if (!currentUser) return;
 
     const handleCallSignal = (signal) => {
+      const sigType = signal.signalType || (signal.type === 'call_invite' ? 'CALL_INITIATED' :
+                     (signal.type === 'call_delivered' ? 'CALL_DELIVERED' :
+                     (signal.type === 'call_ringing' ? 'CALL_RINGING' :
+                     (signal.type === 'call_accept' ? 'CALL_ACCEPTED' :
+                     (signal.type === 'call_reject' ? 'CALL_REJECTED' :
+                     (signal.type === 'call_end' ? 'CALL_ENDED' : null))))));
+
+      if (!sigType) return;
       if (checkSignalProcessed(signal.id)) return;
       if (String(signal.to) !== String(currentUser.id)) return;
-      
+
       // Ignore signals older than 30 seconds (Stale prevention)
       const now = Date.now();
       if (signal.timestamp && (now - signal.timestamp > 30000)) {
@@ -2920,11 +3096,22 @@ export const AppProvider = ({ children }) => {
       }
 
       markSignalProcessed(signal.id);
-      console.log('[App] Processing Signal:', signal.signalType, signal.id);
+      console.log('[App] Processing Signal:', sigType, signal.id);
 
-      if (signal.signalType === 'CALL_INITIATED') {
-        // If already in a call, ignore new calls
-        if (callState !== 'idle') return;
+      if (sigType === 'CALL_INITIATED') {
+        // If already in a call, send reject
+        if (callState !== 'idle') {
+          sendCallWS({
+            type: 'call_reject',
+            signalType: 'CALL_REJECTED',
+            callId: signal.callId || signal.id,
+            reason: 'busy',
+            from: currentUser.id,
+            to: signal.from,
+            timestamp: Date.now()
+          });
+          return;
+        }
 
         const usersList = [...ensureEntityArray(customers, 'customers'), ...ensureEntityArray(staff, 'staff')];
         const sender = usersList.find(u => String(u.id) === String(signal.from)) || {
@@ -2940,7 +3127,7 @@ export const AppProvider = ({ children }) => {
           contact: sender,
           isOutgoing: false,
           type: signal.callType || 'audio',
-          id: signal.id
+          id: signal.callId || signal.id
         });
 
         // Auto-terminate incoming call if not answered in 60s
@@ -2953,11 +3140,14 @@ export const AppProvider = ({ children }) => {
         // Acknowledge delivery immediately
         const ack = {
           id: `ack_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          callId: signal.callId || signal.id,
+          type: 'call_delivered',
           signalType: 'CALL_DELIVERED',
           from: currentUser.id,
           to: signal.from,
           timestamp: Date.now()
         };
+        sendCallWS(ack);
         try {
           const queueKey = 'garage_call_queue';
           const q = JSON.parse(localStorage.getItem(queueKey) || '[]');
@@ -2970,11 +3160,14 @@ export const AppProvider = ({ children }) => {
         ringingTimerRef.current = setTimeout(() => {
           const ring = {
             id: `ring_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            callId: signal.callId || signal.id,
+            type: 'call_ringing',
             signalType: 'CALL_RINGING',
             from: currentUser.id,
             to: signal.from,
             timestamp: Date.now()
           };
+          sendCallWS(ring);
           try {
             const queueKey = 'garage_call_queue';
             const q = JSON.parse(localStorage.getItem(queueKey) || '[]');
@@ -2984,21 +3177,30 @@ export const AppProvider = ({ children }) => {
           ringingTimerRef.current = null;
         }, 1000);
 
-      } else if (signal.signalType === 'CALL_DELIVERED') {
+      } else if (sigType === 'CALL_DELIVERED') {
         // Caller sees the call reached the receiver
         if (callState === 'calling' && String(signal.to) === String(currentUser.id)) {
           setCallSubStatus('delivered');
         }
-      } else if (signal.signalType === 'CALL_RINGING') {
+      } else if (sigType === 'CALL_RINGING') {
         // Caller sees the receiver's device is ringing
         if (callState === 'calling' && String(signal.to) === String(currentUser.id)) {
           setCallSubStatus('ringing');
         }
-      } else if (signal.signalType === 'CALL_ACCEPTED') {
+      } else if (sigType === 'CALL_ACCEPTED') {
+        if (callTimeoutRef.current) {
+          clearTimeout(callTimeoutRef.current);
+          callTimeoutRef.current = null;
+        }
+        if (ringingTimerRef.current) {
+          clearTimeout(ringingTimerRef.current);
+          ringingTimerRef.current = null;
+        }
+        stopRingtone();
         setCallState('connected');
         setCallSubStatus('connected');
         setActiveCall(prev => prev ? { ...prev, startTime: Date.now() } : null);
-      } else if (signal.signalType === 'CALL_ENDED' || signal.signalType === 'CALL_CANCELLED' || signal.signalType === 'CALL_REJECTED' || signal.signalType === 'CALL_MISSED') {
+      } else if (sigType === 'CALL_ENDED' || sigType === 'CALL_CANCELLED' || sigType === 'CALL_REJECTED' || sigType === 'CALL_MISSED') {
         const currentUserId = currentUser?.id;
         if (!currentUserId) return;
 
@@ -3007,13 +3209,27 @@ export const AppProvider = ({ children }) => {
           String(signal.to) === String(currentUserId);
 
         if (isParticipant) {
-          const reason = signal.signalType === 'CALL_CANCELLED' ? 'canceled_remote' : 
-                         (signal.signalType === 'CALL_REJECTED' ? 'declined_remote' : 
-                         (signal.signalType === 'CALL_MISSED' ? 'timeout_remote' : 'ended'));
+          // Ignore late reject/cancel/missed signals if call is ALREADY connected
+          if (callState === 'connected' && sigType !== 'CALL_ENDED') {
+            console.log('[App] Ignoring late signal on connected call:', sigType);
+            return;
+          }
+
+          // Ignore signals for mismatched call IDs
+          if (activeCall?.id && signal.callId && String(signal.callId) !== String(activeCall.id)) {
+            console.log('[App] Ignoring signal for mismatched callId:', signal.callId, 'active:', activeCall.id);
+            return;
+          }
+
+          const reason = sigType === 'CALL_CANCELLED' ? 'canceled_remote' :
+            (sigType === 'CALL_REJECTED' ? 'declined_remote' :
+              (sigType === 'CALL_MISSED' ? 'timeout_remote' : 'ended'));
           endCall(reason);
         }
       }
     };
+
+    handleCallSignalRef.current = handleCallSignal;
 
     const pollQueue = () => {
       try {
@@ -3048,7 +3264,7 @@ export const AppProvider = ({ children }) => {
       window.removeEventListener('storage', handleStorage);
       clearInterval(cleanupInterval);
     };
-  }, [currentUser, customers, staff, callState, activeCall, endCall, initiateCall]);
+  }, [currentUser, customers, staff, callState, activeCall, endCall, initiateCall, sendCallWS]);
 
   const requestConfirmation = useCallback((label, onConfirm) => {
     setConfirmingAction({ label, onConfirm });
@@ -3074,7 +3290,7 @@ export const AppProvider = ({ children }) => {
     isSidebarOpen, setIsSidebarOpen,
     showNotifs, setShowNotifs,
     isChatOpen, setIsChatOpen,
-    initiateCall, acceptCall, endCall, handleRepairStatusChange,
+    initiateCall, acceptCall, endCall, handleRepairStatusChange, sendCallWS,
     confirmingAction, setConfirmingAction, requestConfirmation,
     typingStatus, setTypingSignal, reactToMessage, userPresence,
     groups, setGroups, createGroup, updateGroup, addMembersToGroup, removeMemberFromGroup, promoteMember, demoteAdmin, leaveGroup, deleteGroup,
@@ -3095,7 +3311,7 @@ export const AppProvider = ({ children }) => {
     isSidebarOpen,
     showNotifs,
     isChatOpen,
-    initiateCall, acceptCall, endCall, handleRepairStatusChange,
+    initiateCall, acceptCall, endCall, handleRepairStatusChange, sendCallWS,
     confirmingAction, requestConfirmation,
     typingStatus, setTypingSignal, reactToMessage, userPresence, deferredPrompt,
     groups, createGroup, updateGroup, addMembersToGroup, removeMemberFromGroup, promoteMember, demoteAdmin, leaveGroup, deleteGroup,
