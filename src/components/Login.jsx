@@ -119,14 +119,6 @@ const Login = () => {
     }
   };
 
-  const handlePlatformOwnerLogin = async () => {
-    setError(''); setLoading(true);
-    try {
-      const result = await loginAsync('987360873', '987360873');
-      if (!result.success) setError(result.message);
-    } finally { setLoading(false); }
-  };
-
   const handleSignupNext = () => {
     setError('');
     if (signupStep === SIGNUP_STEP.ROLE) {
@@ -250,18 +242,6 @@ const Login = () => {
         {/* ══════════════════ LOGIN ══════════════════ */}
         {tab === 'login' && (
           <>
-            {/* Platform owner quick-access */}
-            <button className="lp-platform-btn" onClick={handlePlatformOwnerLogin} disabled={loading}>
-              <span className="lp-lightning">⚡</span>
-              Enter Platform Owner Portal
-            </button>
-
-            <div className="lp-or">
-              <div className="lp-or-line" />
-              <span className="lp-or-text">or sign in as a garage user</span>
-              <div className="lp-or-line" />
-            </div>
-
             <p className="lp-subtitle">{t('loginSubtitle')}</p>
 
             <form className="lp-form" onSubmit={handleLogin}>
@@ -437,7 +417,7 @@ const Login = () => {
             <div className="lp-steps">
               {stepLabels.map((label, i) => {
                 const isActive = i === currentStepDisplay - 1;
-                const isDone   = i < currentStepDisplay - 1;
+                const isDone = i < currentStepDisplay - 1;
                 return (
                   <React.Fragment key={i}>
                     <div className="lp-step-item">
@@ -460,8 +440,8 @@ const Login = () => {
                 <p className="lp-subtitle">{t('Who are you?')}</p>
                 <div className="lp-roles">
                   {[
-                    { value: 'customer', label: t('customer') || 'Customer',       icon: '👤', desc: 'Book services & track vehicles' },
-                    { value: 'admin',    label: t('garageOwner') || 'Garage Owner', icon: '🏢', desc: 'Manage your own garage' },
+                    { value: 'customer', label: t('customer') || 'Customer', icon: '👤', desc: 'Book services & track vehicles' },
+                    { value: 'admin', label: t('garageOwner') || 'Garage Owner', icon: '🏢', desc: 'Manage your own garage' },
                   ].map(r => (
                     <button
                       key={r.value}
